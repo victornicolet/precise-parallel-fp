@@ -1,0 +1,7 @@
+*.csv
+precise_parallel_fp
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+.idea
