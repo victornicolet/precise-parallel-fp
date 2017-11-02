@@ -11,6 +11,11 @@ start = omp_get_wtime();\
 call;\
 mem = (double) (omp_get_wtime() - start);
 
+#define VERBOSE(v,c)\
+if(v){\
+c;\
+}
+
 bool file_exists(const char * filename) {
     FILE* file;
     if (file = fopen(filename, "r")) {
@@ -69,7 +74,7 @@ int main(int argc, char** argv) {
     double *ep = (double*)calloc(n, sizeof(ep));
     double *epp = (double*)calloc(n, sizeof(epp));
 
-    printf("n = %i\n", n);
+    VERBOSE(verbose, printf("n = %i\n", n))
     frand_init(a, n);
 
 // Sequential
@@ -82,7 +87,7 @@ int main(int argc, char** argv) {
     double par_time = 0.0;
     double par_sum;
     TIME(start, par_sum = dsum_par(a, n), par_time)
-    printf("Error: %f \n", (seq_sum - par_sum) / seq_sum);
+    VERBOSE(verbose, printf("Error: %f \n", (seq_sum - par_sum) / seq_sum))
 
 //    Prefix sum + error correction
     double pfx_par_time = 0.0;
