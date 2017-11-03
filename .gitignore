@@ -2,7 +2,7 @@
 precise_parallel_fp
 CMakeFiles
 CMakeCache.txt
-cmake_install.cmake
+*.cmake
 Makefile
 .idea
 *.o
