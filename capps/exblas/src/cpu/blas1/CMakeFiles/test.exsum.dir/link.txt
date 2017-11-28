@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel   CMakeFiles/test.exsum.dir/__/__/__/tests/test.exsum.cpu.cpp.o  -o test.exsum -rdynamic ../libexblas.a -ltbb 
