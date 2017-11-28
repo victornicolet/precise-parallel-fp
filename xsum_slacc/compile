@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Compile programs.
-
-rm *.o
-make -f Makefile-$1

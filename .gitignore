@@ -1,8 +1,8 @@
 *.csv
-precise_parallel_fp
-CMakeFiles
-CMakeCache.txt
-*.cmake
-Makefile
-.idea
-*.o
+capps/precise_parallel_fp
+capps/CMakeFiles
+capps/CMakeCache.txt
+capps/*.cmake
+capps/Makefile
+capps/.idea
+capps/*.o
