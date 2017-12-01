@@ -7,7 +7,7 @@
 capps/precise_parallel_fp
 capps/CMakeFiles
 capps/CMakeCache.txt
-*.cmake
-*/Makefile
+capps/*.cmake
+capps/Makefile
 capps/.idea
 capps/*.o

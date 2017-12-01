@@ -1,0 +1,2 @@
+/usr/bin/ar qc libexblas.a  CMakeFiles/exblas.dir/blas1/superaccumulator.cpp.o CMakeFiles/exblas.dir/blas1/ExSUM.cpp.o CMakeFiles/exblas.dir/__/common/common.cpp.o
+/usr/bin/ranlib libexblas.a
