@@ -1,6 +1,6 @@
 # CMake generated Testfile for 
-# Source directory: /home/nicolet/projects/precise_parallel_fp/exblas/src/cpu/blas1
-# Build directory: /home/nicolet/projects/precise_parallel_fp/exblas/src/cpu/blas1
+# Source directory: /home/nicolet/projects/precise_parallel_fp/capps/exblas/src/cpu/blas1
+# Build directory: /home/nicolet/projects/precise_parallel_fp/capps/exblas/src/cpu/blas1
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
