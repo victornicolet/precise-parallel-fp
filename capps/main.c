@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "omp.h"
 
+
 #define TIME(start, call, mem)\
 start = omp_get_wtime();\
 call;\
