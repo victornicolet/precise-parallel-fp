@@ -28,19 +28,19 @@
  * \ingroup common
  * \brief Maximum exponent
  */
-int constexpr e_bits = 1023;    // 319
+const int e_bits = 1023;    // 319
 
 /**
  * \ingroup common
  * \brief Maximum exponent + the number of bits in signigicant
  */
-int constexpr f_bits = 1023 + 52;   // 300
+const int f_bits = 1023 + 52;   // 300
 
 /**
  * \ingroup common
  * \brief Number of limbs in superaccumulator
  */
-int constexpr bin_count = 39;
+const int bin_count = 39;
 
 
 /**

@@ -4,7 +4,7 @@
 
 #ifndef PRECISE_PARALLEL_FP_PAR_PRECISE_FP_H
 #define PRECISE_PARALLEL_FP_PAR_PRECISE_FP_H
-#include "pfpdefs.h"
+#include "pfpdefs.hpp"
 
 double dsum(double*, msize_t);
 double dsum_par(double*, msize_t);

@@ -2,7 +2,7 @@
 // Created by nicolet on 31/10/17.
 //
 #include <stdio.h>
-#include "pfpdefs.h"
+#include "pfpdefs.hpp"
 
 void dclean(double *a, msize_t n){
     for (msize_t i = 0; i < n; ++i) {

@@ -1,8 +1,8 @@
 //
 // Created by nicolet on 28/10/17.
 //
-#include "pfpdefs.h"
-#include "par_precise_fp.h"
+#include "pfpdefs.hpp"
+#include "par_precise_fp.hpp"
 #include "stdbool.h"
 #include "omp.h"
 
@@ -46,7 +46,7 @@ void dpxsum_par(double* a, double* prefixes, msize_t size){
 #pragma omp single
             {
                 nthr = omp_get_num_threads();
-                z = malloc((size_t) (sizeof(double) * (nthr + 1)));
+                z = (double*)malloc((size_t) (sizeof(double) * (nthr + 1)));
                 z[0] = 0;
             }
             int tid = omp_get_thread_num();

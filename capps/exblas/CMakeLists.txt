@@ -1,13 +1,14 @@
 # Copyright (c) 2016 Inria and University Pierre and Marie Curie
 # All rights reserved.
 
-cmake_minimum_required (VERSION 2.8.8)
+cmake_minimum_required (VERSION 3.1)
 include(CheckCSourceCompiles)
 include(CheckCXXSourceCompiles)
 include(CheckFunctionExists)
 
 project (EXBLAS)
 enable_language (CXX)
+set (CMAKE_CXX_STANDARD 11)
 
 # The version number.
 set (EXBLAS_VERSION_MAJOR 1)
