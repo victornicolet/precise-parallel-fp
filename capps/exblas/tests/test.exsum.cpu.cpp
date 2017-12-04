@@ -114,12 +114,12 @@ int main(int argc, char * argv[]) {
 #ifdef EXBLAS_MPI
     if (p == 0) {
 #endif
-    printf("  exsum with superacc = %.16g\n", exsum_acc);
-    printf("  exsum with FPE2 and superacc = %.16g\n", exsum_fpe2);
-    printf("  exsum with FPE4 and superacc = %.16g\n", exsum_fpe4);
-    printf("  exsum with FPE4 early-exit and superacc = %.16g\n", exsum_fpe4ee);
-    printf("  exsum with FPE6 early-exit and superacc = %.16g\n", exsum_fpe6ee);
-    printf("  exsum with FPE8 early-exit and superacc = %.16g\n", exsum_fpe8ee);
+    printf("  exmts with superacc = %.16g\n", exsum_acc);
+    printf("  exmts with FPE2 and superacc = %.16g\n", exsum_fpe2);
+    printf("  exmts with FPE4 and superacc = %.16g\n", exsum_fpe4);
+    printf("  exmts with FPE4 early-exit and superacc = %.16g\n", exsum_fpe4ee);
+    printf("  exmts with FPE6 early-exit and superacc = %.16g\n", exsum_fpe6ee);
+    printf("  exmts with FPE8 early-exit and superacc = %.16g\n", exsum_fpe8ee);
 
 #ifdef EXBLAS_VS_MPFR
     double exsumMPFR = ExSUMVsMPFR(N, a);

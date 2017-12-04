@@ -117,12 +117,12 @@ int _exblas_(int argc, char** argv) {
     exsum_fpe6ee = exsum(N, a, 1, 6, true);
     exsum_fpe8ee = exsum(N, a, 1, 8, true);
 
-    printf("  exsum with superacc = %.16g\n", exsum_acc);
-    printf("  exsum with FPE2 and superacc = %.16g\n", exsum_fpe2);
-    printf("  exsum with FPE4 and superacc = %.16g\n", exsum_fpe4);
-    printf("  exsum with FPE4 early-exit and superacc = %.16g\n", exsum_fpe4ee);
-    printf("  exsum with FPE6 early-exit and superacc = %.16g\n", exsum_fpe6ee);
-    printf("  exsum with FPE8 early-exit and superacc = %.16g\n", exsum_fpe8ee);
+    printf("  exmts with superacc = %.16g\n", exsum_acc);
+    printf("  exmts with FPE2 and superacc = %.16g\n", exsum_fpe2);
+    printf("  exmts with FPE4 and superacc = %.16g\n", exsum_fpe4);
+    printf("  exmts with FPE4 early-exit and superacc = %.16g\n", exsum_fpe4ee);
+    printf("  exmts with FPE6 early-exit and superacc = %.16g\n", exsum_fpe6ee);
+    printf("  exmts with FPE8 early-exit and superacc = %.16g\n", exsum_fpe8ee);
 
 
     exsum_fpe2 = fabs(exsum_acc - exsum_fpe2) / fabs(exsum_acc);
