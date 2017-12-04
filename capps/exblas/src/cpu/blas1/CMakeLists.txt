@@ -1,10 +1,11 @@
 # Copyright (c) 2016 Inria and University Pierre and Marie Curie
 # All rights reserved.
-
+set (CMAKE_CXX_STANDARD_REQUIRED 11)
 # Testing
 add_executable (test.exsum ${PROJECT_SOURCE_DIR}/tests/test.exsum.cpu.cpp)
 link_libraries(tbb)
 target_link_libraries (test.exsum ${EXTRA_LIBS})
+
 
 # add the install targets
 install (TARGETS test.exsum DESTINATION ${PROJECT_BINARY_DIR}/tests)

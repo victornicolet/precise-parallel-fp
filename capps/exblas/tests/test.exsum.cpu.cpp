@@ -104,9 +104,9 @@ int main(int argc, char * argv[]) {
 
     bool is_pass = true;
     double exsum_acc, exsum_fpe2, exsum_fpe4, exsum_fpe4ee, exsum_fpe6ee, exsum_fpe8ee;
-    exsum_acc = exsum(N, a, 1, 0);
-    exsum_fpe2 = exsum(N, a, 1, 2);
-    exsum_fpe4 = exsum(N, a, 1, 4);
+    exsum_acc = exsum(N, a, 1, 0, false);
+    exsum_fpe2 = exsum(N, a, 1, 2, false);
+    exsum_fpe4 = exsum(N, a, 1, 4, false);
     exsum_fpe4ee = exsum(N, a, 1, 4, true);
     exsum_fpe6ee = exsum(N, a, 1, 6, true);
     exsum_fpe8ee = exsum(N, a, 1, 8, true);
