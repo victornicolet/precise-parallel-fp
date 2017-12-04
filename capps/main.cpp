@@ -4,13 +4,16 @@
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <mm_malloc.h>
 #include "omp.h"
 #include <getopt.h>
 #include <time.h>
 #include "par_precise_fp.hpp"
+#include "pfpdefs.hpp"
 #ifdef EXBLAS_MPI
 #include <mpi.h>
+
 #endif
 // exblas
 #include "blas1.hpp"
@@ -141,11 +144,6 @@ int _exblas_(int argc, char** argv) {
     return 0;
 }
 
-
-void test_my_exblas(int argc, char** argv){
-    _exblas_(argc, argv);
-}
-
 void test_my_implems(int argc, char** argv){
     //    Parse options
     int verbose = 0;
@@ -234,12 +232,66 @@ void test_my_implems(int argc, char** argv){
     free(a);
 }
 
+void small_tests(int argc, char** argv){
+    int N = 1 << 10;
+    int TRIALS = 10;
+    int NUM_TESTS = 10;
+    double testline[6];
+
+    double* a;
+    _mts_ mtsres, refmtsres;
+
+    fstream fp;
+    fp.open("output.csv", ios::app);
+    if (fp.is_open()){
+        cout << "Output file opened." << endl;
+    }
+    fp << "size, init_naive sum, init_naive mts,  init_fpuniform sum,  init_fpuniform mts, init_illconditioned sum, "
+          <<  "init_illconditioned mts" << endl;
+
+    a = (double*)_mm_malloc(N*sizeof(double), 32);
+
+
+    for(int testno = 0; testno < NUM_TESTS; testno++) {
+        for (int initmode = 0; initmode < 3; initmode++) {
+            switch (initmode) {
+                case 0:
+                    init_naive(N, a);
+                    break;
+                case 1:
+                    init_fpuniform(N, a, 10, 3);
+                    break;
+                case 2:
+                    init_ill_cond(N, a, 0.23);
+                    break;
+                default:
+                    break;
+            }
+
+            refmtsres = myparallelmts(a, N);
+
+            for (int i = 0; i < TRIALS; ++i) {
+                mtsres = myparallelmts(a, N);
+                testline[2 * initmode] += (refmtsres.sum - mtsres.sum) / TRIALS;
+                testline[2 * initmode + 1] += (refmtsres.mts - mtsres.mts) / TRIALS;
+            }
+        }
+        cout << N;
+        for(int j = 0; j < 6; j++){
+            cout << "," << testline[j];
+        }
+        cout << endl;
+    } // End test number testno
+    fp.close();
+    free(a);
+}
+
 int main(int argc, char** argv) {
 #ifdef TEST_CUSTOM
     test_my_implems(argc, argv);
 #endif
 //    Test exblas
-    test_my_exblas(argc, argv);
-
+//    test_my_exblas(argc, argv);
+    small_tests(argc, argv);
     return 0;
 }
