@@ -40,6 +40,11 @@ bool file_exists(const char * filename) {
     return false;
 }
 
+bool f_is_empty(std::fstream& pFile)
+{
+    return pFile.peek() == std::fstream::traits_type::eof();
+}
+
 void usage(char* arg){
     printf("Usage: precise_parallel_fp [-n size] [-o output-file] [-t tests-numbers] [-v]");
 }
@@ -236,23 +241,21 @@ void small_tests(int argc, char** argv){
     int N = 1 << 10;
     int TRIALS = 10;
     int NUM_TESTS = 10;
-    double testline[6];
+
+    if(argc > 1){
+        N = 1 << atoi(argv[1]);
+    }
 
     double* a;
     _mts_ mtsres, refmtsres;
 
     fstream fp;
-    fp.open("output.csv", ios::app);
-    if (fp.is_open()){
-        cout << "Output file opened." << endl;
-    }
-    fp << "size, init_naive sum, init_naive mts,  init_fpuniform sum,  init_fpuniform mts, init_illconditioned sum, "
-          <<  "init_illconditioned mts" << endl;
-
+    fp.open("./output.csv", ios::app);
     a = (double*)_mm_malloc(N*sizeof(double), 32);
 
 
     for(int testno = 0; testno < NUM_TESTS; testno++) {
+        double testline[6] = {0.};
         for (int initmode = 0; initmode < 3; initmode++) {
             switch (initmode) {
                 case 0:
@@ -267,7 +270,7 @@ void small_tests(int argc, char** argv){
                 default:
                     break;
             }
-
+//            Execute once for reference and study variation
             refmtsres = myparallelmts(a, N);
 
             for (int i = 0; i < TRIALS; ++i) {
@@ -276,12 +279,13 @@ void small_tests(int argc, char** argv){
                 testline[2 * initmode + 1] += (refmtsres.mts - mtsres.mts) / TRIALS;
             }
         }
-        cout << N;
+        fp << N;
         for(int j = 0; j < 6; j++){
-            cout << "," << testline[j];
+            fp << "," << testline[j];
         }
-        cout << endl;
+        fp << endl;
     } // End test number testno
+    fp.flush();
     fp.close();
     free(a);
 }

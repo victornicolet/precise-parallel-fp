@@ -48,3 +48,4 @@ capps/exblas/tests/test.exgemv
 capps/exblas/tests/test.exsum
 capps/exblas/include/config.h
 capps/exblas/src/cpu/libexblas.a
+capps/exblas/src/cpu/blas1/test.exsum

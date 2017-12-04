@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-for i in {4194304..67108864..1048576}
+for i in 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29
 do
-	for j in 1 2 3 4 5 6 7 8 9
-	do
-	echo "n = %i"
-	./precise_parallel_fp -n $i -o experiments1.csv
-	done
+echo "Experiment for $i"
+./precise_parallel_fp $i
 done
