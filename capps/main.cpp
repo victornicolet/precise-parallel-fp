@@ -41,8 +41,8 @@ void usage(char* arg){
     printf("Usage: precise_parallel_fp [-n size] [-o output-file] [-t tests-numbers] [-v]");
 }
 
-
-int _exblas_(int argc, char * argv[]) {
+// _exblas_ usage: command [N=20] [stddev=1.] [mean=1.] [ill_cond_or_lognormal_or_uniform= (i | n)]
+int _exblas_(int argc, char** argv) {
     double eps = 1e-16;
     int N = 1 << 20;
     bool lognormal = false;
@@ -77,13 +77,17 @@ int _exblas_(int argc, char * argv[]) {
     if (!a)
         fprintf(stderr, "Cannot allocate memory for the main array\n");
     if(lognormal) {
+        fprintf(stderr, "Data initialization: lognormal.\n");
         init_lognormal(N, a, mean, stddev);
     } else if ((argc > 4) && (argv[4][0] == 'i')) {
+        fprintf(stderr, "Data initialization: ill conditioned.\n");
         init_ill_cond(N, a, range);
     } else {
         if(range == 1){
+            fprintf(stderr, "Data intialization: naive.\n");
             init_naive(N, a);
         } else {
+            fprintf(stderr, "Data initialization: fp uniform.\n");
             init_fpuniform(N, a, range, emax);
         }
     }
@@ -138,15 +142,12 @@ int _exblas_(int argc, char * argv[]) {
 }
 
 
-
-
-
-void test_my_exblas(){
-    _exblas_(0, (char**) 0);
+void test_my_exblas(int argc, char** argv){
+    _exblas_(argc, argv);
 }
 
-int main(int argc, char** argv) {
-//    Parse options
+void test_my_implems(int argc, char** argv){
+    //    Parse options
     int verbose = 0;
     int number = 0;
     int opt;
@@ -231,9 +232,14 @@ int main(int argc, char** argv) {
     free(ep);
     free(epp);
     free(a);
+}
 
+int main(int argc, char** argv) {
+#ifdef TEST_CUSTOM
+    test_my_implems(argc, argv);
+#endif
 //    Test exblas
-    test_my_exblas();
+    test_my_exblas(argc, argv);
 
     return 0;
 }

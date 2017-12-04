@@ -2,7 +2,7 @@
 # All rights reserved.
 
 # Generate CPU specific library using Intel TBB and OpenMP
-
+link_libraries(tbb)
 # add the EXBLAS library?
 option (USE_EXBLAS "Use ExBLAS provided reproducible and accurate implementations of the BLAS routines" ON)
 if (USE_EXBLAS)

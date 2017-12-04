@@ -3,6 +3,7 @@
 
 # Testing
 add_executable (test.exsum ${PROJECT_SOURCE_DIR}/tests/test.exsum.cpu.cpp)
+link_libraries(tbb)
 target_link_libraries (test.exsum ${EXTRA_LIBS})
 
 # add the install targets
