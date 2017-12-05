@@ -7,6 +7,48 @@ def read_datafile(file_name, dtypes):
     data = np.loadtxt(file_name, delimiter=',', skiprows=0, dtype=dtypes)
     return data
 
+def m_test_mts_errlog():
+    merr_dnames = ["size2", "initmode", "inexact",
+                   "superacc", "fpe2","fpe4",
+                   "fpe4ee","fpe6ee","fpe8ee"]
+
+    merr_dtypes_rec = ["int","int", "float64",
+                       "float64","float64",'float64'
+                       ,"float64","float64","float64"]
+
+    merr_dtypes = { 'names' : merr_dnames,
+                    'formats' : merr_dtypes_rec }
+
+    data = read_datafile("m_test_mts_errlog.csv", merr_dtypes)
+
+    expansions = ["inexact", "superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
+
+    modes=["naive", "fpuniform", "ill conditioned"]
+
+    plt.close('all')
+    f, subplts = plt.subplots(len(modes))
+
+    colors = ['black', 'red', '#5990aa', '#69aabb', '#aa8834', '#ff8834', '#aa6630']
+    for i, mode in enumerate(modes):
+
+        subplts[i].set_title("Data: %s" % mode)
+        initmode = pd.DataFrame(data[data["initmode"] == i])
+        initmode.drop("initmode",1, inplace=True)
+        initmode = initmode.reset_index().groupby("size2", sort=True).mean().reset_index()
+
+        for j, expansion in enumerate(expansions):
+            subplts[i].plot(initmode['size2'], initmode[expansion],
+                            linestyle = '-',
+                            color = colors[j],
+                            label = expansion)
+
+
+        subplts[i].legend()
+
+    f.subplots_adjust()
+    plt.show()
+
+
 
 def m_test_mts_experiment():
     m_test_mts_dnames = ["size2","initmode","inexact", "superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
@@ -46,6 +88,7 @@ def m_test_mts_experiment():
 
 
 m_test_mts_experiment()
+m_test_mts_errlog()
 
 # x = ???
 # y = ???

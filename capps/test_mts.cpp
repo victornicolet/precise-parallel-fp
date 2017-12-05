@@ -53,12 +53,14 @@ __mts inexact_parallel_mts(int N, double* a){
 }
 
 void m_test_mts(int argc, char** argv) {
-    string outputcsv;
+    string outputcsv, err_outputcsv;
     outputcsv = string(__FUNCTION__).append(".csv");
+    err_outputcsv = string(__FUNCTION__).append("_errlog.csv");
     int NUM_RUNS = 10;
 
-    fstream  fp;
+    fstream  fp, fperr;
     fp.open(outputcsv, ios::app);
+    fperr.open(err_outputcsv, ios::app);
 
     double eps = 1e-16;
     int N = 1 << 20;
@@ -128,12 +130,16 @@ void m_test_mts(int argc, char** argv) {
                    exmts_fpe8ee.mts);
 
             double exmts_sacc_esum, exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum, exmts_fpe6ee_esum, exmts_fpe8ee_esum;
+            double inexmts_esum;
             double exsum_res_esum;
 //            Compare the results to the sequential sum
+
             exsum_res_esum = fabs(seq_res.sum - exsum_res) / fabs(seq_res.sum);
             if(exsum_res_esum > eps) {
                 printf("FAILED for EXSUM: error of %.16g\n", exsum_res_esum);
             }
+
+            inexmts_esum = fabs(seq_res.sum - inex_mts.sum) / fabs(seq_res.sum);
             exmts_sacc_esum = fabs(seq_res.sum - exmts_acc.sum) / fabs(seq_res.sum);
             exmts_fpe2_esum = fabs(seq_res.sum - exmts_fpe2.sum) / fabs(seq_res.sum);
             exmts_fpe4_esum = fabs(seq_res.sum - exmts_fpe4.sum) / fabs(seq_res.sum);
@@ -143,9 +149,18 @@ void m_test_mts(int argc, char** argv) {
             if ((exmts_fpe2_esum > eps) || (exmts_fpe4_esum > eps) || (exmts_fpe4ee_esum > eps) ||
                 (exmts_fpe6ee_esum > eps) || (exmts_fpe8ee_esum > eps)) {
                 is_pass = false;
+                printf("ERROR for inexact: %.16g\n", inexmts_esum);
                 printf("FAILED:\t %.16g %.16g \t %.16g \n\t\t%.16g \t %.16g \t %.16g\n",
                        exmts_sacc_esum, exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum,
                        exmts_fpe6ee_esum, exmts_fpe8ee_esum);
+                fperr << N << "," << initmode << ","
+                      << inexmts_esum << ","
+                      << exmts_sacc_esum << ","
+                      << exmts_fpe2_esum << ","
+                      << exmts_fpe4_esum <<","
+                      << exmts_fpe4ee_esum << ","
+                      << exmts_fpe6ee_esum << ","
+                      << exmts_fpe8ee_esum << endl;
             }
 
             fprintf(stderr, "\n");
@@ -163,5 +178,7 @@ void m_test_mts(int argc, char** argv) {
     }
     fp.flush();
     fp.close();
+    fperr.flush();
+    fperr.close();
     free(a);
 }
