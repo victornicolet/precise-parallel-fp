@@ -102,6 +102,9 @@ void m_test_mts(int argc, char** argv) {
         double seqtime, seqwtime;
         PFP_WTIME(seq_res = sequential_mts(N, a), start, seqtime, wstart, seqwtime)
 
+//        ExSUM for reference on SUM
+        double exsum_res = 0.;
+        exsum_res = exsum(N, a, 0, 0, 4, true);
 
         for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
             PFP_WTIME(inex_mts = inexact_parallel_mts(N, a), start, time_exmts[0], wstart, wtime_exmts[0])
@@ -112,19 +115,25 @@ void m_test_mts(int argc, char** argv) {
             PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[5], wstart, wtime_exmts[5])
             PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[6], wstart, wtime_exmts[6])
 
-            printf("  exmts sequential \t\t\t\t\t= %.16g \tmts = %.16g\n", seq_res.sum, seq_res.mts);
-            printf("  exmts with superacc \t\t\t\t= %.16g \tmts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
-            printf("  exmts with FPE2 and superacc \t\t= %.16g  \tmts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
-            printf("  exmts with FPE4 and superacc \t\t= %.16g  \tmts = %.16g\n", exmts_fpe4.sum, exmts_fpe2.mts);
-            printf("  exmts with FPE4ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe4ee.sum,
+            printf("  exsum whit FPE4ee               = %.16g\n", exsum_res);
+            printf("  exmts sequential                = %.16g  mts = %.16g\n", seq_res.sum, seq_res.mts);
+            printf("  exmts with superacc             = %.16g  mts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
+            printf("  exmts with FPE2 and superacc    = %.16g  mts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
+            printf("  exmts with FPE4 and superacc    = %.16g  mts = %.16g\n", exmts_fpe4.sum, exmts_fpe2.mts);
+            printf("  exmts with FPE4ee and superacc  = %.16g  mts = %.16g\n", exmts_fpe4ee.sum,
                    exmts_fpe4ee.mts);
-            printf("  exmts with FPE6ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe6ee.sum,
+            printf("  exmts with FPE6ee and superacc  = %.16g  mts = %.16g\n", exmts_fpe6ee.sum,
                    exmts_fpe6ee.mts);
-            printf("  exmts with FPE8ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe8ee.sum,
+            printf("  exmts with FPE8ee and superacc  = %.16g  mts = %.16g\n", exmts_fpe8ee.sum,
                    exmts_fpe8ee.mts);
 
             double exmts_sacc_esum, exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum, exmts_fpe6ee_esum, exmts_fpe8ee_esum;
+            double exsum_res_esum;
 //            Compare the results to the sequential sum
+            exsum_res_esum = fabs(seq_res.sum - exsum_res) / fabs(seq_res.sum);
+            if(exsum_res_esum > eps) {
+                printf("FAILED for EXSUM: error of %.16g\n", exsum_res_esum);
+            }
             exmts_sacc_esum = fabs(seq_res.sum - exmts_acc.sum) / fabs(seq_res.sum);
             exmts_fpe2_esum = fabs(seq_res.sum - exmts_fpe2.sum) / fabs(seq_res.sum);
             exmts_fpe4_esum = fabs(seq_res.sum - exmts_fpe4.sum) / fabs(seq_res.sum);
