@@ -147,7 +147,7 @@ void m_test_mts(int argc, char** argv) {
         }
         fp << N << "," << initmode;
         for(int exno = 0; exno < 7; exno++){
-            fp << "," << (seqwtime * wtime_exmts[exno]) / NUM_RUNS;
+            fp << "," << seqwtime * (NUM_RUNS / wtime_exmts[exno]);
         }
         fp << endl;
     }
