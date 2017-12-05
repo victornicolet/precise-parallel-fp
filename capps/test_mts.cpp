@@ -15,7 +15,6 @@ void m_test_mts(int argc, char** argv) {
     outputcsv = string(__FUNCTION__).append(".csv");
     int NUM_RUNS = 10;
 
-
     fstream  fp;
     fp.open(outputcsv, ios::app);
 
@@ -53,15 +52,16 @@ void m_test_mts(int argc, char** argv) {
         bool is_pass = true;
         __mts exmts_acc, exmts_fpe2, exmts_fpe4, exmts_fpe4ee, exmts_fpe6ee, exmts_fpe8ee;
         double time_exmts[6] = {0.};
-        double start;
+        double wtime_exmts[6] = {0.};
+        double start, wstart;
 
         for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
-            PFP_TIME(exmts_acc = exmts(N, a, 0, false), start, time_exmts[0])
-            PFP_TIME(exmts_fpe2 = exmts(N, a, 2, false), start, time_exmts[1])
-            PFP_TIME(exmts_fpe4 = exmts(N, a, 4, false), start, time_exmts[2])
-            PFP_TIME(exmts_fpe4ee = exmts(N, a, 4, true), start, time_exmts[3])
-            PFP_TIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[4])
-            PFP_TIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[5])
+            PFP_WTIME(exmts_acc = exmts(N, a, 0, false), start, time_exmts[0], wstart, wtime_exmts[0])
+            PFP_WTIME(exmts_fpe2 = exmts(N, a, 2, false), start, time_exmts[1], wstart, wtime_exmts[1])
+            PFP_WTIME(exmts_fpe4 = exmts(N, a, 4, false), start, time_exmts[2], wstart, wtime_exmts[2])
+            PFP_WTIME(exmts_fpe4ee = exmts(N, a, 4, true), start, time_exmts[3], wstart, wtime_exmts[3])
+            PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[4], wstart, wtime_exmts[4])
+            PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[5], wstart, wtime_exmts[5])
 
             printf("  exmts with superacc = %.16g mts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
             printf("  exmts with FPE2 and superacc = %.16g  mts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
@@ -96,7 +96,7 @@ void m_test_mts(int argc, char** argv) {
         }
         fp << N << "," << initmode;
         for(int exno = 0; exno < 6; exno++){
-            fp << "," << time_exmts[exno] / NUM_RUNS;
+            fp << "," << wtime_exmts[exno] / NUM_RUNS;
         }
         fp << endl;
     }

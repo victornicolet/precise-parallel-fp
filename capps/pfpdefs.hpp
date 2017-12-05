@@ -16,6 +16,15 @@ call;\
 mem = (double) (pfp_rdtsc() - start);
 #endif
 
+#ifndef PPF_WTIME
+#define PFP_WTIME(call,start,mem,start2,mem2)\
+start2 = omp_get_wtime();\
+start = pfp_rdtsc();\
+call;\
+mem = (double) (pfp_rdtsc() - start);\
+mem2 = (double) (omp_get_wtime() - start2);
+#endif
+
 
 #include "omp.h"
 #include <cstdint>
