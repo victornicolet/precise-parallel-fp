@@ -9,8 +9,8 @@ def read_datafile(file_name, dtypes):
 
 
 def m_test_mts_experiment():
-    m_test_mts_dnames = ["size2","initmode","superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
-    m_test_mts_dtypes = ["int","int","float64","float64",'float64',"float64","float64","float64"]
+    m_test_mts_dnames = ["size2","initmode","inexact", "superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
+    m_test_mts_dtypes = ["int","int","float64", "float64","float64",'float64',"float64","float64","float64"]
     mmts_dtypes = { 'names' : m_test_mts_dnames,
                     'formats' : m_test_mts_dtypes }
     data = read_datafile("m_test_mts.csv", mmts_dtypes)
@@ -18,14 +18,14 @@ def m_test_mts_experiment():
 
     lstyles = ['-', '--', ':']
 
-    expansions = ["superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
+    expansions = ["inexact", "superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
 
     modes=["naive", "fpuniform", "ill conditioned"]
 
     plt.close('all')
     f, subplts = plt.subplots(len(modes))
 
-    colors = ['red', '#5990aa', '#69aabb', '#aa8834', '#ff8834', '#aa6630']
+    colors = ['black', 'red', '#5990aa', '#69aabb', '#aa8834', '#ff8834', '#aa6630']
     for i, mode in enumerate(modes):
 
         subplts[i].set_title("Data: %s" % mode)
