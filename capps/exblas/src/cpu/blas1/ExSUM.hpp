@@ -17,7 +17,7 @@
 #define EXSUM_HPP_
 
 #include "superaccumulator.hpp"
-#include "ExSUM.FPE.hpp"
+#include "ExSUM_FPE.hpp"
 #define TBB_PREVIEW_DETERMINISTIC_REDUCE 1
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_reduce.h>

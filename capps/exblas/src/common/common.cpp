@@ -146,6 +146,6 @@ void init_ill_cond(const int n, double *a, double c) {
 
 void init_naive(const int n, double *a) {
     for(int i = 0; i != n; ++i)
-        a[i] = 1.1;
+        a[i] = (rand() % 4) - 2.1;
 }
 

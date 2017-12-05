@@ -7,7 +7,18 @@
 
 #ifndef PRECISE_PARALLEL_FP_PFPDEFS_H
 #define PRECISE_PARALLEL_FP_PFPDEFS_H
+
+// Using haswell tsc for timing
+#ifndef PFP_TIME
+#define PFP_TIME(call,start,mem)\
+start = pfp_rdtsc();\
+call;\
+mem = (double) (pfp_rdtsc() - start);
+#endif
+
+
 #include "omp.h"
+#include <cstdint>
 
 typedef long msize_t;
 static double rand_dbl_limit = 10.0;
@@ -29,5 +40,12 @@ void println_darray(double *a, msize_t from, msize_t to);
 double myparallelmax(double* data, int ndata);
 _mts_ myparallelmts(double* data, int ndata);
 _mts_ custom_reduce_mts(double* data, int ndata);
+
+inline uint64_t pfp_rdtsc()
+{
+    uint32_t hi, lo;
+    asm volatile ("rdtsc" : "=a"(lo), "=d"(hi));
+    return lo | ((uint64_t)hi << 32);
+}
 
 #endif //PRECISE_PARALLEL_FP_PFPDEFS_H

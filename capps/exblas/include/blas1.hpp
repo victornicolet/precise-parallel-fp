@@ -5,7 +5,7 @@
 
 /**
  *  \file blas1.hpp
- *  \brief Provides a set of Basic Linear Algera Subprograms level-1 to handle scalar-vector operations
+ *  \brief Provides a set of Basic Linear Algebra Subprograms level-1 to handle scalar-vector operations
  *
  *  \authors
  *    Developers : \n
@@ -18,6 +18,12 @@
 
 // config from cmake
 #include "config.h"
+
+
+struct __mts {
+    double sum;
+    double mts;
+};
 
 /**
  * \defgroup blas1 BLAS Level-1 Functions
@@ -71,6 +77,29 @@ double exsum(const int Ng, double *ag, const int inca, const int offset, const i
  * \return Contains the reproducible and accurate result of the dot product of two real vectors
  */
 double exdot(const int Ng, double *ag, const int inca, const int offseta, double *bg, const int incb, const int offsetb, const int fpe, const bool early_exit = false);
+
+
+/**
+ * \defgroup Ex MTS Sum combined with Max function (maximum tail sum)
+ * \ingroup blas1
+ */
+
+/**
+ * \ingroup ExMTS
+ * \brief Parallel mts computes the maximum tail sum of elements of a real vector with our
+ *     multi-level reproducible and accurate algorithm.
+ *
+ *     If fpe < 2, it uses superaccumulators only. Otherwise, it relies on
+ *     floating-point expansions of size FPE with superaccumulators when needed
+ *
+ * \param Ng vector size
+ * \param ag vector
+ * \param fpe stands for the floating-point expansions size (used in conjuction with superaccumulators)
+ * \param early_exit specifies the optimization technique. By default, it is disabled
+ * \return Contains the reproducible and accurate sum of elements of a real vector
+ */
+__mts exmts(const int Ng, double *ag, const int fpe, const bool early_exit = false);
+
 
 #endif // BLAS1_HPP_
 

@@ -40,7 +40,7 @@ set (EXTRA_LIBS ${EXTRA_LIBS} tbb)
 # Grab the .c and .cpp files
 file (GLOB_RECURSE EXBLAS_C_CPP_SOURCE "*.c" "*.cpp" "${PROJECT_SOURCE_DIR}/src/common/*.cpp" "${PROJECT_SOURCE_DIR}/src/common/*.h")
 # Grab the C/C++ headers
-file (GLOB_RECURSE EXBLAS_C_CPP_HEADERS "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/include/*.hpp")
+file (GLOB_RECURSE EXBLAS_C_CPP_HEADERS "*.hpp" "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/include/*.hpp")
 set (EXBLAS_C_CPP_FILES "${EXBLAS_C_CPP_SOURCE};${EXBLAS_C_CPP_HEADERS}")
 
 # add the main library

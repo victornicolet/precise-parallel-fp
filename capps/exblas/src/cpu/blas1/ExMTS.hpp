@@ -17,17 +17,23 @@
 #define EXSUM_HPP_
 
 #include "superaccumulator.hpp"
-#include "ExSUM.FPE.hpp"
+#include "ExMTS_FPE.hpp"
 #define TBB_PREVIEW_DETERMINISTIC_REDUCE 1
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_reduce.h>
 #include <tbb/task_scheduler_init.h>
 #include <omp.h>
+#include <algorithm>
 
 #ifdef EXBLAS_MPI
-    #include <mpi.h>
+#include <mpi.h>
 #endif
 #include "common.hpp"
+#include "blas1.hpp"
+
+static inline __mts join(__mts const l, __mts const r){
+    return {r.sum + l.sum, std::max(l.mts, l.mts + r.sum)};
+}
 
 
 /**
@@ -36,38 +42,49 @@
  * \brief This class is meant to be used in our multi-level reproducible and 
  *  accurate algorithm with superaccumulators only
  */
-class TBBlongsum {
+class TBBlongmts { // TODO figure out what can be done to do mts instead of sum
     double* a; /**< a real vector to sum */
 public:
-    Superaccumulator acc; /**< supperaccumulator */
+    Superaccumulator acc, mtsacc; /**< supperaccumulator */
 
     /**
      * The main function that performs summation of the vector's elelements into the 
      * superaccumulator
      */
     void operator()(tbb::blocked_range<size_t> const & r) {
-        for(size_t i = r.begin(); i != r.end(); i += r.grainsize()) 
+        for(size_t i = r.begin(); i != r.end(); i += r.grainsize()) {
             acc.Accumulate(a[i]);
+            mtsacc.Accumulate(a[i]);
+        }
     }
 
     /** 
      * Construction that uses another object of TBBlongsum for initialization
      * \param x a TBBlongsum instance
      */
-    TBBlongsum(TBBlongsum & x, tbb::split) : a(x.a), acc(e_bits, f_bits) {}
+    TBBlongmts(TBBlongmts & x, tbb::split) : a(x.a), acc(e_bits, f_bits), mtsacc(e_bits, f_bits) {}
 
     /** 
      * Joins two superaccumulators of two different instances
      * \param y a TBBlongsum instance
      */
-    void join(TBBlongsum & y) { acc.Accumulate(y.acc); }
+    void join(TBBlongmts & y) {
+        double mtsl, mtsr;
+        mtsr = y.mtsacc.Round();
+        mtsacc.Accumulate(y.acc);
+        acc.Accumulate(y.acc);
+        mtsl = mtsacc.Round();
+        if(mtsr > mtsl){
+            mtsacc = y.mtsacc;
+        }
+    }
 
     /** 
      * Construction that initiates a real vector to sum and a supperacccumulator
      * \param a a real vector
      */
-    TBBlongsum(double a[]) :
-        a(a), acc(e_bits, f_bits)
+    TBBlongmts(double a[]) :
+            a(a), acc(e_bits, f_bits), mtsacc(e_bits, f_bits)
     {}
 };
 
@@ -79,12 +96,9 @@ public:
  *
  * \param N vector size
  * \param a vector
- * \param inca specifies the increment for the elements of a
- * \param offset specifies position in the vector to start with 
- * TODO: not done for offset
  * \return Contains the reproducible and accurate sum of elements of a real vector
  */
-double ExSUMSuperacc(int N, double *a, int inca, int offset);
+__mts ExMTSSuperacc(int N, double *a);
 
 /**
  * \ingroup ExSUM
@@ -94,11 +108,8 @@ double ExSUMSuperacc(int N, double *a, int inca, int offset);
  *
  * \param N vector size
  * \param a vector
- * \param inca specifies the increment for the elements of a
- * \param offset specifies position in the vector to start with 
- * TODO: not done for inca and offset
  * \return Contains the reproducible and accurate sum of elements of a real vector
  */
-template<typename CACHE> double ExSUMFPE(int N, double *a, int inca, int offset);
+template<typename CACHE> __mts ExMTSFPE(int N, double *a);
 
 #endif // EXSUM_HPP_

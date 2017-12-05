@@ -1,16 +1,11 @@
 #include "pfpdefs.hpp"
-#include <stdio.h>
-#include <stdbool.h>
 #include <cstdlib>
-#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <mm_malloc.h>
-#include "omp.h"
 #include <getopt.h>
-#include <time.h>
 #include "par_precise_fp.hpp"
-#include "pfpdefs.hpp"
+
 #ifdef EXBLAS_MPI
 #include <mpi.h>
 
@@ -18,18 +13,15 @@
 // exblas
 #include "blas1.hpp"
 #include "common.hpp"
+#include "test_mts.h"
 
 using namespace std;
-
-#define TIME(start, call, mem)\
-start = omp_get_wtime();\
-call;\
-mem = (double) (omp_get_wtime() - start);
 
 #define VERBOSE(v,c)\
 if(v){\
 c;\
 }
+
 
 bool file_exists(const char * filename) {
     FILE* file;
@@ -149,6 +141,7 @@ int _exblas_(int argc, char** argv) {
     return 0;
 }
 
+
 void test_my_implems(int argc, char** argv){
     //    Parse options
     int verbose = 0;
@@ -200,12 +193,12 @@ void test_my_implems(int argc, char** argv){
     double seq_sum = 0.0;
     double seqtime = 0.0;
 
-    TIME(start, seq_sum = dsum(a, n), seqtime)
+    PFP_TIME(seq_sum = dsum(a, n), start, seqtime)
 
 //    Parallel
     double par_time = 0.0;
     double par_sum;
-    TIME(start, par_sum = dsum_par(a, n), par_time)
+    PFP_TIME(par_sum = dsum_par(a, n), start, par_time)
     VERBOSE(verbose, printf("Error: %f \n", (seq_sum - par_sum) / seq_sum))
 
 //    Prefix sum + error correction
@@ -213,8 +206,8 @@ void test_my_implems(int argc, char** argv){
     double pfx_cor_time = 0.0;
     double pfx_tot_time = 0.0;
     int reclevel = 0;
-    TIME(start, dpxsum_par(a, p, n), pfx_par_time)
-    TIME(start, dprecise_parallel(a, p, ep, epp, precision, n, &reclevel), pfx_cor_time)
+    PFP_TIME(dpxsum_par(a, p, n), start,pfx_par_time)
+    PFP_TIME(dprecise_parallel(a, p, ep, epp, precision, n, &reclevel), start, pfx_cor_time)
     pfx_tot_time = pfx_par_time + pfx_cor_time;
     double pre_sum = p[n-1];
     double error = (seq_sum - pre_sum)/seq_sum;
@@ -296,6 +289,7 @@ int main(int argc, char** argv) {
 #endif
 //    Test exblas
 //    test_my_exblas(argc, argv);
-    small_tests(argc, argv);
+//    small_tests(argc, argv);
+    m_test_mts(argc, argv);
     return 0;
 }

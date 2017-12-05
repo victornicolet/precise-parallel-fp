@@ -18,6 +18,6 @@ find_package(OpenMP REQUIRED)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES pfpdefs.hpp main.cpp par_precise_fp.cpp par_precise_fp.hpp pfpdefs.cpp)
+file(GLOB SOURCE_FILES "*.cpp" "*.hpp" "*.h")
 add_executable(precise_parallel_fp ${SOURCE_FILES})
 
