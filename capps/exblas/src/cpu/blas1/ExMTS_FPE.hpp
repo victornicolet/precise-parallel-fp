@@ -241,8 +241,8 @@ void FPExpansionVectM1<N,TRAITS>::Flush()
     for(unsigned int i = 0; i != N; ++i)
     {
         sum_superacc.Accumulate(sum[i]);
+        sum[i] = 0.;
         mts_superacc.Accumulate(mts[i]);
-//        sum[i] = 0.;
 //        mts[i] = 0.;
     }
 }

@@ -16,7 +16,6 @@ def m_test_mts_experiment():
     data = read_datafile("m_test_mts.csv", mmts_dtypes)
 
 
-    lstyles = ['-', '--', ':']
 
     expansions = ["inexact", "superacc","fpe2","fpe4","fpe4ee","fpe6ee","fpe8ee"]
 
@@ -35,7 +34,7 @@ def m_test_mts_experiment():
 
         for j, expansion in enumerate(expansions):
             subplts[i].plot(initmode['size2'], initmode[expansion],
-                            linestyle = lstyles[i],
+                            linestyle = '-',
                             color = colors[j],
                             label = expansion)
 

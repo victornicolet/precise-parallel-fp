@@ -112,19 +112,20 @@ void m_test_mts(int argc, char** argv) {
             PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[5], wstart, wtime_exmts[5])
             PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[6], wstart, wtime_exmts[6])
 
-
-            printf("  exmts with superacc = %.16g mts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
-            printf("  exmts with FPE2 and superacc = %.16g  mts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
-            printf("  exmts with FPE4 and superacc = %.16g  mts = %.16g\n", exmts_fpe4.sum, exmts_fpe2.mts);
-            printf("  exmts with FPE4 early-exit and superacc = %.16g  mts = %.16g\n", exmts_fpe4ee.sum,
+            printf("  exmts sequential \t\t\t\t\t= %.16g \tmts = %.16g\n", seq_res.sum, seq_res.mts);
+            printf("  exmts with superacc \t\t\t\t= %.16g \tmts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
+            printf("  exmts with FPE2 and superacc \t\t= %.16g  \tmts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
+            printf("  exmts with FPE4 and superacc \t\t= %.16g  \tmts = %.16g\n", exmts_fpe4.sum, exmts_fpe2.mts);
+            printf("  exmts with FPE4ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe4ee.sum,
                    exmts_fpe4ee.mts);
-            printf("  exmts with FPE6 early-exit and superacc = %.16g  mts = %.16g\n", exmts_fpe6ee.sum,
+            printf("  exmts with FPE6ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe6ee.sum,
                    exmts_fpe6ee.mts);
-            printf("  exmts with FPE8 early-exit and superacc = %.16g  mts = %.16g\n", exmts_fpe8ee.sum,
+            printf("  exmts with FPE8ee and superacc \t= %.16g  \tmts = %.16g\n", exmts_fpe8ee.sum,
                    exmts_fpe8ee.mts);
 
-            double exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum, exmts_fpe6ee_esum, exmts_fpe8ee_esum;
+            double exmts_sacc_esum, exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum, exmts_fpe6ee_esum, exmts_fpe8ee_esum;
 //            Compare the results to the sequential sum
+            exmts_sacc_esum = fabs(seq_res.sum - exmts_acc.sum) / fabs(seq_res.sum);
             exmts_fpe2_esum = fabs(seq_res.sum - exmts_fpe2.sum) / fabs(seq_res.sum);
             exmts_fpe4_esum = fabs(seq_res.sum - exmts_fpe4.sum) / fabs(seq_res.sum);
             exmts_fpe4ee_esum = fabs(seq_res.sum - exmts_fpe4ee.sum) / fabs(seq_res.sum);
@@ -133,8 +134,8 @@ void m_test_mts(int argc, char** argv) {
             if ((exmts_fpe2_esum > eps) || (exmts_fpe4_esum > eps) || (exmts_fpe4ee_esum > eps) ||
                 (exmts_fpe6ee_esum > eps) || (exmts_fpe8ee_esum > eps)) {
                 is_pass = false;
-                printf("FAILED: %.16g \t %.16g \t %.16g \t %.16g \t %.16g\n",
-                       exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum,
+                printf("FAILED:\t %.16g %.16g \t %.16g \n\t\t%.16g \t %.16g \t %.16g\n",
+                       exmts_sacc_esum, exmts_fpe2_esum, exmts_fpe4_esum, exmts_fpe4ee_esum,
                        exmts_fpe6ee_esum, exmts_fpe8ee_esum);
             }
 
