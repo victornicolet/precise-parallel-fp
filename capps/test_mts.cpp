@@ -6,6 +6,7 @@
 #include <mm_malloc.h>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 
 using namespace std;
@@ -28,10 +29,11 @@ __mts mtsjoin(__mts r,__mts n) {
     double new_mts;
     new_mts = n.sum + r.mts;
     if (new_mts < n.mts){
-        new_mts = n.mts;
+        r.mts = n.mts;
+    } else {
+        r.mts = new_mts;
     }
     r.sum = r.sum + n.sum;
-    r.mts = new_mts;
     return r;
 }
 
@@ -85,7 +87,7 @@ void m_test_mts(int argc, char** argv) {
                 init_fpuniform(N, a, 10, -3);
                 break;
             case 2:
-                init_ill_cond(N, a, 0.001);
+                init_ill_cond(N, a, 0.1);
                 break;
             default:
                 break;
@@ -119,6 +121,7 @@ void m_test_mts(int argc, char** argv) {
 
             printf("  exsum whit FPE4ee               = %.16g\n", exsum_res);
             printf("  exmts sequential                = %.16g  mts = %.16g\n", seq_res.sum, seq_res.mts);
+            printf("  exmts naive inexact             = %.16g  mts = %.16g\n", inex_mts.sum, inex_mts.mts);
             printf("  exmts with superacc             = %.16g  mts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
             printf("  exmts with FPE2 and superacc    = %.16g  mts = %.16g\n", exmts_fpe2.sum, exmts_fpe2.mts);
             printf("  exmts with FPE4 and superacc    = %.16g  mts = %.16g\n", exmts_fpe4.sum, exmts_fpe2.mts);
@@ -176,8 +179,10 @@ void m_test_mts(int argc, char** argv) {
         }
         fp << endl;
     }
+    
     fp.flush();
     fp.close();
+
     fperr.flush();
     fperr.close();
     free(a);

@@ -43,7 +43,7 @@ def m_test_mts_errlog():
                             label = expansion)
 
 
-        subplts[i].legend()
+
 
     f.subplots_adjust()
     plt.show()
@@ -81,14 +81,16 @@ def m_test_mts_experiment():
                             label = expansion)
 
 
-        subplts[i].legend()
 
+    subplts[len(modes) - 1].legend(bbox_to_anchor=(0.2,0), loc="lower left",
+                      bbox_transform=f.transFigure,
+                                   ncol=4)
     f.subplots_adjust()
     plt.show()
 
 
 m_test_mts_experiment()
-m_test_mts_errlog()
+# m_test_mts_errlog()
 
 # x = ???
 # y = ???
