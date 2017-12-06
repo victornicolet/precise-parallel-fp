@@ -5,5 +5,4 @@ do
 echo "MTS experiment for $i ------------------------"
 ./precise_parallel_fp 0 $i
 echo "POLY experiment for $i ------------------------"
-./precise_parallel_fp 1 $i
 done
