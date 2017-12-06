@@ -108,7 +108,7 @@ void m_test_mts(int argc, char** argv) {
 
 //        ExSUM for reference on SUM
         double exsum_res = 0.;
-        exsum_res = exsum(N, a, 0, 0, 4, true);
+        exsum_res = exsum(N, a, 0, 0, 4, false);
 
         for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
             PFP_WTIME(inex_mts = inexact_parallel_mts(N, a), start, time_exmts[0], wstart, wtime_exmts[0])
@@ -119,7 +119,7 @@ void m_test_mts(int argc, char** argv) {
             PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[5], wstart, wtime_exmts[5])
             PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[6], wstart, wtime_exmts[6])
 
-            printf("  exsum whit FPE4ee               = %.16g\n", exsum_res);
+            printf("  exsum whit FPE4                 = %.16g\n", exsum_res);
             printf("  exmts sequential                = %.16g  mts = %.16g\n", seq_res.sum, seq_res.mts);
             printf("  exmts naive inexact             = %.16g  mts = %.16g\n", inex_mts.sum, inex_mts.mts);
             printf("  exmts with superacc             = %.16g  mts = %.16g\n", exmts_acc.sum, exmts_acc.mts);
@@ -179,7 +179,7 @@ void m_test_mts(int argc, char** argv) {
         }
         fp << endl;
     }
-    
+
     fp.flush();
     fp.close();
 

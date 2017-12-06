@@ -160,11 +160,11 @@ inline static void ReductionStep(int step, int tid1, int tid2,
     double mtsl, mtsr;
     mtsr = mtsacc2->Round();
     mtsacc1->Accumulate(*acc2);
-    acc1->Accumulate(*acc2);
     mtsl = mtsacc1->Round();
     if(mtsr > mtsl){
         *mtsacc1 = *mtsacc2;
     }
+    acc1->Accumulate(*acc2);
 }
 
 /**
@@ -203,12 +203,7 @@ template<typename CACHE> __mts ExMTSFPE(int N, double *a) {
     int const linesize = 16;    // * sizeof(int32_t)
     int maxthreads = omp_get_max_threads(); // Force maxthreads
     double dacc, dmtsacc;
-#ifdef EXBLAS_TIMING
-    double t, mint = 10000;
-    uint64_t tstart, tend;
-    for(int iter = 0; iter != iterations; ++iter) {
-        tstart = rdtsc();
-#endif
+
     std::vector<Superaccumulator> acc(maxthreads);
     std::vector<Superaccumulator> mtsacc(maxthreads);
     std::vector<int32_t> ready(maxthreads * linesize);
@@ -240,21 +235,19 @@ template<typename CACHE> __mts ExMTSFPE(int N, double *a) {
         MPI_Reduce(&(acc[0].get_accumulator()[0]), &(result[0]), acc[0].get_f_words() + acc[0].get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
         //MPI_Reduce((int64_t *) &acc[0].accumulator[0], (int64_t *) &acc_fin.accumulator[0], get_f_words() + get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
-        Superaccumulator acc_fin(result);
+    mtsacc[0].Normalize();
+        std::vector<int64_t> result(mtsacc[0].get_f_words() + mtsacc[0].get_e_words(), 0);
+        MPI_Reduce(&(mtsacc[0].get_accumulator()[0]), &(result[0]), mtsacc[0].get_f_words() + mtsacc[0].get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        //MPI_Reduce((int64_t *) &mtsacc[0].accumulator[0], (int64_t *) &mtsacc_fin.accumulator[0], get_f_words() + get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    Superaccumulator acc_fin(result);
         dacc = acc_fin.Round();
+        Superaccumulator mtsacc_fin(result);
+        dmtsacc = mtsacc_fin.Round();
 #else
     dacc = acc[0].Round();
     dmtsacc = mtsacc[0].Round();
 #endif
-
-#ifdef EXBLAS_TIMING
-    tend = rdtsc();
-        t = double(tend - tstart) / N;
-        mint = std::min(mint, t);
-    }
-    fprintf(stderr, "%f ", mint);
-#endif
-
     return {dacc, dmtsacc};
 }
 
