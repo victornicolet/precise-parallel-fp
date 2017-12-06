@@ -100,6 +100,23 @@ double exdot(const int Ng, double *ag, const int inca, const int offseta, double
  */
 __mts exmts(const int Ng, double *ag, const int fpe, const bool early_exit = false);
 
+/**
+ * \ingroup ExPOLY
+ * \brief Parallel summation computes the sum of elements of a real vector with our
+ *     multi-level reproducible and accurate algorithm.
+ *
+ *     If fpe < 2, it uses superaccumulators only. Otherwise, it relies on
+ *     floating-point expansions of size FPE with superaccumulators when needed
+ *
+ * \param Ng vector size
+ * \param ag vector
+ * \param inca specifies the increment for the elements of a
+ * \param offset specifies position in the vector from its start
+ * \param fpe stands for the floating-point expansions size (used in conjuction with superaccumulators)
+ * \param early_exit specifies the optimization technique. By default, it is disabled
+ * \return Contains the reproducible and accurate sum of elements of a real vector
+ */
+__mts expoly(const int Ng, double *ag, double factor, const int fpe, const bool early_exit = false);
 
 #endif // BLAS1_HPP_
 

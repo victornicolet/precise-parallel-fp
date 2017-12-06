@@ -15,6 +15,10 @@
 #ifndef EXSUM_FPE_HPP_
 #define EXSUM_FPE_HPP_
 
+#define f64factor (1 << 27) + 1.
+
+#include "superaccumulator.hpp"
+
 /**
  * \struct FPExpansionTraits
  * \ingroup ExSUM
@@ -40,13 +44,13 @@ struct FPExpansionTraits
  *  floating-point expansions in conjuction with superaccumulators
  */
 template<typename T, int N, typename TRAITS=FPExpansionTraits<false,false> >
-struct FPExpansionVect
+struct Poly_FPExp
 {
     /**
      * Constructor
      * \param sa superaccumulator
      */
-    FPExpansionVect(Superaccumulator & sa);
+    Poly_FPExp(Superaccumulator & sa, double f);
 
     /** 
      * This function accumulates value x to the floating-point expansion
@@ -72,24 +76,27 @@ struct FPExpansionVect
 //    void Dump() const;
 private:
     void FlushVector(T x) const;
-//    void DumpVector(T x) const;
-//    void Insert(T & x);
-//    void Insert(T & x1, T & x2);
-//    static void Swap(T & x1, T & x2);
     static T twosum(T a, T b, T & s);
-
+    static T twomul(T a, T b, T &s);
+    static T split(T a, T &s);
     Superaccumulator & superacc;
 
     // Most significant digits first!
     T a[N] __attribute__((aligned(32)));
+    T factor;
+    double f;
     T victim;
 };
 
+
 template<typename T, int N, typename TRAITS>
-FPExpansionVect<T,N,TRAITS>::FPExpansionVect(Superaccumulator & sa) :
+Poly_FPExp<T,N,TRAITS>::Poly_FPExp(Superaccumulator & sa, double _f) :
     superacc(sa),
-    victim(0)
+    f(_f),
+    victim(0),
+    factor(1)
 {
+    factor = 1;
     std::fill(a, a + N, 0);
 }
 
@@ -124,15 +131,6 @@ inline static T BiasedSIMD2Sum(T a, T b, T & s)
 }
 
 #if INSTRSET > 7                       // AVX2 and later
-Vec4d fma(Vec4d a, Vec4d b, Vec4d c)
-{
-    return Vec4d(_mm256_fmadd_pd(a, b, c));
-}
-
-Vec4d fms(Vec4d a, Vec4d b, Vec4d c)
-{
-    return Vec4d(_mm256_fmsub_pd(a, b, c));
-}
 
 
 // Knuth 2Sum.
@@ -140,8 +138,8 @@ template<typename T>
 inline static T FMA2Sum(T a, T b, T & s)
 {
 //    T r = a + b;
-//    T z = fms(1., r, a);
-//    s = fma(1., a - fms(1., r, z), b - z);
+//    T z = _fms(1., r, a);
+//    s = _fma(1., a - _fms(1., r, z), b - z);
     T r = a + b;
     T z = r -a;
     s = a - (r - z) + (b - z);
@@ -150,14 +148,18 @@ inline static T FMA2Sum(T a, T b, T & s)
 #endif
 
 template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE
-void FPExpansionVect<T,N,TRAITS>::Accumulate(T x)
+void Poly_FPExp<T,N,TRAITS>::Accumulate(T x)
 {
-//    // Experimental
-//    if(TRAITS::CheckRangeFirst && horizontal_or(abs(x) < abs(a[N-1]))) {
-//        FlushVector(x);
-//        return;
-//    }
     T s;
+    double elt[4];
+    factor.store_a(elt);
+    // elt = {x, x*x, x*x*x, x^4}
+    for(unsigned int i = 0; i < 4; ++i) {
+        elt[i] *= elt[3];
+    }
+    // elt = {x*x, x*x, x*x*x, x^4}
+    factor.load_a(elt);
+    x = factor * x;
     for(unsigned int i = 0; i != N; ++i) {
         a[i] = twosum(a[i], x, s);
         x = s;
@@ -167,58 +169,10 @@ void FPExpansionVect<T,N,TRAITS>::Accumulate(T x)
         FlushVector(x);
     }
 }
-//
-//static inline bool sign_horizontal_or (Vec4db const & a) {
-//    return !_mm256_testz_pd(a,a);
-//}
-//
-//// Input:
-//// a3 a2 a1 a0
-//// b3 b2 b1 b0
-//// Output:
-//// a3 b3 a1 b1
-//// a2 b2 a0 b0
-//inline static void transpose1(Vec4d & a, Vec4d & b)
-//{
-//    // a3 -- a1 --
-//    // -- b3 -- b1
-//    Vec4d a2 = blend4d<4|1,0|1,4|3,0|3>(a, b);
-//    // a2 -- a0 --
-//    // -- b2 -- b0
-//    Vec4d b2 = blend4d<4|0,0|0,4|2,0|2>(a, b);
-//    a = a2;
-//    b = b2;
-//}
-//
-//// Input:
-//// a3 a2 a1 a0
-//// b3 b2 b1 b0
-//// Output:
-//// a3 a2 b3 b2
-//// a1 a0 b1 b0
-//inline static void transpose2(Vec4d & a, Vec4d & b)
-//{
-//    // a3 a2 -- --
-//    // -- -- b3 b2
-//    Vec4d a2 = blend4d<4|2,4|3,0|2,0|3>(a, b);
-//    // a1 a0 -- --
-//    // -- -- b1 b0
-//    Vec4d b2 = blend4d<4|0,4|1,0|0,0|1>(a, b);
-//    a = a2;
-//    b = b2;
-//}
-//
-//inline static void horizontal_twosum(Vec4d & r, Vec4d & s)
-//{
-//    //r = Knuth2Sum(r, s, s);
-//    transpose1(r, s);
-//    r = Knuth2Sum(r, s, s);
-//    transpose2(r, s);
-//    r = Knuth2Sum(r, s, s);
-//}
+
 
 template<typename T, int N, typename TRAITS>
-T FPExpansionVect<T,N,TRAITS>::twosum(T a, T b, T & s)
+T Poly_FPExp<T,N,TRAITS>::twosum(T a, T b, T & s)
 {
 #if INSTRSET > 7                       // AVX2 and later
 	// Assume Haswell-style architecture with parallel Add and FMA pipelines
@@ -233,105 +187,46 @@ T FPExpansionVect<T,N,TRAITS>::twosum(T a, T b, T & s)
 #endif
 }
 
-//inline static void swap_if_nonzero(Vec4d & a, Vec4d & b)
-//{
-//    // if(a_i != 0) { a'_i = b_i; b'_i = a_i; }
-//    // else {         a'_i = 0;   b'_i = b_i; }
-//    Vec4db swapmask = (a != 0);
-//    Vec4d b2 = select(swapmask, a, b);
-//    a = b & Vec4d(swapmask);
-//    b = b2;
-//}
-//
-//template<typename T, int N, typename TRAITS>
-//void FPExpansionVect<T,N,TRAITS>::Swap(T & x1, T & x2)
-//{
-//    if(TRAITS::ConditionalSwap) {
-//        swap_if_nonzero(x1, x2);
-//    }
-//    else {
-//        std::swap(x1, x2);
-//    }
-//}
-//
-//template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE
-//void FPExpansionVect<T,N,TRAITS>::Insert(T & x)
-//{
-//    if(TRAITS::Sort) {
-//        // Insert at tail. Unconditional version.
-//        // Rotate accumulators:
-//        // x <= a[0]
-//        // a[0] <= a[1]
-//        // a[1] <= a[2]
-//        // ...
-//        // a[N-2] <= a[N-1]
-//        // a[N-1] <= x
-//        //T xb = a[0];
-//        T xb = T().load_a((double*)&a[0]);
-//        for(int i = 0; i != N-1; ++i)
-//        {
-//            //a[i] = a[i+1];
-//            T v;
-//            v.load_a((double*)&a[i+1]);
-//            v.store_a((double*)&a[i]);
-//        }
-//        //a[N-1] = x;
-//        x.store_a((double*)&a[N-1]);
-//        x = xb;
-//    }
-//    else {
-//        // Insert at head
-//        // Conditional or unconditional
-//        Swap(x, a[0]);
-//    }
-//}
-//
-//template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE
-//void FPExpansionVect<T,N,TRAITS>::Insert(T & x1, T & x2)
-//{
-//    if(TRAITS::Sort) {
-//        // x1 <= a[0]
-//        // x2 <= a[1]
-//        // a[0] <= a[2]
-//        // a[1] <= a[3]
-//        // a[i] <= a[i+2]
-//        // a[N-3] <= a[N-1]
-//        // a[N-2] <= x1
-//        // a[N-1] <= x2
-//        T x1b = a[0];
-//        T x2b = a[1];
-//        for(int i = 0; i != N-2; ++i) {
-//            a[i] = a[i+2];
-//        }
-//        a[N-2] = x1;
-//        a[N-1] = x2;
-//        x1 = x1b;
-//        x2 = x2b;
-//    }
-//    else {
-//        Swap(x1, a[0]);
-//        Swap(x2, a[1]);
-//    }
-//}
+template<typename T> inline T split(T a, T &s) {
+    T c, x;
+    c = f64factor * a;
+    x = c - (c - a);
+    s = a -x;
+    return x;
+}
 
+template<typename T> inline T Dekker2Mul(T a,T b, T &s){
+    T x, a1, a2, b1, b2;
+    x = a * b;
+    a1 = split(a, a2); // a = a1 + a2 and a1, a2 non overlapping
+    b1 = split(b, b2); // a = a1 + a2 and a1, a2 non overlapping
+    s = a2 * b2 - (((x - a1 * b1) - a2 * b1) - a1 * b2);
+    return x;
+}
+
+#if INSTRSET > 7
+template<typename T> inline T FMA2Mul(T a, T b, T &s){
+    T x;
+    x = a * b;
+    s = fma(a, b, -x);
+    return x;
+}
+#endif
+
+template <typename T, int N, typename TRAITS>
+T Poly_FPExp<T,N,TRAITS>::twomul(T a, T b, T &s) {
+#if INSTRSET > 7
+    FMA2Mul(a, b, s);
+#else
+    Dekker2Mul(a, b, s);
+#endif
+}
 
 
 template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE INLINE_ATTRIBUTE
-void FPExpansionVect<T,N,TRAITS>::Accumulate(T x1, T x2)
+void Poly_FPExp<T,N,TRAITS>::Accumulate(T x1, T x2)
 {
-//    if(TRAITS::CheckRangeFirst) {
-//        auto p = abs(x1) < abs(a[N-1]);
-//        if(sign_horizontal_or(p)) {
-//            FlushVector(x1 & T(p));
-//            x1 = T(andnot(Vec4db(x1), p));
-//        }
-//        p = abs(x2) < abs(a[N-1]);
-//        if(sign_horizontal_or(p)) {
-//            FlushVector(x2 & T(p));
-//            x2 = T(andnot(Vec4db(x2), p));
-//        }
-//    }
-//
+
     T s1, s2;
     for(unsigned int i = 0; i != N; ++i) {
         T ai = Vec4d().load_a((double*)(a+i));
@@ -342,7 +237,7 @@ void FPExpansionVect<T,N,TRAITS>::Accumulate(T x1, T x2)
         //a[i] = ai;
         x1 = s1;
         x2 = s2;
-//        if(TRAITS::EarlyExit && i != 0 && !horizontal_or(x1|x2)) return;
+        if(TRAITS::EarlyExit && i != 0 && !horizontal_or(x1|x2)) return;
     }
 
     // Separate checks
@@ -358,7 +253,7 @@ void FPExpansionVect<T,N,TRAITS>::Accumulate(T x1, T x2)
 #undef IACA_END
 
 template<typename T, int N, typename TRAITS>
-void FPExpansionVect<T,N,TRAITS>::Flush()
+void Poly_FPExp<T,N,TRAITS>::Flush()
 {
     for(unsigned int i = 0; i != N; ++i)
     {
@@ -371,7 +266,7 @@ void FPExpansionVect<T,N,TRAITS>::Flush()
 }
 
 template<typename T, int N, typename TRAITS> inline
-void FPExpansionVect<T,N,TRAITS>::FlushVector(T x) const
+void Poly_FPExp<T,N,TRAITS>::FlushVector(T x) const
 {
     // TODO: update status, handle Inf/Overflow/NaN cases
     // TODO: make it work for other values of 4
@@ -383,27 +278,5 @@ void FPExpansionVect<T,N,TRAITS>::FlushVector(T x) const
         superacc.Accumulate(v[j]);
     }
 }
-//
-//template<typename T, int N, typename TRAITS>
-//void FPExpansionVect<T,N,TRAITS>::Dump() const
-//{
-//    for(unsigned int i = 0; i != N; ++i)
-//    {
-//        DumpVector(a[i]);
-//        std::cout << std::endl;
-//    }
-//}
-//
-//template<typename T, int N, typename TRAITS>
-//void FPExpansionVect<T,N,TRAITS>::DumpVector(T x) const
-//{
-//    double v[4] __attribute__((aligned(32)));
-//    x.store_a(v);
-//    _mm256_zeroupper();
-//
-//    for(unsigned int j = 0; j != 4; ++j) {
-//        printf("%a ", v[j]);
-//    }
-//}
 
 #endif // EXSUM_FPE_HPP_

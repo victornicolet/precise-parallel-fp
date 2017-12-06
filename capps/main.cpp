@@ -14,6 +14,7 @@
 #include "blas1.hpp"
 #include "common.hpp"
 #include "test_mts.h"
+#include "test_poly.h"
 
 using namespace std;
 
@@ -290,6 +291,7 @@ int main(int argc, char** argv) {
 //    Test exblas
 //    test_my_exblas(argc, argv);
 //    small_tests(argc, argv);
-    m_test_mts(argc, argv);
+//    m_test_mts(argc, argv);
+    m_test_poly (argc, argv);
     return 0;
 }

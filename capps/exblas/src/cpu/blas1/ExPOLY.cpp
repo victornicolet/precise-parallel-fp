@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include "ExSUM.hpp"
+#include "ExPOLY.hpp"
 #include "blas1.hpp"
 
 #ifdef EXBLAS_TIMING
@@ -22,7 +22,7 @@
  * Otherwise, use floating-point expansions of size FPE with superaccumulators when needed
  * early_exit corresponds to the early-exit technique
  */
-double exsum(int Ng, double *ag, int inca, int offset, int fpe, bool early_exit) {
+__mts expoly(int Ng, double *ag, double factor, int fpe, bool early_exit) {
 #ifdef EXBLAS_MPI
     int np = 1, p, err;
     MPI_Comm_rank(MPI_COMM_WORLD, &p);
@@ -66,42 +66,43 @@ double exsum(int Ng, double *ag, int inca, int offset, int fpe, bool early_exit)
     N = Ng;
     a = ag;
 #endif
+    // thee
 
     // with superaccumulators only
     if (fpe < 2)
-        return ExSUMSuperacc(N, a, inca, offset);
+        return ExPOLYSuperacc(N, a, factor, 0, 0);
 
     if (early_exit) {
         if (fpe <= 4)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 4, FPExpansionTraits<true> > >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 4, FPExpansionTraits<true> > >)(N, a, factor, 0, 0);
         if (fpe <= 6)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 6, FPExpansionTraits<true> > >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 6, FPExpansionTraits<true> > >)(N, a, factor, 0, 0);
         if (fpe <= 8)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 8, FPExpansionTraits<true> > >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 8, FPExpansionTraits<true> > >)(N, a, factor, 0, 0);
     } else { // ! early_exit
         if (fpe == 2)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 2> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 2> >)(N, a, factor, 0, 0);
         if (fpe == 3)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 3> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 3> >)(N, a, factor, 0, 0);
         if (fpe == 4)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 4> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 4> >)(N, a, factor, 0, 0);
         if (fpe == 5)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 5> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 5> >)(N, a, factor, 0, 0);
         if (fpe == 6)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 6> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 6> >)(N, a, factor, 0, 0);
         if (fpe == 7)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 7> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 7> >)(N, a, factor, 0, 0);
         if (fpe == 8)
-            return (ExSUMFPE<FPExpansionVect<Vec4d, 8> >)(N, a, inca, offset);
+            return (ExPOLYFPE<Poly_FPExp<Vec4d, 8> >)(N, a, factor, 0, 0);
     }
 
-    return 0.0;
+    return {0.0, 0.0};
 }
 
 /*
  * Our alg with superaccumulators only
  */
-double ExSUMSuperacc(int N, double *a, int inca, int offset) {
+__mts ExPOLYSuperacc(int N, double *a, double factor, int inca, int offset) {
     double dacc;
 #ifdef EXBLAS_TIMING
     double t, mint = 10000;
@@ -110,18 +111,18 @@ double ExSUMSuperacc(int N, double *a, int inca, int offset) {
     	tstart = rdtsc();
 #endif
 
-    TBBlongsum tbbsum(a);
-    tbb::parallel_reduce(tbb::blocked_range<size_t>(0, N, inca), tbbsum);
+    TBBlongPoly tbblongPoly(a, factor);
+    tbb::parallel_reduce(tbb::blocked_range<size_t>(0, N, inca), tbblongPoly);
 #ifdef EXBLAS_MPI
-    tbbsum.acc.Normalize();
-        std::vector<int64_t> result(tbbsum.acc.get_f_words() + tbbsum.acc.get_e_words(), 0);
-        //MPI_Reduce((int64_t *) &tbbsum.acc.accumulator[0], (int64_t *) &acc_fin.accumulator[0], get_f_words() + get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&(tbbsum.acc.get_accumulator()[0]), &(result[0]), tbbsum.acc.get_f_words() + tbbsum.acc.get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    tbBlongPoly.acc.Normalize();
+        std::vector<int64_t> result(tbBlongPoly.acc.get_f_words() + tbBlongPoly.acc.get_e_words(), 0);
+        //MPI_Reduce((int64_t *) &tbBlongPoly.acc.accumulator[0], (int64_t *) &acc_fin.accumulator[0], get_f_words() + get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(tbBlongPoly.acc.get_accumulator()[0]), &(result[0]), tbBlongPoly.acc.get_f_words() + tbBlongPoly.acc.get_e_words(), MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
         Superaccumulator acc_fin(result);
         dacc = acc_fin.Round();
 #else
-    dacc = tbbsum.acc.Round();
+    dacc = tbblongPoly.acc.Round();
 #endif
 
 #ifdef EXBLAS_TIMING
@@ -132,7 +133,7 @@ double ExSUMSuperacc(int N, double *a, int inca, int offset) {
     fprintf(stderr, "%f ", mint);
 #endif
 
-    return dacc;
+    return {dacc, 0.0};
 }
 
 /**
@@ -182,7 +183,7 @@ inline static void Reduction(unsigned int tid, unsigned int tnum, std::vector<in
     }
 }
 
-template<typename CACHE> double ExSUMFPE(int N, double *a, int inca, int offset) {
+template<typename CACHE> __mts ExPOLYFPE(int N, double *a, double factor, int inca, int offset) {
     // OpenMP sum+reduction
     int const linesize = 16;    // * sizeof(int32_t)
     int maxthreads = omp_get_max_threads();
@@ -201,7 +202,7 @@ template<typename CACHE> double ExSUMFPE(int N, double *a, int inca, int offset)
         unsigned int tid = omp_get_thread_num();
         unsigned int tnum = omp_get_num_threads();
 
-        CACHE cache(acc[tid]);
+        CACHE cache(acc[tid], factor);
         *(int32_t volatile *)(&ready[tid * linesize]) = 0;  // Race here, who cares?
 
         int l = ((tid * int64_t(N)) / tnum) & ~7ul;
@@ -217,8 +218,6 @@ template<typename CACHE> double ExSUMFPE(int N, double *a, int inca, int offset)
 
         Reduction(tid, tnum, ready, acc, linesize);
     }
-
-
 #ifdef EXBLAS_MPI
     acc[0].Normalize();
         std::vector<int64_t> result(acc[0].get_f_words() + acc[0].get_e_words(), 0);
@@ -239,6 +238,6 @@ template<typename CACHE> double ExSUMFPE(int N, double *a, int inca, int offset)
     fprintf(stderr, "%f ", mint);
 #endif
 
-    return dacc;
+    return {dacc, 0.};
 }
 
