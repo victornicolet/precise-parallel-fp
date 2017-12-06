@@ -101,7 +101,6 @@ Poly_FPExp<N,TRAITS>::Poly_FPExp(Superaccumulator & sa, double _f) :
 }
 
 // Knuth 2Sum.
-template<typename T>
 inline static double Knuth2Sum(double a, double b, double & s)
 {
     double r = a + b;
