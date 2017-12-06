@@ -39,8 +39,8 @@
  */
 class TBBlongPoly {
     double* a; /**< a real vector to sum */
-    double factor;
 public:
+    double factor;
     Superaccumulator acc; /**< supperaccumulator */
 
     /**
@@ -48,10 +48,14 @@ public:
      * superaccumulator
      */
     void operator()(tbb::blocked_range<size_t> const & r) {
-        for(size_t i = r.begin(); i != r.end(); i += r.grainsize()) {
-            factor *= factor;
-            acc.Accumulate(a[i] * factor);
+        double f, tmp;
+        f = factor;
+        for(size_t i = r.begin(); i != r.end(); i ++) {
+            f *= factor;
+            tmp = a[i] * factor;
+            if (tmp > 0.) acc.Accumulate(tmp);
         }
+        factor = f;
     }
 
     /** 
@@ -73,6 +77,7 @@ public:
     /** 
      * Construction that initiates a real vector to sum and a supperacccumulator
      * \param a a real vector
+     * \param initfactor argument of the polynomial
      */
     TBBlongPoly(double a[], double initfactor) :
         factor(initfactor), a(a), acc(e_bits, f_bits)

@@ -291,7 +291,18 @@ int main(int argc, char** argv) {
 //    Test exblas
 //    test_my_exblas(argc, argv);
 //    small_tests(argc, argv);
-//    m_test_mts(argc, argv);
-    m_test_poly (argc, argv);
+    if(argc > 2) {
+        int test_no = atoi(argv[1]);
+        switch (test_no) {
+            case 0:
+                m_test_mts(argc, argv);
+                break;
+            case 1:
+                m_test_poly(argc, argv);
+                break;
+            default:
+                break;
+            }
+    }
     return 0;
 }

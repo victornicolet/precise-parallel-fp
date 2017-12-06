@@ -67,8 +67,8 @@ void m_test_mts(int argc, char** argv) {
     double eps = 1e-16;
     int N = 1 << 20;
 
-    if (argc > 1) {
-        N = 1 << atoi(argv[1]);
+    if (argc > 2) {
+        N = 1 << atoi(argv[2]);
     }
 
     double *a;
@@ -111,13 +111,13 @@ void m_test_mts(int argc, char** argv) {
         exsum_res = exsum(N, a, 0, 0, 4, false);
 
         for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
-            PFP_WTIME(inex_mts = inexact_parallel_mts(N, a), start, time_exmts[0], wstart, wtime_exmts[0])
-            PFP_WTIME(exmts_acc = exmts(N, a, 0, false), start, time_exmts[1], wstart, wtime_exmts[1])
-            PFP_WTIME(exmts_fpe2 = exmts(N, a, 2, false), start, time_exmts[2], wstart, wtime_exmts[2])
-            PFP_WTIME(exmts_fpe4 = exmts(N, a, 4, false), start, time_exmts[3], wstart, wtime_exmts[3])
-            PFP_WTIME(exmts_fpe4ee = exmts(N, a, 4, true), start, time_exmts[4], wstart, wtime_exmts[4])
-            PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[5], wstart, wtime_exmts[5])
-            PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[6], wstart, wtime_exmts[6])
+            ACC_PFP_WTIME(inex_mts = inexact_parallel_mts(N, a), start, time_exmts[0], wstart, wtime_exmts[0])
+            ACC_PFP_WTIME(exmts_acc = exmts(N, a, 0, false), start, time_exmts[1], wstart, wtime_exmts[1])
+            ACC_PFP_WTIME(exmts_fpe2 = exmts(N, a, 2, false), start, time_exmts[2], wstart, wtime_exmts[2])
+            ACC_PFP_WTIME(exmts_fpe4 = exmts(N, a, 4, false), start, time_exmts[3], wstart, wtime_exmts[3])
+            ACC_PFP_WTIME(exmts_fpe4ee = exmts(N, a, 4, true), start, time_exmts[4], wstart, wtime_exmts[4])
+            ACC_PFP_WTIME(exmts_fpe6ee = exmts(N, a, 6, true), start, time_exmts[5], wstart, wtime_exmts[5])
+            ACC_PFP_WTIME(exmts_fpe8ee = exmts(N, a, 8, true), start, time_exmts[6], wstart, wtime_exmts[6])
 
             printf("  exsum whit FPE4                 = %.16g\n", exsum_res);
             printf("  exmts sequential                = %.16g  mts = %.16g\n", seq_res.sum, seq_res.mts);

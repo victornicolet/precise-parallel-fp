@@ -16,8 +16,8 @@ __mts sequential_poly(int N, double* a, double f){
     double x = 1.;
     double sum = 0.;
     for(int i = 0; i  < N; i++){
-        sum += x * a[i];
         x *= f;
+        sum += x * a[i];
     }
     return {sum, x};
 }
@@ -34,16 +34,16 @@ __mts polyjoin(__mts r,__mts n) {
 
 __mts inexact_parallel_poly(int N, double* a, double factor){
 
-    __mts m = {0., factor};
+    __mts m = {0., 1.};
 
 #pragma omp declare reduction \
       (poly_reduction:__mts:omp_out=polyjoin(omp_out,omp_in)) \
-      initializer(omp_priv={0,0})
+      initializer(omp_priv={0.,1.})
 
 #pragma omp parallel for reduction(poly_reduction:m) num_threads(4)
     for (int idata=0; idata<N; idata++){
-        m.sum += m.mts * a[idata];
         m.mts *= factor;
+        m.sum += m.mts * a[idata];
     }
 
     return m;
@@ -53,9 +53,9 @@ void m_test_poly(int argc, char** argv) {
     string outputcsv, err_outputcsv;
     outputcsv = string(__FUNCTION__).append(".csv");
     err_outputcsv = string(__FUNCTION__).append("_errlog.csv");
-    int NUM_RUNS = 10;
+    int NUM_RUNS = 20;
 
-    double factor = 0.5;
+    double factor = 0.99;
 
     fstream  fp, fperr;
     fp.open(outputcsv, ios::app);
@@ -64,8 +64,8 @@ void m_test_poly(int argc, char** argv) {
     double eps = 1e-16;
     int N = 1 << 20;
 
-    if (argc > 1) {
-        N = 1 << atoi(argv[1]);
+    if (argc > 2) {
+        N = 1 << atoi(argv[2]);
     }
 
     double *a;
@@ -103,20 +103,15 @@ void m_test_poly(int argc, char** argv) {
         double seqtime, seqwtime;
         PFP_WTIME(seq_res = sequential_poly(N, a, factor), start, seqtime, wstart, seqwtime)
 
-//        ExSUM for reference on SUM
-        double exsum_res = 0.;
-        exsum_res = exsum(N, a, 0, 0, 4, false);
-
         for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
-            PFP_WTIME(inex_poly = inexact_parallel_poly(N, a, factor), start, time_expoly[0], wstart, wtime_expoly[0])
-            PFP_WTIME(expoly_acc = expoly(N, a, factor, 0, false), start, time_expoly[1], wstart, wtime_expoly[1])
-            PFP_WTIME(expoly_fpe2 = expoly(N, a, factor, 2, false), start, time_expoly[2], wstart, wtime_expoly[2])
-            PFP_WTIME(expoly_fpe4 = expoly(N, a, factor, 4, false), start, time_expoly[3], wstart, wtime_expoly[3])
-            PFP_WTIME(expoly_fpe4ee = expoly(N, a, factor, 4, true), start, time_expoly[4], wstart, wtime_expoly[4])
-            PFP_WTIME(expoly_fpe6ee = expoly(N, a, factor, 6, true), start, time_expoly[5], wstart, wtime_expoly[5])
-            PFP_WTIME(expoly_fpe8ee = expoly(N, a, factor, 8, true), start, time_expoly[6], wstart, wtime_expoly[6])
+            ACC_PFP_WTIME(inex_poly = inexact_parallel_poly(N, a, factor), start, time_expoly[0], wstart, wtime_expoly[0])
+            ACC_PFP_WTIME(expoly_acc = expoly(N, a, factor, 0, false), start, time_expoly[1], wstart, wtime_expoly[1])
+            ACC_PFP_WTIME(expoly_fpe2 = expoly(N, a, factor, 2, false), start, time_expoly[2], wstart, wtime_expoly[2])
+            ACC_PFP_WTIME(expoly_fpe4 = expoly(N, a, factor, 4, false), start, time_expoly[3], wstart, wtime_expoly[3])
+            ACC_PFP_WTIME(expoly_fpe4ee = expoly(N, a, factor, 4, true), start, time_expoly[4], wstart, wtime_expoly[4])
+            ACC_PFP_WTIME(expoly_fpe6ee = expoly(N, a, factor, 6, true), start, time_expoly[5], wstart, wtime_expoly[5])
+            ACC_PFP_WTIME(expoly_fpe8ee = expoly(N, a, factor, 8, true), start, time_expoly[6], wstart, wtime_expoly[6])
 
-            printf("  exsum whit FPE4                 = %.16g\n", exsum_res);
             printf("  expoly sequential                = %.16g  poly = %.16g\n", seq_res.sum, seq_res.mts);
             printf("  expoly naive inexact             = %.16g  poly = %.16g\n", inex_poly.sum, inex_poly.mts);
             printf("  expoly with superacc             = %.16g  poly = %.16g\n", expoly_acc.sum, expoly_acc.mts);
@@ -131,14 +126,10 @@ void m_test_poly(int argc, char** argv) {
 
             double expoly_sacc_esum, expoly_fpe2_esum, expoly_fpe4_esum, expoly_fpe4ee_esum, expoly_fpe6ee_esum, expoly_fpe8ee_esum;
             double inexpoly_esum;
-            double exsum_res_esum;
+
+
 //            Compare the results to the sequential sum
-
-            exsum_res_esum = fabs(seq_res.sum - exsum_res) / fabs(seq_res.sum);
-            if(exsum_res_esum > eps) {
-                printf("FAILED for EXSUM: error of %.16g\n", exsum_res_esum);
-            }
-
+            /// Error reporting --------------------------------------------------------------------------------------
             inexpoly_esum = fabs(seq_res.sum - inex_poly.sum) / fabs(seq_res.sum);
             expoly_sacc_esum = fabs(seq_res.sum - expoly_acc.sum) / fabs(seq_res.sum);
             expoly_fpe2_esum = fabs(seq_res.sum - expoly_fpe2.sum) / fabs(seq_res.sum);
@@ -170,6 +161,7 @@ void m_test_poly(int argc, char** argv) {
             else
                 printf("TestFailed!\n");
         }
+        /// Speedup reporting -----------------------------------------------------------------------------------------
         fp << N << "," << initmode;
         for(int exno = 0; exno < 7; exno++){
             fp << "," << seqwtime * (NUM_RUNS / wtime_expoly[exno]);

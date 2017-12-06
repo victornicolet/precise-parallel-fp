@@ -43,9 +43,10 @@ struct FPExpansionTraits
  * \brief This struct is meant to introduce functionality for working with
  *  floating-point expansions in conjuction with superaccumulators
  */
-template<typename T, int N, typename TRAITS=FPExpansionTraits<false,false> >
+template<int N, typename TRAITS=FPExpansionTraits<false,false> >
 struct Poly_FPExp
 {
+    double factor;
     /**
      * Constructor
      * \param sa superaccumulator
@@ -56,14 +57,14 @@ struct Poly_FPExp
      * This function accumulates value x to the floating-point expansion
      * \param x input value
      */
-    void Accumulate(T x);
+    void Accumulate(double x);
 
     /** 
      * This function accumulates two values x to the floating-point expansion
      * \param x1 input value
      * \param x2 input value
      */
-    void Accumulate(T x1, T x2);
+    void Accumulate(double x1, double x2);
 
     /**
      * This function is used to flush the floating-point expansion to the superaccumulator
@@ -75,24 +76,23 @@ struct Poly_FPExp
      */
 //    void Dump() const;
 private:
-    void FlushVector(T x) const;
-    static T twosum(T a, T b, T & s);
-    static T twomul(T a, T b, T &s);
-    static T split(T a, T &s);
+    void FlushVector(double x) const;
+    static double twosum(double a, double b, double & s);
+    static double twomul(double a, double b, double &s);
     Superaccumulator & superacc;
 
     // Most significant digits first!
-    T a[N] __attribute__((aligned(32)));
-    T factor;
-    double f;
-    T victim;
+    double a[N] __attribute__((aligned(32)));
+
+    double init_f;
+    double victim;
 };
 
 
-template<typename T, int N, typename TRAITS>
-Poly_FPExp<T,N,TRAITS>::Poly_FPExp(Superaccumulator & sa, double _f) :
+template<int N, typename TRAITS>
+Poly_FPExp<N,TRAITS>::Poly_FPExp(Superaccumulator & sa, double _f) :
     superacc(sa),
-    f(_f),
+    init_f(_f),
     victim(0),
     factor(1)
 {
@@ -102,101 +102,53 @@ Poly_FPExp<T,N,TRAITS>::Poly_FPExp(Superaccumulator & sa, double _f) :
 
 // Knuth 2Sum.
 template<typename T>
-inline static T Knuth2Sum(T a, T b, T & s)
+inline static double Knuth2Sum(double a, double b, double & s)
 {
-    T r = a + b;
-    T z = r - a;
+    double r = a + b;
+    double z = r - a;
     s = (a - (r - z)) + (b - z);
     return r;
 }
 
-// Vector impl with test for fast path
-template<typename T>
-inline static T BiasedSIMD2Sum(T a, T b, T & s)
-{
-    T r = a + b;
-    auto doswap = abs(b) > abs(a);
-    //if(unlikely(!_mm256_testz_pd(doswap, doswap)))
-    //asm("nop");
-    if(/*unlikely*/(!_mm256_testz_si256(_mm256_castpd_si256(doswap), _mm256_castpd_si256(b))))  // any(doswap && b != +0)
-    {
-        // Slow path
-        T a2 = select(doswap, b, a);
-        T b2 = select(doswap, a, b);
-        a = a2;
-        b = b2;
-    }
-    s = (a - r) + b;
-    return r;
-}
 
 #if INSTRSET > 7                       // AVX2 and later
 
 
 // Knuth 2Sum.
-template<typename T>
-inline static T FMA2Sum(T a, T b, T & s)
+inline static double FMA2Sum(double a, double b, double & s)
 {
-//    T r = a + b;
-//    T z = _fms(1., r, a);
+//    double r = a + b;
+//    double z = _fms(1., r, a);
 //    s = _fma(1., a - _fms(1., r, z), b - z);
-    T r = a + b;
-    T z = r -a;
+    double r = a + b;
+    double z = r -a;
     s = a - (r - z) + (b - z);
     return r;
 }
 #endif
 
-template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE
-void Poly_FPExp<T,N,TRAITS>::Accumulate(T x)
-{
-    T s;
-    double elt[4];
-    factor.store_a(elt);
-    // elt = {x, x*x, x*x*x, x^4}
-    for(unsigned int i = 0; i < 4; ++i) {
-        elt[i] *= elt[3];
-    }
-    // elt = {x*x, x*x, x*x*x, x^4}
-    factor.load_a(elt);
-    x = factor * x;
-    for(unsigned int i = 0; i != N; ++i) {
-        a[i] = twosum(a[i], x, s);
-        x = s;
-        if(TRAITS::EarlyExit && i != 0 && !horizontal_or(x)) return;
-    }
-    if(TRAITS::EarlyExit || horizontal_or(x)) {
-        FlushVector(x);
-    }
-}
 
-
-template<typename T, int N, typename TRAITS>
-T Poly_FPExp<T,N,TRAITS>::twosum(T a, T b, T & s)
+template<int N, typename TRAITS>
+double Poly_FPExp<N,TRAITS>::twosum(double a, double b, double & s)
 {
 #if INSTRSET > 7                       // AVX2 and later
 	// Assume Haswell-style architecture with parallel Add and FMA pipelines
 	return FMA2Sum(a, b, s);
 #else
-    if(TRAITS::Biased2Sum) {
-        return BiasedSIMD2Sum(a, b, s);
-    }
-    else {
-        return Knuth2Sum(a, b, s);
-    }
+    return Knuth2Sum(a, b, s);
 #endif
 }
 
-template<typename T> inline T split(T a, T &s) {
-    T c, x;
+inline double split(double a, double &s) {
+    double c, x;
     c = f64factor * a;
     x = c - (c - a);
     s = a -x;
     return x;
 }
 
-template<typename T> inline T Dekker2Mul(T a,T b, T &s){
-    T x, a1, a2, b1, b2;
+inline double Dekker2Mul(double a,double b, double &s){
+    double x, a1, a2, b1, b2;
     x = a * b;
     a1 = split(a, a2); // a = a1 + a2 and a1, a2 non overlapping
     b1 = split(b, b2); // a = a1 + a2 and a1, a2 non overlapping
@@ -205,17 +157,17 @@ template<typename T> inline T Dekker2Mul(T a,T b, T &s){
 }
 
 #if INSTRSET > 7
-template<typename T> inline T FMA2Mul(T a, T b, T &s){
-    T x;
+inline double FMA2Mul(double a, double b, double &s){
+    double x;
     x = a * b;
     s = fma(a, b, -x);
     return x;
 }
 #endif
 
-template <typename T, int N, typename TRAITS>
-T Poly_FPExp<T,N,TRAITS>::twomul(T a, T b, T &s) {
-#if INSTRSET > 7
+template <int N, typename TRAITS>
+double Poly_FPExp<N,TRAITS>::twomul(double a, double b, double &s) {
+#if INSTRSEdouble > 7
     FMA2Mul(a, b, s);
 #else
     Dekker2Mul(a, b, s);
@@ -223,28 +175,45 @@ T Poly_FPExp<T,N,TRAITS>::twomul(T a, T b, T &s) {
 }
 
 
-template<typename T, int N, typename TRAITS> UNROLL_ATTRIBUTE INLINE_ATTRIBUTE
-void Poly_FPExp<T,N,TRAITS>::Accumulate(T x1, T x2)
+template<int N, typename TRAITS> UNROLL_ATTRIBUTE
+void Poly_FPExp<N,TRAITS>::Accumulate(double x)
 {
-
-    T s1, s2;
+    double s;
+    factor *= init_f;
+    x = factor * x;
     for(unsigned int i = 0; i != N; ++i) {
-        T ai = Vec4d().load_a((double*)(a+i));
-        //T ai = a[i];
-        ai = twosum(ai, x1, s1);
-        ai = twosum(ai, x2, s2);
-        ai.store_a((double*)(a+i));
+        a[i] = twosum(a[i], x, s);
+        x = s;
+        if(TRAITS::EarlyExit && i != 0 && x == 0) return;
+    }
+    if(TRAITS::EarlyExit || x != 0) {
+        FlushVector(x);
+    }
+}
+
+template<int N, typename TRAITS> UNROLL_ATTRIBUTE INLINE_ATTRIBUTE
+void Poly_FPExp<N,TRAITS>::Accumulate(double x1, double x2)
+{
+    double s1, s2;
+    factor *= init_f;
+    x1 *= factor;
+    factor *= init_f;
+    x2 *= factor;
+    for(unsigned int i = 0; i != N; ++i) {
+        //double ai = a[i];
+        a[i] = twosum(a[i], x1, s1);
+        a[i] = twosum(a[i], x2, s2);
         //a[i] = ai;
         x1 = s1;
         x2 = s2;
-        if(TRAITS::EarlyExit && i != 0 && !horizontal_or(x1|x2)) return;
+        if(TRAITS::EarlyExit && i != 0 && !horizontal_or(Vec4d(x1)|Vec4d(x2))) return;
     }
 
     // Separate checks
-    if(unlikely(horizontal_or(x1))) {
+    if(unlikely(x1 != 0)) {
             FlushVector(x1);
     }
-    if(unlikely(horizontal_or(x2))) {
+    if(unlikely(x2 != 0)) {
             FlushVector(x2);
     }
 }
@@ -252,8 +221,8 @@ void Poly_FPExp<T,N,TRAITS>::Accumulate(T x1, T x2)
 #undef IACA_START
 #undef IACA_END
 
-template<typename T, int N, typename TRAITS>
-void Poly_FPExp<T,N,TRAITS>::Flush()
+template<int N, typename TRAITS>
+void Poly_FPExp<N,TRAITS>::Flush()
 {
     for(unsigned int i = 0; i != N; ++i)
     {
@@ -265,18 +234,10 @@ void Poly_FPExp<T,N,TRAITS>::Flush()
     }
 }
 
-template<typename T, int N, typename TRAITS> inline
-void Poly_FPExp<T,N,TRAITS>::FlushVector(T x) const
+template<int N, typename TRAITS> inline
+void Poly_FPExp<N,TRAITS>::FlushVector(double x) const
 {
-    // TODO: update status, handle Inf/Overflow/NaN cases
-    // TODO: make it work for other values of 4
-    double v[4];
-    x.store(v);
-    
-//    _mm256_zeroupper();
-    for(unsigned int j = 0; j != 4; ++j) {
-        superacc.Accumulate(v[j]);
-    }
+    superacc.Accumulate(x);
 }
 
 #endif // EXSUM_FPE_HPP_
