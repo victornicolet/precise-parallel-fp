@@ -65,16 +65,20 @@ void m_test_mts(int argc, char** argv) {
     fperr.open(err_outputcsv, ios::app);
 
     double eps = 1e-16;
-    int N = 1 << 20;
+    int dec = 20;
+
 
     if (argc > 2) {
-        N = 1 << atoi(argv[2]);
+        dec = atoi(argv[2]);
     }
 
-    for(int intermediate_size = 0; intermediate_size < N; intermediate_size += N/4 ) {
+    int N = 1 << dec;
+    dec = ((1 << (dec + 1)) - N) / 4;
+
+    for(int intermediate_size = 0; intermediate_size < 4 * dec; intermediate_size += dec ) {
         double *a;
 
-        N += (1 << intermediate_size);
+        N += intermediate_size;
 
         printf("------------Size : %i --------------", N);
 

@@ -91,6 +91,7 @@ def m_test_experiment(fname, tname):
 
 
 m_test_experiment("m_test_poly.csv", "Polynomial evaluation - speedup/sequential.")
+m_test_experiment("m_test_mts.csv", "Maxium tail sum - speedup/sequential.")
 # m_test_mts_errlog()
 
 # x = ???

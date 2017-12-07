@@ -72,7 +72,7 @@ void m_test_poly(int argc, char** argv) {
     int N = 1 << dec;
     dec = ((1 << (dec + 1)) - N) / 4;
 
-    for(int intermediate_size = 0; intermediate_size < 3 * dec; intermediate_size += dec ) {
+    for(int intermediate_size = 0; intermediate_size < 4 * dec; intermediate_size += dec ) {
         double *a;
 
         N += intermediate_size;
