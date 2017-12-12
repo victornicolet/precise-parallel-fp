@@ -11,5 +11,7 @@
 
 
 void m_test_poly(int argc, char** argv);
+__mts sequential_poly(int, double*, double);
+__mts inexact_parallel_poly(int, double*, double);
 
 #endif //PRECISE_PARALLEL_FP_TEST_MTS_H

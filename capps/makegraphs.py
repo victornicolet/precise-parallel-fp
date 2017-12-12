@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -90,8 +92,48 @@ def m_test_experiment(fname, tname):
     plt.show()
 
 
-m_test_experiment("m_test_poly.csv", "Polynomial evaluation - speedup/sequential.")
-m_test_experiment("m_test_mts.csv", "Maxium tail sum - speedup/sequential.")
+def m_test_experiment_multic(fname, tname):
+    m_test_mts_dnames = ["numcores","initmode","inexact", "fpe2"]
+    m_test_mts_dtypes = ["int","int","float64", "float64"]
+    mmts_dtypes = { 'names' : m_test_mts_dnames,
+                    'formats' : m_test_mts_dtypes }
+    data = read_datafile(fname, mmts_dtypes)
+
+
+
+    expansions = ["inexact", "fpe2"]
+
+    modes=["naive", "fpuniform", "ill conditioned"]
+
+    plt.close('all')
+    f, subplts = plt.subplots(len(modes))
+
+    colors = ['black', 'red']
+    for i, mode in enumerate(modes):
+        subplts[i].set_title("Data: %s" % mode)
+        initmode = pd.DataFrame(data[data["initmode"] == i])
+        initmode.drop("initmode",1, inplace=True)
+        initmode = initmode.reset_index().groupby("numcores", sort=True).mean().reset_index()
+
+        for j, expansion in enumerate(expansions):
+            subplts[i].plot(initmode['numcores'], initmode[expansion],
+                            linestyle = '-',
+                            color = colors[j],
+                            label = expansion)
+
+
+
+    subplts[len(modes) - 1].legend(bbox_to_anchor=(0.2,0), loc="lower left",
+                                   bbox_transform=f.transFigure,
+                                   ncol=4)
+    f.subplots_adjust()
+    plt.suptitle(tname, fontsize=16)
+    plt.show()
+
+
+# m_test_experiment("m_test_poly.csv", "Polynomial evaluation - speedup/sequential.")
+# m_test_experiment("m_test_mts.csv", "Maximum tail sum - speedup/sequential.")
+m_test_experiment_multic("m_test_poly_multicore.csv", "Maximum tail sum - speedup/sequential with varying number of cores.")
 # m_test_mts_errlog()
 
 # x = ???

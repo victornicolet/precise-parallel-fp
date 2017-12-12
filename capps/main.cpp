@@ -15,6 +15,7 @@
 #include "common.hpp"
 #include "test_mts.h"
 #include "test_poly.h"
+#include "test_poly_multicore.h"
 
 using namespace std;
 
@@ -299,6 +300,9 @@ int main(int argc, char** argv) {
                 break;
             case 1:
                 m_test_poly(argc, argv);
+                break;
+            case 2:
+                m_test_poly_multicore(argc, argv);
                 break;
             default:
                 break;
