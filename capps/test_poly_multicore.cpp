@@ -21,7 +21,7 @@ void m_test_poly_multicore(int argc, char** argv) {
     string outputcsv, err_outputcsv;
     outputcsv = string(__FUNCTION__).append(".csv");
     err_outputcsv = string(__FUNCTION__).append("_errlog.csv");
-    int NUM_RUNS = 20;
+    int NUM_RUNS = 10;
 
     double factor = 0.99;
 
