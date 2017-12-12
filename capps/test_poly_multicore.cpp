@@ -110,7 +110,7 @@ void m_test_poly_multicore(int argc, char** argv) {
             for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
                 omp_set_dynamic(0);
                 omp_set_num_threads(numcores);
-                PFP_WTIME(seq_res = sequential_poly(N, a, factor), start, seqtime, wstart, seqwtime)
+                ACC_PFP_WTIME(seq_res = sequential_poly(N, a, factor), start, seqtime, wstart, seqwtime)
                 ACC_PFP_WTIME(inex_poly = inexact_limited_parallel_poly(N, a, factor, numcores), start, time_expoly[0], wstart,
                               wtime_expoly[0])
                 ACC_PFP_WTIME(expoly_fpe2 = expoly(N, a, factor, 2, false), start, time_expoly[1], wstart,
