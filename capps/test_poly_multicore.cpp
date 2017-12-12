@@ -104,7 +104,8 @@ void m_test_poly_multicore(int argc, char** argv) {
 
             //        Time a sequential implementation for reference
             __mts seq_res;
-            double seqtime, seqwtime;
+            double seqtime =0.;
+            double seqwtime = 0.;
 
 
             for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
