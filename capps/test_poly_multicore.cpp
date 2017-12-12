@@ -13,6 +13,31 @@
 
 using namespace std;
 
+__mts polyjoin2(__mts r,__mts n) {
+     r.sum = r.sum + r.mts * n.sum;
+    r.mts = r.mts * n.mts;
+    return r;
+}
+__mts inexact_limited_parallel_poly(int N, double* a, double factor, int numthreads){
+    omp_set_dynamic(0);
+    __mts m = {0., 1.};
+
+#pragma omp declare reduction \
+      (poly_reduction:__mts:omp_out=polyjoin2(omp_out,omp_in)) \
+      initializer(omp_priv={0.,1.})
+
+
+#pragma omp parallel for reduction(poly_reduction:m) num_threads(numthreads)
+    for (int idata=0; idata<N; idata++){
+        if(idata == 0) printf("NUMTHREAD BIS %i\n", omp_get_num_threads());
+        m.mts *= factor;
+        m.sum += m.mts * a[idata];
+    }
+
+    return m;
+}
+
+
 void m_test_poly_multicore(int argc, char** argv) {
 
     int maxcores = omp_get_max_threads();
@@ -83,7 +108,7 @@ void m_test_poly_multicore(int argc, char** argv) {
 
             for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
                 omp_set_num_threads(numcores);
-                ACC_PFP_WTIME(inex_poly = inexact_parallel_poly(N, a, factor), start, time_expoly[0], wstart,
+                ACC_PFP_WTIME(inex_poly = inexact_limited_parallel_poly(N, a, factor, numcores), start, time_expoly[0], wstart,
                               wtime_expoly[0])
                 ACC_PFP_WTIME(expoly_fpe2 = expoly(N, a, factor, 2, false), start, time_expoly[1], wstart,
                               wtime_expoly[1])
