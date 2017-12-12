@@ -11,6 +11,8 @@
 
 #define NUM_IMPLEMS 2
 
+#define NUM_RUNS 20
+
 using namespace std;
 
 __mts polyjoin2(__mts r,__mts n) {
@@ -29,7 +31,6 @@ __mts inexact_limited_parallel_poly(int N, double* a, double factor, int numthre
 
 #pragma omp parallel for reduction(poly_reduction:m) num_threads(numthreads)
     for (int idata=0; idata<N; idata++){
-        if(idata == 0) printf("NUMTHREAD BIS %i\n", omp_get_num_threads());
         m.mts *= factor;
         m.sum += m.mts * a[idata];
     }
@@ -46,7 +47,7 @@ void m_test_poly_multicore(int argc, char** argv) {
     string outputcsv, err_outputcsv;
     outputcsv = string(__FUNCTION__).append(".csv");
     err_outputcsv = string(__FUNCTION__).append("_errlog.csv");
-    int NUM_RUNS = 10;
+
 
     double factor = 0.99;
 
@@ -66,7 +67,7 @@ void m_test_poly_multicore(int argc, char** argv) {
     }
 
 
-    int testcores[11] = {1,2,4,6,8,12,16,24,32,48,64};
+    int testcores[10] = {2,4,6,8,12,16,24,32,48,64};
 
     for(int icore = 0; testcores[icore] <= maxcores; icore ++){
         double *a;
@@ -104,10 +105,12 @@ void m_test_poly_multicore(int argc, char** argv) {
             //        Time a sequential implementation for reference
             __mts seq_res;
             double seqtime, seqwtime;
-            PFP_WTIME(seq_res = sequential_poly(N, a, factor), start, seqtime, wstart, seqwtime)
+
 
             for (int run_no = 0; run_no < NUM_RUNS; run_no++) {
+                omp_set_dynamic(0);
                 omp_set_num_threads(numcores);
+                PFP_WTIME(seq_res = sequential_poly(N, a, factor), start, seqtime, wstart, seqwtime)
                 ACC_PFP_WTIME(inex_poly = inexact_limited_parallel_poly(N, a, factor, numcores), start, time_expoly[0], wstart,
                               wtime_expoly[0])
                 ACC_PFP_WTIME(expoly_fpe2 = expoly(N, a, factor, 2, false), start, time_expoly[1], wstart,
@@ -135,7 +138,7 @@ void m_test_poly_multicore(int argc, char** argv) {
             /// Speedup reporting -----------------------------------------------------------------------------------------
             fp << numcores << "," << initmode;
             for (int exno = 0; exno < NUM_IMPLEMS; exno++) {
-                fp << "," << seqwtime * (NUM_RUNS / wtime_expoly[exno]);
+                fp << "," << seqwtime / wtime_expoly[exno];
             }
             fp << endl;
         }

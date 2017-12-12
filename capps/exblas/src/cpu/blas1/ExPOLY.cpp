@@ -208,8 +208,6 @@ template<typename CACHE> __mts ExPOLYFPE(int N, double *a, double factor, int in
 
 #pragma omp parallel
     {
-        printf("NUMTHREADS: %i\n", omp_get_num_threads());
-
         unsigned int tid = omp_get_thread_num();
         unsigned int tnum = omp_get_num_threads();
 
