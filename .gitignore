@@ -8,6 +8,7 @@ capps/precise_parallel_fp
 *CMakeCache.txt
 *.cmake
 */Makefile
+.idea
 capps/.idea
 capps/*.o
 capps/exblas/CMakeFiles/
