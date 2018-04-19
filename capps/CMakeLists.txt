@@ -9,7 +9,7 @@ set (EXBLAS_HOME "./exblas/")
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # Compilation flags
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
 
 # This line seems to be useless, I comment it
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
@@ -23,9 +23,8 @@ add_subdirectory(exblas)
 # add exblas
 include_directories (exblas/include/)
 include_directories(/usr/lib/gcc/x86_64-linux-gnu/6/include/)
-include_directories (./)
+include_directories(include/)
 link_directories (exblas/lib/)
-link_directories (./)
 link_libraries(gomp)
 link_libraries(exblas)
 # Add OpenMP
@@ -34,7 +33,4 @@ find_package(OpenMP REQUIRED)
 # source subdirectories with includes
 add_subdirectory(src)
 
-# Define targets
-file(GLOB SOURCE_FILES "*.cpp" "*.hpp" "*.h")
-add_executable(precise_parallel_fp ${SOURCE_FILES})
 
