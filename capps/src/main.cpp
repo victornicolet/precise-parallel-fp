@@ -1,19 +1,22 @@
-#include "pfpdefs.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <mm_malloc.h>
 #include <getopt.h>
-#include "par_precise_fp.hpp"
 
 #ifdef EXBLAS_MPI
 #include <mpi.h>
-
 #endif
-// exblas
+
+// exblas includes
 #include "blas1.hpp"
 #include "common.hpp"
+
+// internal includes
 #include "test_mts.h"
+#include "par_precise_fp.hpp"
+#include "pfpdefs.hpp"
+#include "par_int_arith_mps.hpp"
 
 using namespace std;
 
@@ -283,13 +286,23 @@ void small_tests(int argc, char** argv){
     free(a);
 }
 
+// This function tests the implementation of parallel mps with interval arithmetic
+void test_par_int_arith_mps(){
+    // first test array
+    double array[] = {1.1,-10.,20.,-3.,1.};
+    parallel_ia_mps(array,5);
+}
+
 int main(int argc, char** argv) {
-#ifdef TEST_CUSTOM
+/*#ifdef TEST_CUSTOM
     test_my_implems(argc, argv);
 #endif
 //    Test exblas
 //    test_my_exblas(argc, argv);
 //    small_tests(argc, argv);
     m_test_mts(argc, argv);
+    */
+    test_par_int_arith_mps();
     return 0;
+
 }

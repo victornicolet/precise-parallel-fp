@@ -3,6 +3,9 @@
  * Date: 04/19/2018 */
 
 #include <emmintrin.h>
+#include "tbb/blocked_range.h"
+
+using namespace tbb;
 
 // Structure containing the result of a mps evaluation. 
 struct __mps{
@@ -11,8 +14,18 @@ struct __mps{
     __m128d mps_interval;
     // Position of the maximum prefix sum
     int position;
+    // Int size
+    int size;
+    // Constructor
+    __mps();
+    // Splitting constructor
+    __mps(__mps&,split);
+    // Accumulate result for subrange
+    void operator()(const blocked_range<double*>&);
     // Join operation for the reduction
-    void mps_join(__mps& rightMps); 
+    void join(__mps& rightMps); 
+    // Printing function
+    void print_mps();
 };
 
 /* Function computing in parallel the maximum prefix sum with interval arithmetic.

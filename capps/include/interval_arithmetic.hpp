@@ -2,6 +2,7 @@
  * Source: https://locklessinc.com/articles/interval_arithmetic/ 
  * */
 
+
 // Function to get the lower bound of an interval
 double in2_min(__m128d);
 
@@ -22,4 +23,19 @@ __m128d in2_add(__m128d,__m128d);
 
 // Functions below have been implemented by Raphael Dang-Nhu 
 
-// Function to compare two intervals
+// Function to print a __m128d
+void print(__m128d);
+
+// datatype to return the result of a partial comparison
+enum boolean{
+    True,
+    False,
+    Undefined
+};
+
+// Function to add an interval and a double
+__m128d in2_add_double(__m128d, double);
+
+// Function to compare two intervals. Return True if a is inferior or equal to b, False if a is strictly superior to b, Undefined if the two intervals intersect in more than one point
+boolean inferior(__m128d a,__m128d b);
+
