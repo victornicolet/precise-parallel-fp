@@ -9,6 +9,8 @@ using namespace tbb;
 
 // Structure containing the result of a mps evaluation. 
 struct __mps{
+    // pointer to the array
+    double* array;
     // Both sum and maximum prefix sum are represented as intervals  
     __m128d sum_interval;
     __m128d mps_interval;
@@ -17,11 +19,11 @@ struct __mps{
     // Int size
     int size;
     // Constructor
-    __mps();
+    __mps(double* a);
     // Splitting constructor
     __mps(__mps&,split);
     // Accumulate result for subrange
-    void operator()(const blocked_range<double*>&);
+    void operator()(const blocked_range<int>&);
     // Join operation for the reduction
     void join(__mps& rightMps); 
     // Printing function
@@ -30,6 +32,5 @@ struct __mps{
 
 /* Function computing in parallel the maximum prefix sum with interval arithmetic.
  * Arguments: input array, size of the array
- * Returns: __mps struct
  */
-__mps parallel_ia_mps(double*,int);
+void parallel_ia_mps(double*,int);

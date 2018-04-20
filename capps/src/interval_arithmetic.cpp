@@ -41,7 +41,7 @@ __m128d in2_add(__m128d x, __m128d y)
 }
 
 void print(__m128d x){
-    cout << "[" << in2_min(x) << "," << in2_max(x) << "]" << endl;
+    cout << "[" << in2_min(x) << "," << in2_max(x) << "]" << ", length: " << in2_max(x) - in2_min(x);
 }
 
 

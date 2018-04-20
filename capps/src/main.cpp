@@ -288,9 +288,53 @@ void small_tests(int argc, char** argv){
 
 // This function tests the implementation of parallel mps with interval arithmetic
 void test_par_int_arith_mps(){
-    // first test array
+    // Small tests
+    /* Control experimets first
     double array[] = {1.1,-10.,20.,-3.,1.};
     parallel_ia_mps(array,5);
+    
+    double array2[] = {1.,pow(2,-50),-1.};
+    parallel_ia_mps(array2,3);
+
+    double array3[] = {1.,pow(2,-53),-1.};
+    parallel_ia_mps(array3,3);
+    */
+    // Setting appropriate rounding mode for SSE registers
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+
+    // Test regular addition rounding
+    cout << endl << (1 + pow(2,-60)) - 1 << endl;
+
+    // Test interval arithmetic
+    double brray[] = {1.75,-10.,20.,-3.,1.};
+    parallel_ia_mps(brray,5);
+
+    double brray4[] = {1.76,-10.,20.,-3.,1.};
+    parallel_ia_mps(brray4,5);
+    
+    double brray2[] = {1.,pow(2,-50),-1.};
+    parallel_ia_mps(brray2,3);
+
+    double brray3[] = {1.,pow(2,-53),-1.};
+    parallel_ia_mps(brray3,3);
+
+    // Test what happens in case of uncertain comparison
+    double crray[] = {1.,pow(2,-53),-1,1.,pow(2,-54)};
+    parallel_ia_mps(crray,4);
+
+    // Test big arrays
+    srand(time(NULL));
+    for(int i = 2; i < 8; i++){
+        int size = pow(10,i);
+        double* drray = new double[size];
+        init_fpuniform(size, drray, 200, 100);
+        // Randomly change signs
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+        parallel_ia_mps(drray,size);
+        delete[] drray;
+    }
 }
 
 int main(int argc, char** argv) {

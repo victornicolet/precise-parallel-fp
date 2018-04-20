@@ -12,67 +12,84 @@
 using namespace std;
 using namespace tbb;
 
-__mps::__mps() {
+__mps::__mps(double* a) {
+    array = a;
     sum_interval = in2_create(0.,0.);
     mps_interval = in2_create(0.,0.);
     position = 0;
     size = 0;
 }
 
-__mps::__mps(__mps& r, split){
+__mps::__mps(__mps& x, split){
+    array = x.array;
     sum_interval = in2_create(0.,0.);
     mps_interval = in2_create(0.,0.);
     position = 0;
     size = 0;
 }
-
 
 void __mps::print_mps(){
-    cout << endl << "sum: ";
+    cout << "sum: ";
     print(sum_interval);
     cout << endl << "mps: ";
     print(mps_interval);
-    cout << endl << "position: " << position << endl;
+    cout << endl << "size: " << size << endl << "position: " << position << endl;
 }
 
 
 void __mps::join(__mps& rightMps){
+   size += rightMps.size;
    // computing sum-l + mps-r
    __m128d mpsCandidate = in2_add(sum_interval,rightMps.mps_interval);
    // comparison of mpsCandidate and mps-l
    boolean b = inferior(mps_interval,mpsCandidate);
    if (b == True){
        mps_interval = mpsCandidate;
-       position = size + rightMps.position;
+       position = rightMps.position;
    }
    else if(b == Undefined){
-      cout << "Undefined comparison result" << endl;
+      cout << "Undefined comparison result in join operation, size: " << size << endl;
    }
-   // adding two sums and sizes 
-   size += rightMps.size;
+   // adding two sums
    sum_interval = in2_add(sum_interval,rightMps.sum_interval);
-
 }
 
-void __mps::operator()(const blocked_range<double*>& r){
-    size = r.end() - r.begin();
+void __mps::operator()(const blocked_range<int>& r){
     // iterating over the subrange
-    for(double* a = r.begin(); a != r.end(); a++){
-        sum_interval = in2_add_double(sum_interval,*a);
+    for(int i = r.begin(); i != r.end(); i++){
+        size++;
+        sum_interval = in2_add_double(sum_interval,array[i]);
         boolean b = inferior(mps_interval,sum_interval);
         if (b == True){
             mps_interval = sum_interval;
-            position = a - r.begin(); 
+            position = i; 
         }
         else if(b == Undefined){
-           cout << "Undefined comparison result" << endl;
+            int l = 0;
         }
     }
+    // Print debugging information
+    //cout << "Processed subrange of length: " << size << endl;
 }
         
 
-__mps parallel_ia_mps(double* array, int size){
-    __mps result;
-    parallel_reduce(blocked_range<double*>(array,array+size),result);
+void parallel_ia_mps(double* array, int size){
+    // printing the array
+    cout << endl << "{";
+    if(size <= 10){
+        for(int i = 0; i < size; i++){
+            cout << array[i] << ",";
+        }
+        cout << "}" << endl;
+    }
+    else{
+        for(int i = 0; i < 10; i++){
+            cout << array[i] << ",";
+        }
+        cout << "... (size: " << size << ")" << endl;
+    }
+    // Computing sum and mps
+    __mps result(array);
+    parallel_reduce(blocked_range<int>(0,size),result);
     result.print_mps();
 }

@@ -2,17 +2,16 @@
 // Created by nicolet on 05/12/17.
 //
 
-#include "test_mts.h"
 #include <mm_malloc.h>
 #include <string>
 #include <fstream>
 #include <iostream>
 
+#include "test_mts.hpp"
 
 using namespace std;
 
-
-__mts sequential_mts(int N, double* a){
+_mts sequential_mts(int N, double* a){
     double mts = 0.;
     double sum = 0.;
     for(int i = 0; i  < N; i++){
