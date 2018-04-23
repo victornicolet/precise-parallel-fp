@@ -140,7 +140,7 @@ void FPExpansionVectM1<N,TRAITS>::XAccumulate(double x)
         }
     } else {
         for(unsigned int i = 0; i != N; ++i) {
-            mtsbuf[i] = mts[i];
+            mts[i] = 0.;
         }
     }
 
