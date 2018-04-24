@@ -11,7 +11,7 @@
 
 using namespace std;
 
-_mts sequential_mts(int N, double* a){
+__mts sequential_mts(int N, double* a){
     double mts = 0.;
     double sum = 0.;
     for(int i = 0; i  < N; i++){

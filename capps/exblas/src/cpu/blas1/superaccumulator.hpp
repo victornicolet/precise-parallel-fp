@@ -112,6 +112,8 @@ struct Superaccumulator
      */
     void set_accumulator(std::vector<int64_t> other);
 
+    
+
 private:
     void AccumulateWord(int64_t x, int i);
 

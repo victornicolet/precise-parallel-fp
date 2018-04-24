@@ -55,3 +55,9 @@ boolean inferior(__m128d a, __m128d b){
     else if (in2_min(a) > in2_max(b)) return False;
     else return Undefined;
 }
+
+boolean inferior_double(double a, __m128d b){
+    if(a <= in2_min(b)) return True;
+    else if( a > in2_max(b)) return False;
+    else return Undefined;
+}

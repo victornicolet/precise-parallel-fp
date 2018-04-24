@@ -13,7 +13,8 @@
 #include "common.hpp"
 
 // internal includes
-#include "test_mts.h"
+#include "par_lazy_mps.hpp"
+#include "test_mts.hpp"
 #include "par_precise_fp.hpp"
 #include "pfpdefs.hpp"
 #include "par_int_arith_mps.hpp"
@@ -286,56 +287,102 @@ void small_tests(int argc, char** argv){
     free(a);
 }
 
-// This function tests the implementation of parallel mps with interval arithmetic
+// This function tests the lazy computation of mps with interval arithmetic and superaccumulators
 void test_par_int_arith_mps(){
     // Small tests
     /* Control experimets first
     double array[] = {1.1,-10.,20.,-3.,1.};
-    parallel_ia_mps(array,5);
+    parallel_superacc_mps(array,5);
     
     double array2[] = {1.,pow(2,-50),-1.};
-    parallel_ia_mps(array2,3);
+    parallel_superacc_mps(array2,3);
 
     double array3[] = {1.,pow(2,-53),-1.};
-    parallel_ia_mps(array3,3);
+    parallel_superacc_mps(array3,3);
     */
     // Setting appropriate rounding mode for SSE registers
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // Test regular addition rounding
-    cout << endl << (1 + pow(2,-60)) - 1 << endl;
+    //cout << endl << (1 + pow(2,-60)) - 1 << endl;
+    
+    // Test how superacc deals with negative number
+    Superaccumulator test = Superaccumulator();
+    test.Accumulate(1);
+    test.Accumulate(pow(2,-53));
+    test.Accumulate(-1);
+    cout << endl << test.Round() << endl;
 
     // Test interval arithmetic
     double brray[] = {1.75,-10.,20.,-3.,1.};
-    parallel_ia_mps(brray,5);
+    parallel_superacc_mps(brray,5);
 
     double brray4[] = {1.76,-10.,20.,-3.,1.};
-    parallel_ia_mps(brray4,5);
+    parallel_superacc_mps(brray4,5);
     
     double brray2[] = {1.,pow(2,-50),-1.};
-    parallel_ia_mps(brray2,3);
+    parallel_superacc_mps(brray2,3);
 
     double brray3[] = {1.,pow(2,-53),-1.};
-    parallel_ia_mps(brray3,3);
+    parallel_superacc_mps(brray3,3);
 
     // Test what happens in case of uncertain comparison
     double crray[] = {1.,pow(2,-53),-1,1.,pow(2,-54)};
-    parallel_ia_mps(crray,4);
+    parallel_superacc_mps(crray,4);
 
     // Test big arrays
     srand(time(NULL));
-    for(int i = 2; i < 8; i++){
+    for(int i = 2; i < 2; i++){
         int size = pow(10,i);
         double* drray = new double[size];
-        init_fpuniform(size, drray, 200, 100);
+        init_fpuniform(size, drray, 30, 15);
         // Randomly change signs
         for(int j = 0; j < size ; j++){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
         }
-        parallel_ia_mps(drray,size);
+        for(int k = 0; k < 5; k++){ 
+            parallel_superacc_mps(drray,size);
+        }
         delete[] drray;
     }
 }
+
+/* This function compares the runtime of mps with superaccumulators, and its lazy implementation with interval arithmetic */
+void test_runtime_par_int_arith_mps(){
+    // Setting appropriate rounding mode for SSE registers
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    
+    double start;
+    
+    srand(time(NULL));
+    for(int i = 6; i < 7; i++){
+        // Generating arrays
+        int size = pow(10,i);
+        double* drray = new double[size];
+        init_fpuniform(size, drray, 10, 0);
+        // Randomly change signs
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+        
+        // Testing naive implementation with i.a. and superaccumulators
+        double naivetime = 0.0;
+        PFP_TIME(parallel_mps(drray,size),start,naivetime);
+        // Testing lazy implementation with i.a. and superaccumulators
+        double comparetime = 0.0;
+        PFP_TIME(parallel_lazy_superacc_mps(drray,size),start,comparetime);
+        // Testing simple implementation with superaccumulators
+        double reftime = 0.0;
+        PFP_TIME(parallel_superacc_mps(drray,size),start,reftime);
+    
+        // Print times
+        cout << "Reference time: " << reftime << " / Lazy time: " << comparetime << " / Naive time: " << naivetime << " / Ratio ref/naive " << reftime/naivetime << " / Ratio lazy/ref: " << comparetime/reftime << endl;  
+        delete[] drray;
+    }
+
+
+}
+
 
 int main(int argc, char** argv) {
 /*#ifdef TEST_CUSTOM
@@ -347,6 +394,7 @@ int main(int argc, char** argv) {
     m_test_mts(argc, argv);
     */
     test_par_int_arith_mps();
+    //test_runtime_par_int_arith_mps();
     return 0;
 
 }
