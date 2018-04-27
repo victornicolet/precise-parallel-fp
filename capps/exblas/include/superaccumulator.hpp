@@ -16,6 +16,8 @@
 #ifndef SUPERACCUMULATOR_HPP_INCLUDED
 #define SUPERACCUMULATOR_HPP_INCLUDED
 
+#include <iostream>
+#include <emmintrin.h>
 #include <vector>
 #include <stdint.h>
 #include <iosfwd>
@@ -24,6 +26,7 @@
 #include <cmath>
 #include <cstdio>
 
+using namespace std;
 /**
  * \struct Superaccumulator
  * \ingroup ExSUM

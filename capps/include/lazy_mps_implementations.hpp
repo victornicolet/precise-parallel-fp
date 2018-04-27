@@ -83,10 +83,11 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::print
     print(sum_interval);
     cout << endl << "mps: ";
     print(mps_interval);
-    cout << endl << "size: " << size << endl << "position: " << position << endl;
+    cout << endl << "size: " << size << endl << "position: " << position << endl << "left: " << left << endl << "right: " << right << endl;
 }
 
 template <typename __mps_high_precision> void __mps<__mps_high_precision>::join(__mps& rightMps){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
    size += rightMps.size;
    right = rightMps.right;
    // computing sum-l + mps-r
@@ -109,9 +110,12 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::join(
        sum_interval = in2_create(sumaux,sumaux);
        position = precise_result.position;
    } 
+    _MM_SET_ROUNDING_MODE(0);
 }
 
 template <typename __mps_high_precision> void __mps<__mps_high_precision>::operator()(const blocked_range<int>& r){
+
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     if(position == -1){
         position = r.begin();
     }

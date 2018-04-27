@@ -60,9 +60,7 @@ __mps_acc::__mps_acc(double* a):
     position(-1)
 {
     sum = Superaccumulator();
-    neg_sum = Superaccumulator();
     mps = Superaccumulator();
-    neg_mps = Superaccumulator();
 }
 
 __mps_acc::__mps_acc(__mps_acc& x, split) :
@@ -70,9 +68,7 @@ __mps_acc::__mps_acc(__mps_acc& x, split) :
     position(-1)
 {
     sum = Superaccumulator();
-    neg_sum = Superaccumulator();
     mps = Superaccumulator();
-    neg_mps = Superaccumulator();
 }
 
 void __mps_acc::print_mps(){
@@ -90,20 +86,14 @@ void __mps_acc::operator()(const blocked_range<int>& r){
         //Set rounding mode
 
         sum.Accumulate(array[i]);
-        neg_sum.Accumulate(-array[i]);
-        // Trick to do the comparison
-        Superaccumulator test = Superaccumulator();
-        test.Accumulate(sum);
-        test.Accumulate(neg_mps);
-        double testAux = test.Round();
-        if(testAux >= 0){
+        double sumAux = sum.Round();
+        double mpsAux = mps.Round();
+        if(sumAux >= mpsAux){
             mps = Superaccumulator(sum.get_accumulator());
-            neg_mps = Superaccumulator(neg_sum.get_accumulator());
             position = i; 
         }
         //Set back rounding mode
     }
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 }
 
 void __mps_acc::join(__mps_acc& rightMps){
@@ -111,21 +101,15 @@ void __mps_acc::join(__mps_acc& rightMps){
    _MM_SET_ROUNDING_MODE(0);
    // computing sum-l + mps-r
    rightMps.mps.Accumulate(sum);
-   rightMps.neg_mps.Accumulate(neg_sum);
    // adding two sums
    sum.Accumulate(rightMps.sum);
-   neg_sum.Accumulate(rightMps.neg_sum);
    // comparison of mpsCandidate and mps-l
-   Superaccumulator test = Superaccumulator();
-   test.Accumulate(rightMps.mps);
-   test.Accumulate(neg_mps);
-   if(test.Round() >= 0){
+   double candidate = rightMps.mps.Round();
+   double mpsAux = mps.Round();
+   if(mpsAux <= candidate){
        mps = rightMps.mps;
-       neg_mps = rightMps.neg_mps;
        position = rightMps.position;
    }
-    //Set back rounding mode
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 }
 
 double __mps_acc::getSumDouble(){
@@ -133,15 +117,15 @@ double __mps_acc::getSumDouble(){
 }
 
 double __mps_acc::getMpsDouble(){
-    return sum.Round();
+    return mps.Round();
 }
 
 __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
     position(-1)
 {
-    mpfr_init2(sum,500);
-    mpfr_init2(mps,500);
+    mpfr_init2(sum,10000);
+    mpfr_init2(mps,10000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }
@@ -150,8 +134,8 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     array(x.array),
     position(-1)
 {
-    mpfr_init2(sum,500);
-    mpfr_init2(mps,500);
+    mpfr_init2(sum,10000);
+    mpfr_init2(mps,10000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }

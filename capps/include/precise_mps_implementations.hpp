@@ -67,8 +67,6 @@ struct __mps_acc{
     // Superaccumulators for sum and mps
     Superaccumulator sum;
     Superaccumulator mps;
-    Superaccumulator neg_sum;
-    Superaccumulator neg_mps;
     // Position of the maximum prefix sum
     int position;
     // Constructor

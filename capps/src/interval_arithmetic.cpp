@@ -36,6 +36,7 @@ __m128d in2_raw_create(double nmin, double max)
 
 __m128d in2_add(__m128d x, __m128d y)
 {
+        if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
         /* Component-wise addition */
         return  x + y;
 }

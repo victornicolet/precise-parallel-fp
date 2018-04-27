@@ -73,36 +73,66 @@ void debug_test(){
 /* This function compares the runtime of mps with superaccumulators, and its lazy implementation with interval arithmetic */
 void runtime_comparison(){
     
+    // Variables declaration and initialisation 
     double start;
+    int size = pow(10,5);
+    int N = 1000;
     
+    // Random seed
     srand(time(NULL));
-    for(int i = 6; i < 7; i++){
-        // Generating arrays
-        int size = pow(10,i);
-        double* drray = new double[size];
-        init_fpuniform(size, drray, 10, 0);
-        // Randomly change signs
-        for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-        }
-        
-        double time_float = 0.0;
-        PFP_TIME(parallel_mps_float(drray,size),start,time_float);
-        double time_superacc = 0.0;
-        PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
-        double time_superacc_lazy = 0.0;
-        PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
-        double time_mpfr = 0.0;
-        PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
-        double time_mpfr_lazy = 0.0;
-        PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_mpfr_lazy);
     
-        // Print times
-        cout << endl << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
-        cout << "Ratio superacc/float " << time_superacc/time_float << " / Ratio lazy superacc/superacc: " << time_superacc_lazy/time_superacc << endl;  
-        cout << "Ratio mpfr/float " << time_mpfr/time_float << " / Ratio lazy mpfr/mpfr: " << time_mpfr_lazy/time_mpfr << endl;  
-        delete[] drray;
-    }
+    // for each dynamic range
+    int dynRanges[10] = {10,20,40,60,80,100,200,400,600,800};
+    for(int r = 0; r < 10; r++){
+
+        // initialization of means
+        double mean_float = 0, mean_superacc = 0, mean_superacc_lazy = 0, mean_mpfr = 0, mean_lazy_mpfr = 0;
+        
+        // 1000 trials with N = 10^5
+        for(int i = 0; i < N; i++){
+            
+            // Generating array
+            double* drray = new double[size];
+            init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
+
+            // Randomly change signs
+            for(int j = 0; j < size ; j++){
+                 drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+            }
+            
+            double time_float = 0.0;
+            PFP_TIME(parallel_mps_float(drray,size),start,time_float);
+            double time_superacc = 0.0;
+            PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
+            double time_superacc_lazy = 0.0;
+            PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
+            double time_mpfr = 0.0;
+            PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
+            double time_mpfr_lazy = 0.0;
+            PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
+        
+            /* Print times
+            cout << endl << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
+            cout << "Ratio superacc/float " << time_superacc/time_float << " / Ratio lazy superacc/superacc: " << time_superacc_lazy/time_superacc << endl;  
+            cout << "Ratio mpfr/float " << time_mpfr/time_float << " / Ratio lazy mpfr/mpfr: " << time_mpfr_lazy/time_mpfr << endl;  
+            */
+
+            mean_float += time_float;
+            mean_superacc += time_superacc;
+            mean_superacc_lazy += time_superacc_lazy;
+            mean_mpfr += time_mpfr;
+            mean_lazy_mpfr += time_mpfr_lazy;
+            
+            delete[] drray;
+        }
+        // Finalize mean computation
+        mean_float = mean_float/N;
+        mean_superacc = mean_superacc/N;
+        mean_superacc_lazy = mean_superacc_lazy/N;
+        mean_mpfr = mean_mpfr/N;
+        mean_lazy_mpfr = mean_lazy_mpfr/N;
+
+        // Write it in a file
 }
 
 int main(int argc, char** argv){
