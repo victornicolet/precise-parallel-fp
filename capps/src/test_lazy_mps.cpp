@@ -3,6 +3,7 @@
  * Date: 27/04/2018 */
 
 #include <iostream>
+#include "matplotlibcpp.h"
 
 #include "superaccumulator.hpp"
 #include "lazy_mps_implementations.hpp"
@@ -10,6 +11,8 @@
 #include "pfpdefs.hpp"
 
 using namespace std;
+
+namespace plt = matplotlibcpp;
 
 // This function tests the lazy computation of mps with interval arithmetic and superaccumulators
 void debug_test(){
@@ -76,13 +79,15 @@ void runtime_comparison(){
     // Variables declaration and initialisation 
     double start;
     int size = pow(10,5);
-    int N = 1000;
-    
+    int N = 30;
+
+    // Store results to plot
+    vector<double> x(10),r1(10),r2(10),r3(10),r4(10),r5(10);
     // Random seed
     srand(time(NULL));
     
     // for each dynamic range
-    int dynRanges[10] = {10,20,40,60,80,100,200,400,600,800};
+    vector<int> dynRanges  {10,20,40,60,80,100,200,400,600,800};
     for(int r = 0; r < 10; r++){
 
         // initialization of means
@@ -131,8 +136,28 @@ void runtime_comparison(){
         mean_superacc_lazy = mean_superacc_lazy/N;
         mean_mpfr = mean_mpfr/N;
         mean_lazy_mpfr = mean_lazy_mpfr/N;
-
-        // Write it in a file
+        
+        x[r]= dynRanges[r];
+        r1[r]= mean_float/mean_float;
+        r2[r]= mean_superacc/mean_float;
+        r3[r]= mean_superacc_lazy/mean_float;
+        r4[r]= mean_mpfr/mean_float;
+        r5[r]= mean_lazy_mpfr/mean_float;
+        
+    }
+    plt::named_plot("ref (double)",x,r1);
+    plt::named_plot("superaccumulators only",x,r2);
+    plt::named_plot("lazy computations with Superaccumulator",x,r3);
+    plt::named_plot("mpfr (arbitrary high-precision)",x,r4);
+    plt::named_plot("lazy computations with mpfr",x,r5);
+    plt::legend();
+    plt::xlabel("dynamic range of the random values (emax - emin)");
+    plt::ylabel("mean computation time / ref time (double)");
+    plt::title("Computation time for mps as a function of the dynamic range"); 
+    plt::xlim(0,800);
+    plt::ylim(0,800);
+    //plt::show();
+    plt::save("./lazymps.jpg");
 }
 
 int main(int argc, char** argv){

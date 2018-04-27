@@ -124,8 +124,8 @@ __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
     position(-1)
 {
-    mpfr_init2(sum,10000);
-    mpfr_init2(mps,10000);
+    mpfr_init2(sum,30000);
+    mpfr_init2(mps,30000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }
@@ -134,8 +134,8 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     array(x.array),
     position(-1)
 {
-    mpfr_init2(sum,10000);
-    mpfr_init2(mps,10000);
+    mpfr_init2(sum,30000);
+    mpfr_init2(mps,30000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }

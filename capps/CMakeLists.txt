@@ -30,8 +30,14 @@ link_libraries(gomp)
 link_libraries(exblas)
 link_libraries(mpfr)
 link_libraries(gmp)
+
 # Add OpenMP
 find_package(OpenMP REQUIRED)
+
+# add matplotlibcpp
+find_package(PythonLibs 2.7)
+include_directories(PRIVATE ${PYTHON_INCLUDE_DIRS})
+link_libraries(${PYTHON_LIBRARIES})
 
 # source subdirectories with includes
 add_subdirectory(src)
