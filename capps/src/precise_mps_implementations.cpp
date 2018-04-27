@@ -82,12 +82,12 @@ void __mps_acc::print_mps(){
 }
 
 void __mps_acc::operator()(const blocked_range<int>& r){
+    _MM_SET_ROUNDING_MODE(0);
     if(position == -1){
         position = r.begin();
     }
     for(int i = r.begin(); i != r.end(); i++){
         //Set rounding mode
-        _MM_SET_ROUNDING_MODE(0);
 
         sum.Accumulate(array[i]);
         neg_sum.Accumulate(-array[i]);
@@ -96,20 +96,19 @@ void __mps_acc::operator()(const blocked_range<int>& r){
         test.Accumulate(sum);
         test.Accumulate(neg_mps);
         double testAux = test.Round();
-        //cout << endl << testAux << endl;
         if(testAux >= 0){
             mps = Superaccumulator(sum.get_accumulator());
             neg_mps = Superaccumulator(neg_sum.get_accumulator());
             position = i; 
         }
         //Set back rounding mode
-        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     }
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 }
 
 void __mps_acc::join(__mps_acc& rightMps){
-    //Set rounding mode
-    _MM_SET_ROUNDING_MODE(0);
+   //Set rounding mode
+   _MM_SET_ROUNDING_MODE(0);
    // computing sum-l + mps-r
    rightMps.mps.Accumulate(sum);
    rightMps.neg_mps.Accumulate(neg_sum);
@@ -141,8 +140,8 @@ __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
     position(-1)
 {
-    mpfr_init2(sum,MPFR_PREC_MAX);
-    mpfr_init2(mps,MPFR_PREC_MAX);
+    mpfr_init2(sum,500);
+    mpfr_init2(mps,500);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }
@@ -151,8 +150,8 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     array(x.array),
     position(-1)
 {
-    mpfr_init2(sum,MPFR_PREC_MAX);
-    mpfr_init2(mps,MPFR_PREC_MAX);
+    mpfr_init2(sum,500);
+    mpfr_init2(mps,500);
     mpfr_set_d(sum,0.,MPFR_RNDN);
     mpfr_set_d(sum,0.,MPFR_RNDN);
 }
@@ -171,8 +170,8 @@ void __mps_mpfr::operator()(const blocked_range<int>& range){
 }
 
 void __mps_mpfr::join(__mps_mpfr& right){
-    mpfr_add(right.sum,right.sum,sum,MPFR_RNDN);
     mpfr_add(right.mps,right.mps,sum,MPFR_RNDN);
+    mpfr_add(sum,right.sum,sum,MPFR_RNDN);
     if(mpfr_cmp(right.mps,mps) >= 0){
             mpfr_set(mps,right.mps,MPFR_RNDN);
             position = right.position;
@@ -182,10 +181,8 @@ void __mps_mpfr::join(__mps_mpfr& right){
 }
 
 void __mps_mpfr::print_mps(){
-    cout << "sum: ";
-    mpfr_out_str(NULL,10,0,sum,MPFR_RNDN);
-    cout << endl << "mps: " ;
-    mpfr_out_str(NULL,10,0,mps,MPFR_RNDN);
+    cout << "sum: " << getSumDouble();
+    cout << endl << "mps: " << getMpsDouble();
     cout << endl << "position: " << position << endl;
 }
 

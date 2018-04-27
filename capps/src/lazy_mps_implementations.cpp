@@ -37,6 +37,7 @@ void parallel_mps_float(double* array, int size){
     parallel_reduce(blocked_range<int>(0,size),result);
     result.print_mps();
 }
+
 void parallel_mps_Collange(double* array, int size){
     printA(array,size);
     __mps_precise<4> result(array);
@@ -52,10 +53,12 @@ void parallel_mps_superacc(double* array, int size){
 }
 
 void parallel_mps_superacc_lazy(double* array, int size){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     printA(array,size);
     __mps<__mps_acc> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     result.print_mps();
+    _MM_SET_ROUNDING_MODE(0);
 }
 
 void parallel_mps_mpfr(double* array, int size){
@@ -66,9 +69,11 @@ void parallel_mps_mpfr(double* array, int size){
 } 
 
 void parallel_mps_mpfr_lazy(double* array, int size){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     printA(array,size);
     __mps<__mps_mpfr> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     result.print_mps();
+    _MM_SET_ROUNDING_MODE(0);
 }
 

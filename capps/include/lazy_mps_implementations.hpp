@@ -2,6 +2,9 @@
  * Author: Raphael Dang-Nhu 
  * Date: 04/19/2018 */
 
+#ifndef LAZY_MPS_H_
+#define LAZY_MPS_H_
+
 #include <emmintrin.h>
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_reduce.h"
@@ -137,3 +140,5 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::opera
         }
     }
 }
+
+#endif

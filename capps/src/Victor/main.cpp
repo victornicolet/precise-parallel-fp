@@ -13,11 +13,9 @@
 #include "common.hpp"
 
 // internal includes
-#include "par_lazy_mps.hpp"
 #include "test_mts.hpp"
 #include "par_precise_fp.hpp"
 #include "pfpdefs.hpp"
-#include "lazy_mps_implementations.hpp"
 
 using namespace std;
 
@@ -300,8 +298,6 @@ void test_par_int_arith_mps(){
     double array3[] = {1.,pow(2,-53),-1.};
     parallel_mps_superacc(array3,3);
     */
-    // Setting appropriate rounding mode for SSE registers
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // Test regular addition rounding
     //cout << endl << (1 + pow(2,-60)) - 1 << endl;
@@ -316,20 +312,20 @@ void test_par_int_arith_mps(){
 
     // Test interval arithmetic
     double brray[] = {1.75,-10.,20.,-3.,1.};
-    parallel_mps_superacc(brray,5);
+    parallel_mps_superacc_lazy(brray,5);
 
     double brray4[] = {1.76,-10.,20.,-3.,1.};
-    parallel_mps_superacc(brray4,5);
+    parallel_mps_superacc_lazy(brray4,5);
     
     double brray2[] = {1.,pow(2,-50),-1.};
-    parallel_mps_superacc(brray2,3);
+    parallel_mps_superacc_lazy(brray2,3);
 
     double brray3[] = {1.,pow(2,-53),-1.};
-    parallel_mps_superacc(brray3,3);
+    parallel_mps_superacc_lazy(brray3,3);
 
     // Test what happens in case of uncertain comparison
     double crray[] = {1.,pow(2,-53),-1,1.,pow(2,-54)};
-    parallel_mps_superacc(crray,4);
+    parallel_mps_superacc_lazy(crray,5);
 
     // Test big arrays
     srand(time(NULL));
@@ -350,8 +346,6 @@ void test_par_int_arith_mps(){
 
 /* This function compares the runtime of mps with superaccumulators, and its lazy implementation with interval arithmetic */
 void test_runtime_par_int_arith_mps(){
-    // Setting appropriate rounding mode for SSE registers
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     
     double start;
     
@@ -360,7 +354,7 @@ void test_runtime_par_int_arith_mps(){
         // Generating arrays
         int size = pow(10,i);
         double* drray = new double[size];
-        init_fpuniform(size, drray, 50, 5);
+        init_fpuniform(size, drray, 10, 0);
         // Randomly change signs
         for(int j = 0; j < size ; j++){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
@@ -378,7 +372,7 @@ void test_runtime_par_int_arith_mps(){
         PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_mpfr_lazy);
     
         // Print times
-        cout << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
+        cout << endl << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
         cout << "Ratio superacc/float " << time_superacc/time_float << " / Ratio lazy superacc/superacc: " << time_superacc_lazy/time_superacc << endl;  
         cout << "Ratio mpfr/float " << time_mpfr/time_float << " / Ratio lazy mpfr/mpfr: " << time_mpfr_lazy/time_mpfr << endl;  
         delete[] drray;
@@ -397,8 +391,8 @@ int main(int argc, char** argv) {
 //    small_tests(argc, argv);
     m_test_mts(argc, argv);
     */
-    test_par_int_arith_mps();
-    //test_runtime_par_int_arith_mps();
+    //test_par_int_arith_mps();
+    test_runtime_par_int_arith_mps();
     return 0;
 
 }
