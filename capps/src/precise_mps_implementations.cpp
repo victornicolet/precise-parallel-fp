@@ -1,7 +1,7 @@
 /* Author: Raphael Dang-Nhu */
 
 #include <iostream>
-#include<gmp.h>
+#include <gmp.h>
 #include <mpfr.h>
 
 #include "tbb/blocked_range.h"
@@ -129,6 +129,14 @@ void __mps_acc::join(__mps_acc& rightMps){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 }
 
+double __mps_acc::getSumDouble(){
+    return sum.Round();
+}
+
+double __mps_acc::getMpsDouble(){
+    return sum.Round();
+}
+
 __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
     position(-1)
@@ -181,6 +189,10 @@ void __mps_mpfr::print_mps(){
     cout << endl << "position: " << position << endl;
 }
 
+double __mps_mpfr::getSumDouble(){
+    return mpfr_get_d(sum,MPFR_RNDN);
+}
 
-
-
+double __mps_mpfr::getMpsDouble(){
+    return mpfr_get_d(mps,MPFR_RNDN);
+}

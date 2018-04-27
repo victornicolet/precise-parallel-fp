@@ -55,6 +55,9 @@ template<int N> struct __mps_precise{
     void join(__mps_precise& rightMps); 
     // Printing function
     void print_mps();
+    // Rounding functions
+    double getSumDouble();
+    double getMpsDouble();
 };
 
 // Same structure with super accumulators only. 
@@ -78,6 +81,9 @@ struct __mps_acc{
     void join(__mps_acc& rightMps); 
     // Printing function
     void print_mps();
+    // Rounding functions
+    double getSumDouble();
+    double getMpsDouble();
 };
 
 // Same structure with mpfr library.
@@ -91,6 +97,9 @@ struct __mps_mpfr{
     void operator()(const blocked_range<int>&);
     void join(__mps_mpfr& right);
     void print_mps();
+    // Rounding functions
+    double getSumDouble();
+    double getMpsDouble();
 };
 
 

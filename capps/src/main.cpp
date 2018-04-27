@@ -298,7 +298,7 @@ void test_par_int_arith_mps(){
     parallel_superacc_mps(array2,3);
 
     double array3[] = {1.,pow(2,-53),-1.};
-    parallel_superacc_mps(array3,3);
+    parallel_mps_superacc(array3,3);
     */
     // Setting appropriate rounding mode for SSE registers
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
@@ -316,20 +316,20 @@ void test_par_int_arith_mps(){
 
     // Test interval arithmetic
     double brray[] = {1.75,-10.,20.,-3.,1.};
-    parallel_superacc_mps(brray,5);
+    parallel_mps_superacc(brray,5);
 
     double brray4[] = {1.76,-10.,20.,-3.,1.};
-    parallel_superacc_mps(brray4,5);
+    parallel_mps_superacc(brray4,5);
     
     double brray2[] = {1.,pow(2,-50),-1.};
-    parallel_superacc_mps(brray2,3);
+    parallel_mps_superacc(brray2,3);
 
     double brray3[] = {1.,pow(2,-53),-1.};
-    parallel_superacc_mps(brray3,3);
+    parallel_mps_superacc(brray3,3);
 
     // Test what happens in case of uncertain comparison
     double crray[] = {1.,pow(2,-53),-1,1.,pow(2,-54)};
-    parallel_superacc_mps(crray,4);
+    parallel_mps_superacc(crray,4);
 
     // Test big arrays
     srand(time(NULL));
@@ -342,7 +342,7 @@ void test_par_int_arith_mps(){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
         }
         for(int k = 0; k < 5; k++){ 
-            parallel_superacc_mps(drray,size);
+            parallel_mps_superacc(drray,size);
         }
         delete[] drray;
     }
@@ -366,18 +366,21 @@ void test_runtime_par_int_arith_mps(){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
         }
         
-        // Testing naive implementation with i.a. and superaccumulators
-        double naivetime = 0.0;
-        PFP_TIME(parallel_mps(drray,size),start,naivetime);
-        // Testing lazy implementation with i.a. and superaccumulators
-        double comparetime = 0.0;
-        PFP_TIME(parallel_lazy_superacc_mps(drray,size),start,comparetime);
-        // Testing simple implementation with superaccumulators
-        double reftime = 0.0;
-        PFP_TIME(parallel_superacc_mps(drray,size),start,reftime);
+        double time_float = 0.0;
+        PFP_TIME(parallel_mps_float(drray,size),start,time_float);
+        double time_superacc = 0.0;
+        PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
+        double time_superacc_lazy = 0.0;
+        PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
+        double time_mpfr = 0.0;
+        PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
+        double time_mpfr_lazy = 0.0;
+        PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_mpfr_lazy);
     
         // Print times
-        cout << "Reference time: " << reftime << " / Lazy time: " << comparetime << " / Naive time: " << naivetime << " / Ratio ref/naive " << reftime/naivetime << " / Ratio lazy/ref: " << comparetime/reftime << endl;  
+        cout << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
+        cout << "Ratio superacc/float " << time_superacc/time_float << " / Ratio lazy superacc/superacc: " << time_superacc_lazy/time_superacc << endl;  
+        cout << "Ratio mpfr/float " << time_mpfr/time_float << " / Ratio lazy mpfr/mpfr: " << time_mpfr_lazy/time_mpfr << endl;  
         delete[] drray;
     }
 

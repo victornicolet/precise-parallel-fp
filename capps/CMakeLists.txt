@@ -20,7 +20,6 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 # source directories without includes
 add_subdirectory(exblas)
 
-# add exblas
 include_directories (exblas/include/)
 include_directories (exblas/src/common/)
 include_directories(/usr/lib/gcc/x86_64-linux-gnu/6/include/)
@@ -28,6 +27,8 @@ include_directories(include/)
 link_directories (exblas/lib/)
 link_libraries(gomp)
 link_libraries(exblas)
+link_libraries(mpfr)
+link_libraries(gmp)
 # Add OpenMP
 find_package(OpenMP REQUIRED)
 
