@@ -2,6 +2,9 @@
  * Source: https://locklessinc.com/articles/interval_arithmetic/ 
  * */
 
+#ifndef INTERVAL_ARITHMETIC_H
+#define INTERVAL_ARITHMETIC_H
+
 #include <emmintrin.h>
 
 // Function to get the lower bound of an interval
@@ -42,3 +45,5 @@ boolean inferior(__m128d a,__m128d b);
 
 // Function to compare an interval and a double. Return True if a is inferior or equal to b, False if a is strictly superior to b, undefined is a belongs to the interval b
 boolean inferior_double(double a, __m128d b);
+
+#endif

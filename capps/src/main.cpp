@@ -17,7 +17,7 @@
 #include "test_mts.hpp"
 #include "par_precise_fp.hpp"
 #include "pfpdefs.hpp"
-#include "par_int_arith_mps.hpp"
+#include "lazy_mps_implementations.hpp"
 
 using namespace std;
 
@@ -301,7 +301,7 @@ void test_par_int_arith_mps(){
     parallel_superacc_mps(array3,3);
     */
     // Setting appropriate rounding mode for SSE registers
-    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // Test regular addition rounding
     //cout << endl << (1 + pow(2,-60)) - 1 << endl;
@@ -311,6 +311,7 @@ void test_par_int_arith_mps(){
     test.Accumulate(1);
     test.Accumulate(pow(2,-53));
     test.Accumulate(-1);
+
     cout << endl << test.Round() << endl;
 
     // Test interval arithmetic
@@ -359,7 +360,7 @@ void test_runtime_par_int_arith_mps(){
         // Generating arrays
         int size = pow(10,i);
         double* drray = new double[size];
-        init_fpuniform(size, drray, 10, 0);
+        init_fpuniform(size, drray, 50, 5);
         // Randomly change signs
         for(int j = 0; j < size ; j++){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
