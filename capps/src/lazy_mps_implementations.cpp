@@ -8,6 +8,7 @@
 
 #include "precise_mps_implementations.hpp"
 #include "lazy_mps_implementations.hpp"
+#include "2_lazy_mps_implementations.hpp"
 #include "interval_arithmetic.hpp"
 
 using namespace std;
@@ -74,6 +75,18 @@ void parallel_mps_mpfr_lazy(double* array, int size){
     __mps<__mps_mpfr> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     //result.print_mps();
+    _MM_SET_ROUNDING_MODE(0);
+}
+
+void parallel_mps_mpfr_lazy_2(double* array, int size){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    // Create containers for result
+    __m128d sum_interval = in2_create(0.,0.);
+    __m128d mps_interval = in2_create(0.,0.);
+    int position = 0;
+
+    MpsTask1& root = *new(task::allocate_root()) MpsTask1(100,array,size,&mps_interval,&mps_interval,&position);
+
     _MM_SET_ROUNDING_MODE(0);
 }
 

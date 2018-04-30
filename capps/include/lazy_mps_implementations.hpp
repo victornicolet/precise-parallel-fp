@@ -125,8 +125,7 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::opera
     right = r.end();
     size = right - left;
     // iterating over the subrange
-    for(int i = r.begin(); i != r.end(); i++){
-        sum_interval = in2_add_double(sum_interval,array[i]);
+    for(int i = r.begin(); i != r.end(); i++){        sum_interval = in2_add_double(sum_interval,array[i]);
         boolean b = inferior(mps_interval,sum_interval);
         if (b == True){
             mps_interval = sum_interval;

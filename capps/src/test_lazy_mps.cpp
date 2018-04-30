@@ -82,17 +82,20 @@ void runtime_comparison(){
     int size = pow(10,5);
     int N = 30;
 
+    // for each dynamic range
+    vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
+    //vector<int> dynRanges  {10,20,40,60,80,100,200,400,600,800};
+    int s = dynRanges.size();
+    
     // Store results to plot
     fstream results;
-    results.open("Plots/plot1.csv");
-    vector<double> x(10),r1(10),r2(10),r3(10),r4(10),r5(10);
+    results.open("Plots/plot1.csv", ofstream::out | ofstream::trunc);
+    vector<double> x(s),r1(s),r2(s),r3(s),r4(s),r5(s);
 
     // Random seed
     srand(time(NULL));
     
-    // for each dynamic range
-    vector<int> dynRanges  {10,20,40,60,80,100,200,400,600,800};
-    for(int r = 0; r < 10; r++){
+    for(int r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
         double mean_float = 0, mean_superacc = 0, mean_superacc_lazy = 0, mean_mpfr = 0, mean_lazy_mpfr = 0;
