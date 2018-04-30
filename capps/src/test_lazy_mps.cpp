@@ -166,6 +166,88 @@ void runtime_comparison(){
     results.close();
 }
 
+// This function compares my homemade reduce operation with parallel_reduce and parallel deterministic reduce 
+void reduce_comparison(){
+
+    // Variables declaration and initialisation 
+    double start;
+    int size = pow(10,9);
+    int N = 10;
+    
+    // Grainsize iteration
+    vector<int> grainsize {100,1000,3000,10000,30000,100000};
+    int s = grainsize.size();
+    
+    fstream results;
+    results.open("Plots/plot2.csv", ofstream::out | ofstream::trunc);
+    vector<double> x(s),r1(s);
+
+    // Random seed
+    srand(time(NULL));
+    
+    for(int r = 0; r < s; r++){
+
+        // initialization of means
+        double mean_float = 0, mean_float_homemade = 0;
+        
+        // N trials
+        for(int i = 0; i < N; i++){
+            
+            // Generating array
+            double* drray = new double[size];
+            init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
+
+            // Randomly change signs
+            for(int j = 0; j < size ; j++){
+                 drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+            }
+            
+            double time_float = 0.0;
+            PFP_TIME(parallel_mps_float(drray,size),start,time_float);
+            double time_superacc = 0.0;
+            PFP_TIME(parallel_mps_float_homemade(drray,size),start,time_superacc);
+        
+            /* Print times
+            cout << endl << "Float time: " << time_float << " / Superacc time: " << time_superacc << " / Lazy superacc time: " << time_superacc_lazy << endl;
+            cout << "Ratio superacc/float " << time_superacc/time_float << " / Ratio lazy superacc/superacc: " << time_superacc_lazy/time_superacc << endl;  
+            cout << "Ratio mpfr/float " << time_mpfr/time_float << " / Ratio lazy mpfr/mpfr: " << time_mpfr_lazy/time_mpfr << endl;  
+            */
+
+            mean_float += time_float;
+            mean_superacc += time_superacc;
+            mean_superacc_lazy += time_superacc_lazy;
+            mean_mpfr += time_mpfr;
+            mean_lazy_mpfr += time_mpfr_lazy;
+            mean_lazy_mpfr_2 += time_mpfr_lazy_2;
+            
+            delete[] drray;
+        }
+        // Finalize mean computation
+        mean_float = mean_float/N;
+        mean_superacc = mean_superacc/N;
+        mean_superacc_lazy = mean_superacc_lazy/N;
+        mean_mpfr = mean_mpfr/N;
+        mean_lazy_mpfr = mean_lazy_mpfr/N;
+        mean_lazy_mpfr_2 = mean_lazy_mpfr_2/N;
+        
+        x[r]= dynRanges[r];
+        r1[r]= mean_float/mean_float;
+        r2[r]= mean_superacc/mean_float;
+        r3[r]= mean_superacc_lazy/mean_float;
+        r4[r]= mean_mpfr/mean_float;
+        r5[r]= mean_lazy_mpfr/mean_float;
+        r6[r]= mean_lazy_mpfr_2/mean_float;
+
+        // Writing results to a file
+        results << to_string(x[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << "," << to_string(r6[r]) << endl;;
+        
+        
+    }
+
+    results.close();
+}
+
+
 int main(int argc, char** argv){
     if(argc >= 1){
         int a = atoi(argv[1]);
