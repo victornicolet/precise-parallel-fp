@@ -53,5 +53,7 @@ capps/exblas/src/cpu/blas1/test.exsum
 capps/bin
 *.json
 capps/install_manifest.txt
+*.jpg
 capps/src/Makefile
 capps/src/CMakeFiles
+!capps/Plots/*.csv

@@ -3,8 +3,9 @@
  * Date: 27/04/2018 */
 
 #include <iostream>
-#include "matplotlibcpp.h"
+#include <fstream>
 
+#include "matplotlibcpp.h"
 #include "superaccumulator.hpp"
 #include "lazy_mps_implementations.hpp"
 #include "common.hpp"
@@ -73,7 +74,7 @@ void debug_test(){
     }
 }
 
-/* This function compares the runtime of mps with superaccumulators, and its lazy implementation with interval arithmetic */
+/* This function compares the runtime of mps with superaccumulators or mpfr, and its lazy implementation with interval arithmetic */
 void runtime_comparison(){
     
     // Variables declaration and initialisation 
@@ -82,7 +83,10 @@ void runtime_comparison(){
     int N = 30;
 
     // Store results to plot
+    fstream results;
+    results.open("Plots/plot1.csv");
     vector<double> x(10),r1(10),r2(10),r3(10),r4(10),r5(10);
+
     // Random seed
     srand(time(NULL));
     
@@ -143,21 +147,14 @@ void runtime_comparison(){
         r3[r]= mean_superacc_lazy/mean_float;
         r4[r]= mean_mpfr/mean_float;
         r5[r]= mean_lazy_mpfr/mean_float;
+
+        // Writing results to a file
+        results << to_string(x[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << endl;
+        
         
     }
-    plt::named_plot("ref (double)",x,r1);
-    plt::named_plot("superaccumulators only",x,r2);
-    plt::named_plot("lazy computations with Superaccumulator",x,r3);
-    plt::named_plot("mpfr (arbitrary high-precision)",x,r4);
-    plt::named_plot("lazy computations with mpfr",x,r5);
-    plt::legend();
-    plt::xlabel("dynamic range of the random values (emax - emin)");
-    plt::ylabel("mean computation time / ref time (double)");
-    plt::title("Computation time for mps as a function of the dynamic range"); 
-    plt::xlim(0,800);
-    plt::ylim(0,800);
-    //plt::show();
-    plt::save("./lazymps.jpg");
+
+    results.close();
 }
 
 int main(int argc, char** argv){
