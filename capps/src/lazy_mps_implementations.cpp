@@ -5,6 +5,7 @@
 #include <iostream>
 #include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
+#include "tbb/task_group.h"
 
 #include "precise_mps_implementations.hpp"
 #include "lazy_mps_implementations.hpp"
@@ -80,13 +81,25 @@ void parallel_mps_mpfr_lazy(double* array, int size){
 
 void parallel_mps_mpfr_lazy_2(double* array, int size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    //printA(array,size);
     // Create containers for result
     __m128d sum_interval = in2_create(0.,0.);
     __m128d mps_interval = in2_create(0.,0.);
     int position = 0;
 
-    MpsTask1& root = *new(task::allocate_root()) MpsTask1(100,array,size,&mps_interval,&mps_interval,&position);
+    MpsTask1& root = *new(task::allocate_root()) MpsTask1(10000,array,size,&sum_interval,&mps_interval,&position);
 
-    _MM_SET_ROUNDING_MODE(0);
+    task::spawn_root_and_wait(root);
+
+    
+    // Printing result
+    /*cout << "Sum: ";
+    print(sum_interval) ;
+    cout << endl << "Mps: ";
+    print(mps_interval) ;
+    cout << endl << "Position: " << position << endl;
+    */
+
+    
 }
 

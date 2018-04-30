@@ -17,39 +17,47 @@ using namespace tbb;
 
 class MpsTask1: public task {
     public:
-        MpsTask1(int Cutoff, double* array, int size, __m128d* sum_interval, __m128d* mps_interval, int* position, int depth = 0, int index = 0, int left = 0, int right = -1) : 
+        MpsTask1(int Cutoff, double* array, int size, __m128d* sum_interval, __m128d* mps_interval, int* p, int depth = 0, int index = 0, int l = 0, int r = -1) : 
             Cutoff(Cutoff),
             array(array),
             size(size),
             depth(depth),
             index(index),
-            left(left),
+            left(l),
+            right(r),
             sum_interval(sum_interval),
             mps_interval(mps_interval),
-            position(position)
+            position(p)
         {
-            if(right == -1) right = size;
+            if(r == -1) right = size;
+            //cout << endl << "Constructed MpsTask." << endl;
+            //cout << "left: " << left << endl;
+            //cout << "right: " << right << endl;
         }
         ~MpsTask1(){}
         
         // Method to process the chunk if it is smaller than the Cutoff size 
         void processChunk(){
+            _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
             for(int i = left; i != right; i++){
-                *mps_interval = in2_add_double(*sum_interval,array[i]);
+                *sum_interval = in2_add_double(*sum_interval,array[i]);
                 boolean b = inferior(*mps_interval,*sum_interval);
                 if (b == True){
-                    mps_interval = sum_interval;
-                    *position = i; 
+                    *mps_interval = *sum_interval;
+                    *position = i+1; 
                 }
                 else if(b == Undefined){
                     // Call precise computation of chunk
                     // Gather results and continue
                 }
             }
+            
         }
 
         task* execute(){
             if(size <= Cutoff){
+                // This is really weird
+                cout << "0" << endl;
                 processChunk();
             }
             else{
@@ -79,6 +87,7 @@ class MpsTask1: public task {
                 spawn_and_wait_for_all(rTask);
                 
                 // Gather results
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
                 rmps = in2_add(lsum,rmps);
                 *sum_interval = in2_add(lsum,rsum);
                 boolean b = inferior(*mps_interval,rmps);
@@ -92,7 +101,7 @@ class MpsTask1: public task {
                 }
 
                 // if undefined comparison, call the precise method
-                
+                 
                 // Gather results and continue
                 return NULL;
             }

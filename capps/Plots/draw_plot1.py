@@ -17,6 +17,7 @@ pypl.plot(results[0],results[2],label="Superaccumulators")
 pypl.plot(results[0],results[3],label="Superaccumulators, lazy computation")
 pypl.plot(results[0],results[4],label="Mpfr")
 pypl.plot(results[0],results[5],label="Mpfr, lazy computation")
+pypl.plot(results[0],results[6],label="Home made reduction operation with interval arithmetic")
 
 pypl.xlabel("Dynamic range")
 pypl.ylabel("Relative mean computation time")
