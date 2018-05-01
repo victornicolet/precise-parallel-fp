@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "matplotlibcpp.h"
 #include "superaccumulator.hpp"
 #include "lazy_mps_implementations.hpp"
 #include "precise_mps_implementations.hpp"
