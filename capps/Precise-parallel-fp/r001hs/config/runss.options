@@ -1,0 +1,15 @@
+-r
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/Precise-parallel-fp/r001hs
+--stack-stitching
+--data-limit-mb=500
+--disk-space-limit=0
+--mrte-type=java,python
+--itt-config=frame
+--stackwalk=offline
+--mrte-mode=auto
+--type=cpu:counters:nostack
+--type=cpu:stack
+--interval=10
+--
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/bin/precise_parallel_fp
+3

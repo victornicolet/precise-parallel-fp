@@ -10,16 +10,18 @@
 
 using namespace std;
 
-void sequentialMps(double* array, int size){
+int sequentialMps(double* array, int size){
     double sum = 0;
     double mps = 0;
     int position = 0;
     for(int i = 0; i != size; i++){
+        sum += array[i];
         if(sum >= mps){
             mps = sum;
             position = i+1;
         }
     }
+    return position;
 }
 
 __mps_naive::__mps_naive(double* a):

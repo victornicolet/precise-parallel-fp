@@ -9,7 +9,7 @@ set (EXBLAS_HOME "./exblas/")
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # Compilation flags
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -g -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
 
 # This line seems to be useless, I comment it
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")

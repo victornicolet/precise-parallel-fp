@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <time.h>
 
 #include "superaccumulator.hpp"
 #include "lazy_mps_implementations.hpp"
@@ -11,6 +12,7 @@
 #include "2_lazy_mps_implementations.hpp"
 #include "common.hpp"
 #include "pfpdefs.hpp"
+
 
 using namespace std;
 
@@ -79,8 +81,8 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,6);
-    int N = 10;
+    int size = pow(10,7);
+    int N = 1;
 
     // for each dynamic range
     //vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
@@ -98,7 +100,7 @@ void runtime_comparison(){
     for(int r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
-        double mean_float = 0, mean_parallel_float, mean_superacc = 0, mean_superacc_lazy = 0, mean_mpfr = 0, mean_lazy_mpfr = 0, mean_lazy_mpfr_2 = 0;
+        double mean_float = 0, mean_parallel_float = 0, mean_superacc = 0, mean_superacc_lazy = 0, mean_mpfr = 0, mean_lazy_mpfr = 0, mean_lazy_mpfr_2 = 0;
         
         // 1000 trials with N = 10^5
         for(int i = 0; i < N; i++){
@@ -124,7 +126,7 @@ void runtime_comparison(){
             PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
-            //double time_mpfr_lazy_2 = 0.0;
+            double time_mpfr_lazy_2 = 0.0;
             //PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,1000),start,time_mpfr_lazy_2);
         
             mean_float += time_float;
@@ -204,11 +206,53 @@ void lazy_mps_test(){
     }
 }
 
+// This function tests the scalability of the parallel implememtation
+void par_vs_seq(){
+    cout << "Started par vs seq" << endl;
+    clock_t t;
+
+    // Variables declaration and initialisation 
+    double start1,start2;
+    int size = pow(10,8);
+    int N = 1;
+    int dynrange = 50;
+    
+    // Random seed
+    srand(time(NULL));
+    
+    // N trials
+    for(int i = 0; i < N; i++){
+        
+        // Generating array
+        double* drray = new double[size];
+        init_fpuniform(size, drray, dynrange, dynrange/2);
+
+        // Randomly change signs
+         for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+        
+        cout << "Started computing" << endl;
+        t = clock();
+        parallel_mps_float(drray,size);
+        t = clock() - t;
+        cout << endl << "Parallel time " << (double)t << endl;
+        t = clock();
+        sequentialMps(drray,size);
+        t = clock() - t;
+        cout << endl << "Sequential time: " << (double) t << endl;
+
+    
+        /* Print times */
+        
+        delete[] drray;
+    }
+}
+
 
 int main(int argc, char** argv){
     if(argc >= 1){
         int a = atoi(argv[1]);
-        cout <<endl<<a<<endl;
         switch (a){
             case 0 :
                 debug_test();
@@ -218,6 +262,9 @@ int main(int argc, char** argv){
                 break;
             case 2 :
                 lazy_mps_test(); 
+                break;
+            case 3 :
+                par_vs_seq();
         }
     }
 }
