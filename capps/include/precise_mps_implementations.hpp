@@ -13,7 +13,7 @@ using namespace tbb;
 using namespace std;
 
 // Sequential mps
-int sequentialMps(double*,int);
+void sequentialMps(double*,int);
 
 // Naive mps structure
 struct __mps_naive{

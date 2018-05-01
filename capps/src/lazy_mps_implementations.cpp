@@ -7,6 +7,7 @@
 #include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
 #include "tbb/task_group.h"
+#include "tbb/task_scheduler_init.h"
 
 #include "precise_mps_implementations.hpp"
 #include "lazy_mps_implementations.hpp"
@@ -15,6 +16,7 @@
 
 using namespace std;
 using namespace tbb;
+
 
 void printA(double* array, int size){
     // printing the array
@@ -35,55 +37,55 @@ void printA(double* array, int size){
 }
 
 void parallel_mps_float(double* array, int size){
-    //printA(array,size);
+    printA(array,size);
     __mps_naive result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
 }
 
 void parallel_mps_Collange(double* array, int size){
-    //printA(array,size);
+    printA(array,size);
     __mps_precise<4> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
 }
 
 void parallel_mps_superacc(double* array, int size){
-    //printA(array,size);
+    printA(array,size);
     __mps_acc result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
 }
 
 void parallel_mps_superacc_lazy(double* array, int size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    //printA(array,size);
+    printA(array,size);
     __mps<__mps_acc> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
     _MM_SET_ROUNDING_MODE(0);
 }
 
 void parallel_mps_mpfr(double* array, int size){
-    //printA(array,size);
+    printA(array,size);
     __mps_mpfr result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
 } 
 
 void parallel_mps_mpfr_lazy(double* array, int size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    //printA(array,size);
+    printA(array,size);
     __mps<__mps_mpfr> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
-    //result.print_mps();
+    result.print_mps();
     _MM_SET_ROUNDING_MODE(0);
 }
 
 void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    //printA(array,size);
+    printA(array,size);
     
     // Parameters
     int Cutoff = grainsize;
@@ -104,21 +106,23 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
         memo[i] = new Status[maxIndex];
         maxIndex = 2*maxIndex;
     }
+
+    task_scheduler_init anonymous;
     
     MpsTask1& root = *new(task::allocate_root()) MpsTask1(Cutoff,array,size,&sum_interval,&mps_interval,&position,memo);
 
     task::spawn_root_and_wait(root);
 
-    
+     
     // Printing result
-    /*cout << "Sum: ";
+    cout << endl << "Sum: ";
     print(sum_interval) ;
     cout << endl << "Mps: ";
     print(mps_interval) ;
     cout << endl << "Position: " << position << endl;
     
     // Printing memo
-    cout << endl;
+    /*cout << endl;
     maxIndex= 1;
     for(int i = 0; i!=maxDepth; i++){
         for(int j = 0; j!= maxIndex; j++){

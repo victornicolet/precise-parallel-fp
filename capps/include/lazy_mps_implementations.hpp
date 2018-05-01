@@ -13,6 +13,7 @@
 using namespace tbb;
 using namespace std;
 
+
 // Same structure with lazy computation, i.a. and superaccumulators. 
 template <typename __mps_high_precision> struct __mps{
     // pointer to the array
@@ -58,7 +59,7 @@ void parallel_mps_mpfr_lazy(double*,int);
 
 template <typename __mps_high_precision> __mps<__mps_high_precision>::__mps(double* a) :
     array(a),
-    position(-1),
+    position(0),
     size(0),
     left(-1),
     right(-1)
@@ -69,7 +70,7 @@ template <typename __mps_high_precision> __mps<__mps_high_precision>::__mps(doub
 
 template <typename __mps_high_precision> __mps<__mps_high_precision>::__mps(__mps& x, split) :
     array(x.array),
-    position(-1),
+    position(0),
     size(0),
     left(-1),
     right(-1)
@@ -116,7 +117,7 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::join(
 template <typename __mps_high_precision> void __mps<__mps_high_precision>::operator()(const blocked_range<int>& r){
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    if(position == -1){
+    if(position == 0){
         position = r.begin();
     }
     if(left == -1){
@@ -129,7 +130,7 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::opera
         boolean b = inferior(mps_interval,sum_interval);
         if (b == True){
             mps_interval = sum_interval;
-            position = i; 
+            position = i+1; 
         }
         else if(b == Undefined){
            __mps_high_precision precise_result(array);

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int sequentialMps(double* array, int size){
+void sequentialMps(double* array, int size){
     double sum = 0;
     double mps = 0;
     int position = 0;
@@ -21,7 +21,9 @@ int sequentialMps(double* array, int size){
             position = i+1;
         }
     }
-    return position;
+    cout << endl<< "sum: " << sum;
+    cout << endl << "mps: " << mps;
+    cout << endl << "pos: " << position << endl;
 }
 
 __mps_naive::__mps_naive(double* a):
@@ -71,7 +73,7 @@ void __mps_naive::join(__mps_naive& rightMps){
 
 __mps_acc::__mps_acc(double* a):
     array(a),
-    position(-1)
+    position(0)
 {
     sum = Superaccumulator();
     mps = Superaccumulator();
@@ -79,7 +81,7 @@ __mps_acc::__mps_acc(double* a):
 
 __mps_acc::__mps_acc(__mps_acc& x, split) :
     array(x.array),
-    position(-1)
+    position(0)
 {
     sum = Superaccumulator();
     mps = Superaccumulator();
@@ -93,7 +95,7 @@ void __mps_acc::print_mps(){
 
 void __mps_acc::operator()(const blocked_range<int>& r){
     _MM_SET_ROUNDING_MODE(0);
-    if(position == -1){
+    if(position == 0){
         position = r.begin();
     }
     for(int i = r.begin(); i != r.end(); i++){
@@ -104,7 +106,7 @@ void __mps_acc::operator()(const blocked_range<int>& r){
         double mpsAux = mps.Round();
         if(sumAux >= mpsAux){
             mps = Superaccumulator(sum.get_accumulator());
-            position = i; 
+            position = i+1; 
         }
         //Set back rounding mode
     }
@@ -136,7 +138,7 @@ double __mps_acc::getMpsDouble(){
 
 __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
-    position(-1)
+    position(0)
 {
     mpfr_init2(sum,30000);
     mpfr_init2(mps,30000);
@@ -146,7 +148,7 @@ __mps_mpfr::__mps_mpfr(double* array) :
 
 __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     array(x.array),
-    position(-1)
+    position(0)
 {
     mpfr_init2(sum,30000);
     mpfr_init2(mps,30000);
@@ -155,14 +157,14 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
 }
 
 void __mps_mpfr::operator()(const blocked_range<int>& range){
-    if(position == -1){
+    if(position == 0){
         position = range.begin();
     }
     for(int i = range.begin(); i != range.end(); i++){
         mpfr_add_d(sum,sum,array[i],MPFR_RNDN);
         if(mpfr_cmp(sum,mps)>=0){
             mpfr_set(mps,sum,MPFR_RNDN);
-            position = i;
+            position = i+1;
         }
     }
 }

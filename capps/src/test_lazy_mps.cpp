@@ -127,7 +127,7 @@ void runtime_comparison(){
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;
-            //PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,1000),start,time_mpfr_lazy_2);
+            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,10000),start,time_mpfr_lazy_2);
         
             mean_float += time_float;
             mean_parallel_float += time_parallel_float;
@@ -135,7 +135,7 @@ void runtime_comparison(){
             mean_superacc_lazy += time_superacc_lazy;
             mean_mpfr += time_mpfr;
             mean_lazy_mpfr += time_mpfr_lazy;
-            //mean_lazy_mpfr_2 += time_mpfr_lazy_2;
+            mean_lazy_mpfr_2 += time_mpfr_lazy_2;
             
             delete[] drray;
         }
@@ -146,7 +146,7 @@ void runtime_comparison(){
         mean_superacc_lazy = mean_superacc_lazy/N;
         mean_mpfr = mean_mpfr/N;
         mean_lazy_mpfr = mean_lazy_mpfr/N;
-        //mean_lazy_mpfr_2 = mean_lazy_mpfr_2/N;
+        mean_lazy_mpfr_2 = mean_lazy_mpfr_2/N;
         
         x[r]= dynRanges[r];
         r0[r]= mean_float/mean_float;
@@ -155,11 +155,10 @@ void runtime_comparison(){
         r3[r]= mean_superacc_lazy/mean_float;
         r4[r]= mean_mpfr/mean_float;
         r5[r]= mean_lazy_mpfr/mean_float;
-        //r6[r]= mean_lazy_mpfr_2/mean_float;
+        r6[r]= mean_lazy_mpfr_2/mean_float;
 
         // Writing results to a file
-        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << endl;
-        //to_string(r6[r]) << endl;;
+        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << "," << to_string(r6[r]) << endl;;
         
         
     }
@@ -173,10 +172,10 @@ void lazy_mps_test(){
 
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,8);
+    int size = pow(10,4);
     int N = 1;
-    int grainSize = 10000;
-    int dynrange = 10;
+    int grainSize = 1000;
+    int dynrange = 1000;
     
     // Random seed
     srand(time(NULL));

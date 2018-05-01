@@ -26,16 +26,16 @@ enum Status {
 
 class MpsTask1: public task {
     public:
-        MpsTask1(int Cutoff, double* array, int size, __m128d* sum_interval, __m128d* mps_interval, int* p,Status** m, int depth = 0, int index = 0, int l = 0, int r = -1) : 
-            Cutoff(Cutoff),
-            array(array),
-            size(size),
-            depth(depth),
-            index(index),
+        MpsTask1(int C, double* a, int s, __m128d* sum_i, __m128d* mps_i, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
+            Cutoff(C),
+            array(a),
+            size(s),
+            depth(d),
+            index(i),
             left(l),
             right(r),
-            sum_interval(sum_interval),
-            mps_interval(mps_interval),
+            sum_interval(sum_i),
+            mps_interval(mps_i),
             position(p),
             memo(m)
         {
@@ -46,37 +46,30 @@ class MpsTask1: public task {
         }
         ~MpsTask1(){}
         
-        // Method to process the chunk if it is smaller than the Cutoff size 
-        void processChunk(){
-
-            _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-
-            Status s = cutoff;
-            __m128d delta_sum = in2_create(0.,0.);
-
-            for(int i = left; i != right; i++){
-                *sum_interval = in2_add_double(*sum_interval,array[i]);
-                delta_sum = in2_add_double(delta_sum,array[i]);
-                boolean b = inferior_double(0,delta_sum);
-                if (b == True){
-                    *mps_interval = in2_add(*mps_interval,delta_sum);
-                    delta_sum = in2_create(0.,0.);
-                    *position = i+1; 
-                }
-                else if(b == Undefined){
-                    s = cutoffPrecise;
-                }
-            }
-
-            memo[depth][index] = s;
-            
-        }
-
         task* execute(){
             if(size <= Cutoff){
-                // This is really weird
-                cout << "Wait" << endl;
-                processChunk();
+                Status s = cutoff;
+                __m128d delta_sum = in2_create(0.,0.);
+
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+
+                for(int i = left; i != right; i++){
+                    *sum_interval = in2_add_double(*sum_interval,array[i]);
+                    delta_sum = in2_add_double(delta_sum,array[i]);
+                    boolean b = inferior(*mps_interval,*sum_interval);
+                    //boolean b = inferior_double(0,delta_sum);
+                    if (b == True){
+                        *mps_interval = in2_add(*mps_interval,delta_sum);
+                        delta_sum = in2_create(0.,0.);
+                        *position = i+1; 
+                    }
+                    else if(b == Undefined){
+                        s = cutoffPrecise;
+                    }
+                }
+
+                memo[depth][index] = s;
+                
             }
             else{
                 // Parameters for subtasks
@@ -96,12 +89,14 @@ class MpsTask1: public task {
                 __m128d rmps = in2_create(0.,0.);
 
                 // Create subtasks
+                set_ref_count(3);
+
                 MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
+                
+                spawn(lTask);
 
                 MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
                 
-                set_ref_count(3);
-                spawn(lTask);
                 spawn_and_wait_for_all(rTask);
                 
                 // Gather results
