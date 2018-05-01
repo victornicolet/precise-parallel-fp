@@ -62,3 +62,9 @@ boolean inferior_double(double a, __m128d b){
     else if( a > in2_max(b)) return False;
     else return Undefined;
 }
+
+__m128d in2_merge(__m128d a,__m128d b){
+    double min = (in2_min(a) <= in2_min(b))?in2_min(a) : in2_min(b);
+    double max = (in2_max(a) >= in2_max(b))?in2_max(a) : in2_max(b);
+    in2_create(min, max);
+}

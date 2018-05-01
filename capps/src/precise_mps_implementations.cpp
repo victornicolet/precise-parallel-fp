@@ -10,18 +10,30 @@
 
 using namespace std;
 
+void sequentialMps(double* array, int size){
+    double sum = 0;
+    double mps = 0;
+    int position = 0;
+    for(int i = 0; i != size; i++){
+        if(sum >= mps){
+            mps = sum;
+            position = i+1;
+        }
+    }
+}
+
 __mps_naive::__mps_naive(double* a):
     array(a),
     sum(0),
     mps(0),
-    position(-1)
+    position(0)
 {}
 
 __mps_naive::__mps_naive(__mps_naive& x, split) :
     array(x.array),
     sum(0),
     mps(0),
-    position(-1)
+    position(0)
 {}
 
 void __mps_naive::print_mps(){
@@ -31,14 +43,14 @@ void __mps_naive::print_mps(){
 }
 
 void __mps_naive::operator()(const blocked_range<int>& r){
-    if(position == -1){
+    if(position == 0){
         position = r.begin();
     }
     for(int i = r.begin(); i != r.end(); i++){
         sum += array[i];
-        if(sum> mps){
+        if(sum>= mps){
             mps = sum;
-            position = i; 
+            position = i+1; 
         }
     }
 }
