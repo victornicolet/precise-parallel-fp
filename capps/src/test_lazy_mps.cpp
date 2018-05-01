@@ -14,7 +14,6 @@
 
 using namespace std;
 
-namespace plt = matplotlibcpp;
 
 // This function tests the lazy computation of mps with interval arithmetic and superaccumulators
 void debug_test(){
