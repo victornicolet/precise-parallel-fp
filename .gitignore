@@ -57,3 +57,4 @@ capps/install_manifest.txt
 capps/src/Makefile
 capps/src/CMakeFiles
 !capps/Plots/*.csv
+capps/Precise-parallel-fp/
