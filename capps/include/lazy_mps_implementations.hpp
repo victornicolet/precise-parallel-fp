@@ -39,6 +39,9 @@ template <typename __mps_high_precision> struct __mps{
     void print_mps();
 };
 
+/* Sequential mps computation */
+void sequential_mps(double*,int);
+
 /* MPS computation with floats */
 void parallel_mps_float(double*,int);
 
@@ -84,7 +87,7 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::print
     print(sum_interval);
     cout << endl << "mps: ";
     print(mps_interval);
-    cout << endl << "size: " << size << endl << "position: " << position << endl << "left: " << left << endl << "right: " << right << endl;
+    cout << endl << "size: " << size << endl << "position: " << position << endl;
 }
 
 template <typename __mps_high_precision> void __mps<__mps_high_precision>::join(__mps& rightMps){

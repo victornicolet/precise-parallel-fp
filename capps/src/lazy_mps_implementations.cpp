@@ -18,9 +18,10 @@ using namespace std;
 using namespace tbb;
 
 
+
 void printA(double* array, int size){
     // printing the array
-    cout << endl << "{";
+    cout << "{";
     if(size <= 10){
         for(int i = 0; i < size; i++){
             cout << array[i] << ",";
@@ -36,7 +37,14 @@ void printA(double* array, int size){
 
 }
 
+void sequential_mps(double* array, int size){
+    cout << endl << "Sequential mps" << endl;
+    printA(array,size);
+    sequentialMps(array,size);
+}
+
 void parallel_mps_float(double* array, int size){
+    cout << endl << "Parallel double" << endl;
     printA(array,size);
     __mps_naive result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
@@ -51,6 +59,7 @@ void parallel_mps_Collange(double* array, int size){
 }
 
 void parallel_mps_superacc(double* array, int size){
+    cout << endl << "Parallel superacc" << endl;
     printA(array,size);
     __mps_acc result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
@@ -58,6 +67,7 @@ void parallel_mps_superacc(double* array, int size){
 }
 
 void parallel_mps_superacc_lazy(double* array, int size){
+    cout << endl << "Parallel superacc lazy" << endl;
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     printA(array,size);
     __mps<__mps_acc> result(array);
@@ -67,6 +77,7 @@ void parallel_mps_superacc_lazy(double* array, int size){
 }
 
 void parallel_mps_mpfr(double* array, int size){
+    cout << endl << "Parallel mpfr" << endl;
     printA(array,size);
     __mps_mpfr result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
@@ -74,6 +85,7 @@ void parallel_mps_mpfr(double* array, int size){
 } 
 
 void parallel_mps_mpfr_lazy(double* array, int size){
+    cout << endl << "Parallel mpfr lazy" << endl;
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     printA(array,size);
     __mps<__mps_mpfr> result(array);
@@ -83,6 +95,7 @@ void parallel_mps_mpfr_lazy(double* array, int size){
 }
 
 void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
+    cout << endl << "Parallel mpfr lazy 2"<< endl;
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     printA(array,size);
@@ -107,7 +120,6 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
         maxIndex = 2*maxIndex;
     }
 
-    task_scheduler_init anonymous;
     
     MpsTask1& root = *new(task::allocate_root()) MpsTask1(Cutoff,array,size,&sum_interval,&mps_interval,&position,memo);
 
@@ -115,14 +127,14 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
 
      
     // Printing result
-    cout << endl << "Sum: ";
+    cout << "Sum: ";
     print(sum_interval) ;
     cout << endl << "Mps: ";
     print(mps_interval) ;
     cout << endl << "Position: " << position << endl;
     
     // Printing memo
-    /*cout << endl;
+    cout << endl;
     maxIndex= 1;
     for(int i = 0; i!=maxDepth; i++){
         for(int j = 0; j!= maxIndex; j++){
@@ -147,6 +159,6 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
         }
         maxIndex = 2*maxIndex;
         cout << endl;
-    }*/
+    }
 }
 

@@ -2,6 +2,7 @@
  * Author: Raphael Dang-Nhu.
  * Date: 27/04/2018 */
 
+
 #include <iostream>
 #include <fstream>
 #include <time.h>
@@ -12,6 +13,9 @@
 #include "2_lazy_mps_implementations.hpp"
 #include "common.hpp"
 #include "pfpdefs.hpp"
+#include "tbb/tbb.h"
+
+using namespace tbb;
 
 
 using namespace std;
@@ -35,15 +39,18 @@ void debug_test(){
     //cout << endl << (1 + pow(2,-60)) - 1 << endl;
     
     // Test how superacc deals with negative number
-    Superaccumulator test = Superaccumulator();
+    /*Superaccumulator test = Superaccumulator();
     test.Accumulate(1);
     test.Accumulate(pow(2,-53));
     test.Accumulate(-1);
 
     cout << endl << test.Round() << endl;
+    */
 
+    
     // Test interval arithmetic
     double brray[] = {1.75,-10.,20.,-3.,1.};
+    task_scheduler_init init(1);
     parallel_mps_mpfr_lazy_2(brray,5,2);
 
     double brray4[] = {1.76,-10.,20.,-3.,1.};
@@ -61,7 +68,7 @@ void debug_test(){
 
     // Test big arrays
     srand(time(NULL));
-    for(int i = 2; i < 2; i++){
+    for(int i = 2; i < 5; i++){
         int size = pow(10,i);
         double* drray = new double[size];
         init_fpuniform(size, drray, 30, 15);
@@ -70,7 +77,7 @@ void debug_test(){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
         }
         for(int k = 0; k < 5; k++){ 
-            parallel_mps_superacc(drray,size);
+            parallel_mps_mpfr_lazy_2(drray,size,100);
         }
         delete[] drray;
     }
@@ -86,7 +93,7 @@ void runtime_comparison(){
 
     // for each dynamic range
     //vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
-    vector<int> dynRanges  {10,20,40,60,80,100,200,400};
+    vector<int> dynRanges  {800};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -115,7 +122,7 @@ void runtime_comparison(){
             }
             
             double time_float = 0.0;
-            PFP_TIME(sequentialMps(drray,size),start,time_float);
+            PFP_TIME(sequential_mps(drray,size),start,time_float);
             double time_parallel_float = 0.0;
             PFP_TIME(parallel_mps_float(drray,size),start,time_parallel_float);
             double time_superacc = 0.0;
@@ -127,7 +134,7 @@ void runtime_comparison(){
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;
-            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,10000),start,time_mpfr_lazy_2);
+            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,30000),start,time_mpfr_lazy_2);
         
             mean_float += time_float;
             mean_parallel_float += time_parallel_float;

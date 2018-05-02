@@ -48,7 +48,7 @@ class MpsTask1: public task {
         
         task* execute(){
             if(size <= Cutoff){
-                Status s = cutoff;
+                Status stat = cutoff;
                 __m128d delta_sum = in2_create(0.,0.);
 
                 _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
@@ -56,22 +56,22 @@ class MpsTask1: public task {
                 for(int i = left; i != right; i++){
                     *sum_interval = in2_add_double(*sum_interval,array[i]);
                     delta_sum = in2_add_double(delta_sum,array[i]);
-                    boolean b = inferior(*mps_interval,*sum_interval);
-                    //boolean b = inferior_double(0,delta_sum);
+                    //boolean b = inferior(*mps_interval,*sum_interval);
+                    boolean b = inferior_double(0,delta_sum);
                     if (b == True){
                         *mps_interval = in2_add(*mps_interval,delta_sum);
                         delta_sum = in2_create(0.,0.);
                         *position = i+1; 
                     }
                     else if(b == Undefined){
-                        s = cutoffPrecise;
+                        stat = cutoffPrecise;
                     }
                 }
 
-                memo[depth][index] = s;
+                memo[depth][index] = stat;
+                return NULL;
                 
-            }
-            else{
+            }else{
                 // Parameters for subtasks
                 int middle = (right+left)/2;
                 int sizel = middle - left;
@@ -97,13 +97,15 @@ class MpsTask1: public task {
 
                 MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
                 
-                spawn_and_wait_for_all(rTask);
+                spawn(rTask);
+                wait_for_all();
+                
                 
                 // Gather results
                 _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
                 rmps = in2_add(lsum,rmps);
                 *sum_interval = in2_add(lsum,rsum);
-                boolean b = inferior(*mps_interval,rmps);
+                boolean b = inferior(lmps,rmps);
                 if(b == True){
                     *mps_interval = rmps;
                     *position = rPos;

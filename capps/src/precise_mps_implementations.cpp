@@ -21,7 +21,7 @@ void sequentialMps(double* array, int size){
             position = i+1;
         }
     }
-    cout << endl<< "sum: " << sum;
+    cout << "sum: " << sum;
     cout << endl << "mps: " << mps;
     cout << endl << "pos: " << position << endl;
 }
@@ -52,7 +52,7 @@ void __mps_naive::operator()(const blocked_range<int>& r){
     }
     for(int i = r.begin(); i != r.end(); i++){
         sum += array[i];
-        if(sum>= mps){
+        if(sum >= mps){
             mps = sum;
             position = i+1; 
         }
@@ -65,7 +65,7 @@ void __mps_naive::join(__mps_naive& rightMps){
    // adding two sums
    sum += rightMps.sum;
    // comparison of mpsCandidate and mps-l
-   if(rightMps.mps > mps){
+   if(rightMps.mps >= mps){
        mps = rightMps.mps;
        position = rightMps.position;
    }
@@ -122,7 +122,7 @@ void __mps_acc::join(__mps_acc& rightMps){
    // comparison of mpsCandidate and mps-l
    double candidate = rightMps.mps.Round();
    double mpsAux = mps.Round();
-   if(mpsAux <= candidate){
+   if(candidate >= mpsAux){
        mps = rightMps.mps;
        position = rightMps.position;
    }
