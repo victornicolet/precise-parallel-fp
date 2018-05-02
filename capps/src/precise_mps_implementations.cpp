@@ -21,7 +21,7 @@ void sequentialMps(double* array, int size){
             position = i+1;
         }
     }
-    cout << "sum: " << sum;
+    cout <<  "sum: " << sum;
     cout << endl << "mps: " << mps;
     cout << endl << "pos: " << position << endl;
 }
@@ -128,14 +128,22 @@ void __mps_acc::join(__mps_acc& rightMps){
    }
 }
 
-double __mps_acc::getSumDouble(){
+double __mps_acc::getSumDoubleUp(){
     return sum.Round();
 }
 
-double __mps_acc::getMpsDouble(){
+double __mps_acc::getMpsDoubleUp(){
     return mps.Round();
 }
 
+
+double __mps_acc::getSumDoubleDown(){
+    return sum.Round();
+}
+
+double __mps_acc::getMpsDoubleDown(){
+    return mps.Round();
+}
 __mps_mpfr::__mps_mpfr(double* array) :
     array(array),
     position(0)
@@ -181,15 +189,25 @@ void __mps_mpfr::join(__mps_mpfr& right){
 }
 
 void __mps_mpfr::print_mps(){
-    cout << "sum: " << getSumDouble();
-    cout << endl << "mps: " << getMpsDouble();
+    cout << "sum: " << getSumDoubleUp();
+    cout << endl << "mps: " << getMpsDoubleUp();
     cout << endl << "position: " << position << endl;
 }
 
-double __mps_mpfr::getSumDouble(){
-    return mpfr_get_d(sum,MPFR_RNDN);
+double __mps_mpfr::getSumDoubleDown(){
+    return mpfr_get_d(sum,MPFR_RNDD);
 }
 
-double __mps_mpfr::getMpsDouble(){
-    return mpfr_get_d(mps,MPFR_RNDN);
+double __mps_mpfr::getMpsDoubleDown(){
+    return mpfr_get_d(mps,MPFR_RNDD);
 }
+
+double __mps_mpfr::getSumDoubleUp(){
+    return mpfr_get_d(sum,MPFR_RNDU);
+}
+
+double __mps_mpfr::getMpsDoubleUp(){
+    return mpfr_get_d(mps,MPFR_RNDU);
+}
+
+

@@ -108,10 +108,12 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::join(
    else if(b == Undefined){
        __mps_high_precision precise_result(array);
        parallel_reduce(blocked_range<int>(left,right),precise_result);
-       double mpsaux = precise_result.getMpsDouble();
-       mps_interval = in2_create(mpsaux,mpsaux);
-       double sumaux = precise_result.getSumDouble();
-       sum_interval = in2_create(sumaux,sumaux);
+       double mpsauxDown = precise_result.getMpsDoubleDown();
+       double mpsauxUp = precise_result.getMpsDoubleUp();
+       mps_interval = in2_create(mpsauxDown,mpsauxUp);
+       double sumauxDown = precise_result.getSumDoubleDown();
+       double sumauxUp = precise_result.getSumDoubleDown();
+       sum_interval = in2_create(sumauxDown,sumauxUp);
        position = precise_result.position;
    } 
     _MM_SET_ROUNDING_MODE(0);
@@ -138,10 +140,12 @@ template <typename __mps_high_precision> void __mps<__mps_high_precision>::opera
         else if(b == Undefined){
            __mps_high_precision precise_result(array);
            parallel_reduce(blocked_range<int>(left,right),precise_result);
-           double mpsaux = precise_result.getMpsDouble();
-           mps_interval = in2_create(mpsaux,mpsaux);
-           double sumaux = precise_result.getSumDouble();
-           sum_interval = in2_create(sumaux,sumaux);
+           double mpsauxDown = precise_result.getMpsDoubleDown();
+           double mpsauxUp = precise_result.getMpsDoubleUp();
+           mps_interval = in2_create(mpsauxDown,mpsauxUp);
+           double sumauxDown = precise_result.getSumDoubleDown();
+           double sumauxUp = precise_result.getSumDoubleDown();
+           sum_interval = in2_create(sumauxDown,sumauxUp);
            position = precise_result.position;
            break;
         }

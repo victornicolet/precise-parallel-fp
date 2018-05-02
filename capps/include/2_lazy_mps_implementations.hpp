@@ -26,10 +26,11 @@ enum Status {
 
 class MpsTask1: public task {
     public:
-        MpsTask1(int C, double* a, int s, __m128d* sum_i, __m128d* mps_i, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
+        MpsTask1(int C, double* a, int s,int* v, __m128d* sum_i, __m128d* mps_i, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
             Cutoff(C),
             array(a),
             size(s),
+            validity(v),
             depth(d),
             index(i),
             left(l),
@@ -65,6 +66,7 @@ class MpsTask1: public task {
                     }
                     else if(b == Undefined){
                         stat = cutoffPrecise;
+                        *validity = 1;
                     }
                 }
 
@@ -87,15 +89,17 @@ class MpsTask1: public task {
                 __m128d rsum = in2_create(0.,0.);
                 __m128d lmps = in2_create(0.,0.);
                 __m128d rmps = in2_create(0.,0.);
+                int vall = 0;
+                int valr = 0;
 
                 // Create subtasks
                 set_ref_count(3);
 
-                MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
+                MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,&vall,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
                 
                 spawn(lTask);
 
-                MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
+                MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&valr,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
                 
                 spawn(rTask);
                 wait_for_all();
@@ -110,15 +114,18 @@ class MpsTask1: public task {
                     *mps_interval = rmps;
                     *position = rPos;
                     memo[depth][index] = rightChild;
+                    *validity = valr;
                 }
                 else if(b == False){
                     *mps_interval = lmps;
                     *position = lPos;
                     memo[depth][index] = leftChild;
+                    *validity = vall;
                 }
                 else{
                     // Merge the two intervals
                     *mps_interval = in2_merge(lmps,rmps);
+                    *validity = 1;
                     memo[depth][index] = undefinedComparison;
                 }
                 // if undefined comparison, call the precise method
@@ -134,6 +141,8 @@ class MpsTask1: public task {
         /* Input array and its size */
         double* array;
         int size;    
+        /* Flag for validity of the result */
+        int* validity;
         /* Identification of the task */
         int depth;
         int index;

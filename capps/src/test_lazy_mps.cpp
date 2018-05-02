@@ -71,7 +71,7 @@ void debug_test(){
     for(int i = 2; i < 5; i++){
         int size = pow(10,i);
         double* drray = new double[size];
-        init_fpuniform(size, drray, 30, 15);
+        init_fpuniform(size, drray, 2000, 1000);
         // Randomly change signs
         for(int j = 0; j < size ; j++){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
@@ -88,12 +88,12 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
-    int N = 1;
+    int size = pow(10,6);
+    int N = 2;
 
     // for each dynamic range
     //vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
-    vector<int> dynRanges  {800};
+    vector<int> dynRanges  {50,100,200,300,500,800,1200,1600,2000};
     int s = dynRanges.size();
     
     // Store results to plot
