@@ -21,32 +21,8 @@ using namespace tbb;
 using namespace std;
 
 
-// This function tests the lazy computation of mps with interval arithmetic and superaccumulators
+// This function helps debug a mps implementation 
 void debug_test(){
-    // Small tests
-    /* Control experimets first
-    double array[] = {1.1,-10.,20.,-3.,1.};
-    parallel_superacc_mps(array,5);
-    
-    double array2[] = {1.,pow(2,-50),-1.};
-    parallel_superacc_mps(array2,3);
-
-    double array3[] = {1.,pow(2,-53),-1.};
-    parallel_mps_superacc(array3,3);
-    */
-
-    // Test regular addition rounding
-    //cout << endl << (1 + pow(2,-60)) - 1 << endl;
-    
-    // Test how superacc deals with negative number
-    /*Superaccumulator test = Superaccumulator();
-    test.Accumulate(1);
-    test.Accumulate(pow(2,-53));
-    test.Accumulate(-1);
-
-    cout << endl << test.Round() << endl;
-    */
-
     
     // Test interval arithmetic
     double brray[] = {1.75,-10.,20.,-3.,1.};
@@ -89,11 +65,10 @@ void runtime_comparison(){
     // Variables declaration and initialisation 
     double start;
     int size = pow(10,6);
-    int N = 1;
+    int N = 5;
 
     // for each dynamic range
-    //vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
-    vector<int> dynRanges  {50,100,200,300,500,800,1200,1600,2000};
+    vector<int> dynRanges  {100,500,1000,2000};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -134,7 +109,7 @@ void runtime_comparison(){
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;
-            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,6000),start,time_mpfr_lazy_2);
+            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,10000),start,time_mpfr_lazy_2);
         
             mean_float += time_float;
             mean_parallel_float += time_parallel_float;
@@ -171,45 +146,6 @@ void runtime_comparison(){
     }
 
     results.close();
-}
-
-// This function tests the second implementation of lazy_mps
-void lazy_mps_test(){
-    cout << "Started test 2" << endl;
-
-    // Variables declaration and initialisation 
-    double start;
-    int size = pow(10,4);
-    int N = 1;
-    int grainSize = 1000;
-    int dynrange = 1000;
-    
-    // Random seed
-    srand(time(NULL));
-    
-    // N trials
-    for(int i = 0; i < N; i++){
-        
-        // Generating array
-        double* drray = new double[size];
-        init_fpuniform(size, drray, dynrange, dynrange/2);
-
-        // Randomly change signs
-        for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-        }
-        
-        double time_float = 0.0;
-        PFP_TIME(parallel_mps_float(drray,size),start,time_float);
-        double time_2 = 0.0;
-        PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,grainSize),start,time_2);
-    
-        /* Print times */
-        cout << endl << "Float time: " << time_float << endl;
-        cout << endl << "Ratio time/float time" << time_2/time_float << endl;
-        
-        delete[] drray;
-    }
 }
 
 // This function tests the scalability of the parallel implememtation
@@ -267,10 +203,10 @@ int main(int argc, char** argv){
                 runtime_comparison();
                 break;
             case 2 :
-                lazy_mps_test(); 
+                par_vs_seq();
                 break;
             case 3 :
-                par_vs_seq();
+                return 0;
         }
     }
 }

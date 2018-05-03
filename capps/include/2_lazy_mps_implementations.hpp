@@ -43,9 +43,10 @@ class MpsTask1: public task {
             memo(m)
         {
             if(r == -1) right = size;
-            //cout << endl << "Constructed MpsTask." << endl;
-            //cout << "left: " << left << endl;
-            //cout << "right: " << right << endl;
+            /*cout << endl << "Constructed MpsTask." << endl;
+            cout << "left: " << left << endl;
+            cout << "right: " << right << endl;
+            */
         }
         ~MpsTask1(){}
         
@@ -127,6 +128,7 @@ class MpsTask1: public task {
                 else{
                     // Merge the two intervals
                     *mps_interval = in2_merge(lmps,rmps);
+                    *position = lPos;
                     *validity = 1;
                     memo[depth][index] = undefinedComparison;
                 }
@@ -155,9 +157,253 @@ class MpsTask1: public task {
         Status** memo;
 };
 
+// Task when asked for sum only
+class MpsTask3: public task {
+    public:
+        MpsTask3(int C, double* a, int s, Superaccumulator* sum_,  int l = 0, int r = -1) : 
+            Cutoff(C),
+            array(a),
+            size(s),
+            left(l),
+            right(r),
+            sum(sum_)
+        {
+            if(r == -1) right = size;
+            /*cout << endl << "Constructed MpsTask3." << endl;
+            cout << "left: " << left << endl;
+            cout << "right: " << right << endl;
+            */
+            
+        }
+        ~MpsTask3(){}
+        
+        task* execute(){
+            if(size <= Cutoff){
+                for(int i = left; i != right; i++){
+                    sum->Accumulate(array[i]);
+                }
+              /*  cout << endl << "Chunk";
+                cout << endl << "Left: " << left;
+                cout << endl << "Right:" << right;
+                cout << endl <<"Sum: ";
+                mpfr_out_str(stdout,10,10,*sum,MPFR_RNDN);
+                cout << endl << "Mps: ";
+                mpfr_out_str(stdout,10,10,*mps,MPFR_RNDN);
+                cout << endl;
+                */
 
-// Main function to perform the lazy reduction
-void parallel_mps_mpfr_lazy_2(double*,int,int);         
+                
+            }else{
+                // Parameters for subtasks
+                int middle = (right+left)/2;
+                int sizel = middle - left;
+                int sizer = right - middle;
 
+                // Variables for results
+                Superaccumulator lsum = Superaccumulator();
+                Superaccumulator rsum = Superaccumulator();
+
+                set_ref_count(3);
+                MpsTask3& lTask = *new(allocate_child()) MpsTask3(Cutoff,array,sizel,&lsum,left,middle);
+            
+                spawn(lTask);
+                
+                // To be replaced by sum task
+                MpsTask3 &rTask = *new(allocate_child()) MpsTask3(Cutoff,array,sizer,&rsum,middle,right);
+            
+                spawn_and_wait_for_all(rTask);
+                
+                // Gather results
+                sum->Accumulate(lsum);
+                sum->Accumulate(rsum);
+                                
+            }
+            return NULL;
+        }
+
+    private:
+        /* Below this size, the mps and sum are computed sequentially */
+        int Cutoff;
+        /* Input array and its size */
+        double* array;
+        int size;    
+        /* Identification of the task */
+        int left;
+        int right;
+        /* Intervals for sum and mps */
+        Superaccumulator* sum;
+};
 #endif
 
+
+// Task when asked for mps
+class MpsTask2: public task {
+    public:
+        MpsTask2(int C, double* a, int s, mpfr_t* sum_, mpfr_t* mps_, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
+            Cutoff(C),
+            array(a),
+            size(s),
+            depth(d),
+            index(i),
+            left(l),
+            right(r),
+            sum(sum_),
+            mps(mps_),
+            position(p),
+            memo(m)
+        {
+            if(r == -1) right = size;
+            /*cout << endl << "Constructed MpsTask2." << endl;
+            cout << "left: " << left << endl;
+            cout << "right: " << right << endl;
+            */
+            
+        }
+        ~MpsTask2(){}
+        
+        task* execute(){
+            if(size <= Cutoff){
+                for(int i = left; i != right; i++){
+                    mpfr_add_d(*sum,*sum,array[i],MPFR_RNDN);
+                    if (mpfr_cmp(*sum,*mps) >= 0){
+                        mpfr_set(*mps,*sum,MPFR_RNDN);
+                        *position = i+1; 
+                    }
+                }
+              /*  cout << endl << "Chunk";
+                cout << endl << "Left: " << left;
+                cout << endl << "Right:" << right;
+                cout << endl <<"Sum: ";
+                mpfr_out_str(stdout,10,10,*sum,MPFR_RNDN);
+                cout << endl << "Mps: ";
+                mpfr_out_str(stdout,10,10,*mps,MPFR_RNDN);
+                cout << endl;
+                */
+
+                
+            }else{
+                // Parameters for subtasks
+                int middle = (right+left)/2;
+                int sizel = middle - left;
+                int sizer = right - middle;
+                int newDepth = depth + 1;
+                int lIndex = 2*index;
+                int rIndex = lIndex + 1;
+
+                // Variables for results
+                int lPos = left;
+                int rPos = middle;
+                // Check status
+                Status stat = memo[depth][index];
+
+                if(stat ==leftChild){
+                    mpfr_t lsum, lmps;
+                    mpfr_init2(lsum,30000);
+                    mpfr_init2(lmps,30000);
+                    mpfr_set_d(lsum,0.,MPFR_RNDN);
+                    mpfr_set_d(lmps,0.,MPFR_RNDN);
+                    
+                    Superaccumulator rsum = Superaccumulator();
+                    
+                    set_ref_count(3);
+                    MpsTask2& lTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
+                
+                    spawn(lTask);
+                    
+                    MpsTask3 &rTask = *new(allocate_child()) MpsTask3(Cutoff,array,sizer,&rsum, middle,right);
+                
+                    spawn_and_wait_for_all(rTask);
+                    
+                    // Gather results
+                    mpfr_add_d(*sum,lsum,rsum.Round(),MPFR_RNDN);
+                    mpfr_set(*mps,lmps,MPFR_RNDN);
+                    *position = lPos;
+                } 
+                else if(stat == rightChild){
+                    mpfr_t rsum, rmps;
+                    mpfr_init2(rsum,30000);
+                    mpfr_init2(rmps,30000);
+                    mpfr_set_d(rsum,0.,MPFR_RNDN);
+                    mpfr_set_d(rmps,0.,MPFR_RNDN);
+                    Superaccumulator lsum = Superaccumulator();
+
+                    set_ref_count(3);
+                    MpsTask3& lTask = *new(allocate_child()) MpsTask3(Cutoff,array,sizel,&lsum,left,middle);
+                
+                    spawn(lTask);
+
+                    MpsTask2 &rTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizer,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
+                
+                    spawn_and_wait_for_all(rTask);
+                    
+                    // Gather results
+                    double lsumd = lsum.Round();
+                    mpfr_add_d(rmps,rmps,lsumd,MPFR_RNDN);
+                    mpfr_add_d(*sum,rsum,lsumd,MPFR_RNDN);
+                    mpfr_set(*mps,rmps,MPFR_RNDN);
+                    *position = rPos;
+                }
+                else if(stat == undefinedComparison){
+                    mpfr_t lsum, rsum, lmps, rmps;
+                    mpfr_init2(lsum,30000);
+                    mpfr_init2(rsum,30000);
+                    mpfr_init2(lmps,30000);
+                    mpfr_init2(rmps,30000);
+                    mpfr_set_d(lsum,0.,MPFR_RNDN);
+                    mpfr_set_d(lmps,0.,MPFR_RNDN);
+                    mpfr_set_d(rsum,0.,MPFR_RNDN);
+                    mpfr_set_d(rmps,0.,MPFR_RNDN);
+                    set_ref_count(3);
+                    MpsTask2& lTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
+                
+                    spawn(lTask);
+
+                    MpsTask2 &rTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizer,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
+                
+                    spawn_and_wait_for_all(rTask);
+                    
+                    // Gather results
+                    mpfr_add(rmps,lsum,rmps,MPFR_RNDN);
+                    mpfr_add(*sum,lsum,rsum,MPFR_RNDN);
+
+                    if(mpfr_cmp(rmps,*mps)>=0){
+                        mpfr_set(*mps,rmps,MPFR_RNDN);
+                        *position = rPos;
+                    }
+                    else {
+                        mpfr_set(*mps,lmps,MPFR_RNDN);
+                        *position = lPos;
+                    }
+                }
+                /*cout << endl << "Join";
+                cout << endl << "Left: " << left;
+                cout << endl << "Right:" << right;
+                cout << endl <<"Sum: ";
+                mpfr_out_str(stdout,10,10,*sum,MPFR_RNDN);
+                cout << endl << "Mps: ";
+                mpfr_out_str(stdout,10,10,*mps,MPFR_RNDN);
+                cout << endl;
+                */
+                                
+            }
+            return NULL;
+        }
+
+    private:
+        /* Below this size, the mps and sum are computed sequentially */
+        int Cutoff;
+        /* Input array and its size */
+        double* array;
+        int size;    
+        /* Identification of the task */
+        int depth;
+        int index;
+        int left;
+        int right;
+        /* Intervals for sum and mps */
+        mpfr_t* sum;
+        mpfr_t* mps;
+        /* Position of the mps */
+        int* position;
+        Status** memo;
+};

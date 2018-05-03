@@ -17,7 +17,7 @@
 using namespace std;
 using namespace tbb;
 
-#define PRINT 0
+#define PRINT 1
 
 void printA(double* array, int size){
     // printing the array
@@ -40,6 +40,7 @@ void printA(double* array, int size){
 void sequential_mps(double* array, int size){
     double sum = 0., mps = 0.;
     int position = 0;
+    sequentialMps(array,size,&sum,&mps,&position);
     if(PRINT){
         cout << endl << "Sequential mps" << endl;
         printA(array,size);
@@ -47,7 +48,6 @@ void sequential_mps(double* array, int size){
         cout << endl << "mps: " << mps;
         cout << endl << "pos: " << position << endl;
     }
-    sequentialMps(array,size,&sum,&mps,&position);
 }
 
 void parallel_mps_float(double* array, int size){
@@ -127,7 +127,9 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
 
     // Create matrix to store the information
     double ratio = (double) (size)/(double)Cutoff;
+
     int ceilRatio = ceil(log2(ratio));
+    if(ceilRatio < 1) ceilRatio = 1;
     const int maxDepth = ceilRatio + 1;
     
     int maxIndex = 1;
@@ -142,24 +144,43 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
     MpsTask1& root = *new(task::allocate_root()) MpsTask1(Cutoff,array,size,&validity,&sum_interval,&mps_interval,&position,memo);
 
     task::spawn_root_and_wait(root);
-    
+
+    // Get precise position
+    mpfr_t sum, mps;
+    mpfr_init2(sum,30000);
+    mpfr_init2(mps,30000);
+    mpfr_set_d(sum,0.,MPFR_RNDN);
+    mpfr_set_d(mps,0.,MPFR_RNDN);
+    int position2 = 0;
+    task_scheduler_init init(1);
+
+    MpsTask2& root2 = *new(task::allocate_root()) MpsTask2(Cutoff,array,size,&sum,&mps,&position2,memo);
+
+    task::spawn_root_and_wait(root2);
+
     if(PRINT){
         // Printing result
         cout << endl << "Parallel mpfr lazy 2"<< endl;
         printA(array,size);
-            if(validity == 0){
-                cout <<"Valid position" << endl;
-            cout << "Sum: ";
-            print(sum_interval) ;
-            cout << endl << "Mps: ";
-            print(mps_interval) ;
-            cout << endl << "Position: " << position << endl;
-        }else{
+
+        cout <<"First result" << endl;
+        cout << "Sum: ";
+        print(sum_interval) ;
+        cout << endl << "Mps: ";
+        print(mps_interval) ;
+        cout << endl << "Position: " << position << endl;
+        if(validity == 0){
+            cout << "Valid position" << endl;
+        } else{
             cout << "Unvalid position" << endl;
-            __mps_mpfr result(array);
-            parallel_reduce(blocked_range<int>(0,size),result);
-            result.print_mps();
         }
+        cout << "Precise result" << endl;
+        cout << "Sum: ";
+        mpfr_out_str(stdout,10,10,sum,MPFR_RNDN);
+        cout << endl << "Mps: ";
+        mpfr_out_str(stdout,10,10,mps,MPFR_RNDN);
+        cout << endl << "Position: " << position2 << endl;
+        
 
         // Printing memo
         cout << endl;
@@ -177,10 +198,10 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
                         cout << "|";
                         break;
                     case rightChild :
-                        cout << "|";
+                        cout << "\\";
                         break;
                     case cutoff :
-                        cout << "|";
+                        cout << "_";
                         break;
                 
                 }
