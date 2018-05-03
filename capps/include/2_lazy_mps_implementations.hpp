@@ -60,14 +60,17 @@ class MpsTask1: public task {
                 for(int i = left; i != right; i++){
                     *sum_interval = in2_add_double(*sum_interval,array[i]);
                     delta_sum = in2_add_double(delta_sum,array[i]);
-                    //boolean b = inferior(*mps_interval,*sum_interval);
-                    boolean b = inferior_double(0,delta_sum);
+                    boolean b = inferior(*mps_interval,*sum_interval);
+                    //boolean b = inferior_double(0,delta_sum);
                     if (b == True){
                         *mps_interval = in2_add(*mps_interval,delta_sum);
                         delta_sum = in2_create(0.,0.);
                         *position = i+1; 
                     }
                     else if(b == Undefined){
+                        *mps_interval = in2_add(*mps_interval,delta_sum);
+                        delta_sum = in2_create(0.,0.);
+                        *position = i+1; 
                         stat = cutoffPrecise;
                         *validity = 1;
                     }
@@ -128,7 +131,7 @@ class MpsTask1: public task {
                 else{
                     // Merge the two intervals
                     *mps_interval = in2_merge(lmps,rmps);
-                    *position = lPos;
+                    *position = rPos;
                     *validity = 1;
                     memo[depth][index] = undefinedComparison;
                 }
