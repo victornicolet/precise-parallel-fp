@@ -89,7 +89,7 @@ void runtime_comparison(){
     // Variables declaration and initialisation 
     double start;
     int size = pow(10,6);
-    int N = 2;
+    int N = 1;
 
     // for each dynamic range
     //vector<int> dynRanges {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
@@ -134,7 +134,7 @@ void runtime_comparison(){
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;
-            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,30000),start,time_mpfr_lazy_2);
+            PFP_TIME(parallel_mps_mpfr_lazy_2(drray,size,6000),start,time_mpfr_lazy_2);
         
             mean_float += time_float;
             mean_parallel_float += time_parallel_float;
@@ -244,7 +244,7 @@ void par_vs_seq(){
         t = clock() - t;
         cout << endl << "Parallel time " << (double)t << endl;
         t = clock();
-        sequentialMps(drray,size);
+        sequential_mps(drray,size);
         t = clock() - t;
         cout << endl << "Sequential time: " << (double) t << endl;
 

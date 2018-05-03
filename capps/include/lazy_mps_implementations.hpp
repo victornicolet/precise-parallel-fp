@@ -60,6 +60,9 @@ void parallel_mps_superacc_lazy(double*,int);
 /* Lazy computations of mps, with mpfr for precise computations */
 void parallel_mps_mpfr_lazy(double*,int);
 
+// Main function to perform the lazy reduction
+void parallel_mps_mpfr_lazy_2(double*,int,int);         
+
 template <typename __mps_high_precision> __mps<__mps_high_precision>::__mps(double* a) :
     array(a),
     position(0),

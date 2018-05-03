@@ -15,6 +15,8 @@
 
 using namespace tbb;
 
+#define DEBUG 1
+
 // Struct to store computation preliminary results
 enum Status {
     leftChild,
@@ -128,9 +130,6 @@ class MpsTask1: public task {
                     *validity = 1;
                     memo[depth][index] = undefinedComparison;
                 }
-                // if undefined comparison, call the precise method
-                 
-                // Gather results and continue
                 return NULL;
             }
         }
