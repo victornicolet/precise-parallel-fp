@@ -242,7 +242,7 @@ class MpsTask3: public task {
 // Task when asked for mps
 class MpsTask2: public task {
     public:
-        MpsTask2(int C, double* a, int s, mpfr_t* sum_, mpfr_t* mps_, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
+        MpsTask2(int C, double* a, int s, Superaccumulator* sum_, Superaccumulator* mps_, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
             Cutoff(C),
             array(a),
             size(s),
@@ -267,9 +267,9 @@ class MpsTask2: public task {
         task* execute(){
             if(size <= Cutoff){
                 for(int i = left; i != right; i++){
-                    mpfr_add_d(*sum,*sum,array[i],MPFR_RNDN);
-                    if (mpfr_cmp(*sum,*mps) >= 0){
-                        mpfr_set(*mps,*sum,MPFR_RNDN);
+                    sum->Accumulate(array[i]);
+                    if (!sum->comp(*mps)){
+                        *mps = Superaccumulator(sum->get_accumulator());
                         *position = i+1; 
                     }
                 }
@@ -300,13 +300,10 @@ class MpsTask2: public task {
                 Status stat = memo[depth][index];
 
                 if(stat ==leftChild){
-                    mpfr_t lsum, lmps;
-                    mpfr_init2(lsum,30000);
-                    mpfr_init2(lmps,30000);
-                    mpfr_set_d(lsum,0.,MPFR_RNDN);
-                    mpfr_set_d(lmps,0.,MPFR_RNDN);
                     
                     Superaccumulator rsum = Superaccumulator();
+                    Superaccumulator lsum = Superaccumulator();
+                    Superaccumulator lmps = Superaccumulator();
                     
                     set_ref_count(3);
                     MpsTask2& lTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
@@ -318,17 +315,15 @@ class MpsTask2: public task {
                     spawn_and_wait_for_all(rTask);
                     
                     // Gather results
-                    mpfr_add_d(*sum,lsum,rsum.Round(),MPFR_RNDN);
-                    mpfr_set(*mps,lmps,MPFR_RNDN);
+                    sum->Accumulate(lsum);
+                    sum->Accumulate(rsum);
+                    *mps = Superaccumulator(lmps.get_accumulator());
                     *position = lPos;
                 } 
                 else if(stat == rightChild){
-                    mpfr_t rsum, rmps;
-                    mpfr_init2(rsum,30000);
-                    mpfr_init2(rmps,30000);
-                    mpfr_set_d(rsum,0.,MPFR_RNDN);
-                    mpfr_set_d(rmps,0.,MPFR_RNDN);
+                    Superaccumulator rsum = Superaccumulator();
                     Superaccumulator lsum = Superaccumulator();
+                    Superaccumulator rmps = Superaccumulator();
 
                     set_ref_count(3);
                     MpsTask3& lTask = *new(allocate_child()) MpsTask3(Cutoff,array,sizel,&lsum,left,middle);
@@ -340,22 +335,17 @@ class MpsTask2: public task {
                     spawn_and_wait_for_all(rTask);
                     
                     // Gather results
-                    double lsumd = lsum.Round();
-                    mpfr_add_d(rmps,rmps,lsumd,MPFR_RNDN);
-                    mpfr_add_d(*sum,rsum,lsumd,MPFR_RNDN);
-                    mpfr_set(*mps,rmps,MPFR_RNDN);
+                    sum->Accumulate(lsum);
+                    sum->Accumulate(rsum);
+                    *mps = Superaccumulator(rmps.get_accumulator());
                     *position = rPos;
                 }
                 else if(stat == undefinedComparison){
-                    mpfr_t lsum, rsum, lmps, rmps;
-                    mpfr_init2(lsum,30000);
-                    mpfr_init2(rsum,30000);
-                    mpfr_init2(lmps,30000);
-                    mpfr_init2(rmps,30000);
-                    mpfr_set_d(lsum,0.,MPFR_RNDN);
-                    mpfr_set_d(lmps,0.,MPFR_RNDN);
-                    mpfr_set_d(rsum,0.,MPFR_RNDN);
-                    mpfr_set_d(rmps,0.,MPFR_RNDN);
+                    Superaccumulator rsum = Superaccumulator();
+                    Superaccumulator lsum = Superaccumulator();
+                    Superaccumulator rmps = Superaccumulator();
+                    Superaccumulator lmps = Superaccumulator();
+
                     set_ref_count(3);
                     MpsTask2& lTask = *new(allocate_child()) MpsTask2(Cutoff,array,sizel,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
                 
@@ -366,15 +356,16 @@ class MpsTask2: public task {
                     spawn_and_wait_for_all(rTask);
                     
                     // Gather results
-                    mpfr_add(rmps,lsum,rmps,MPFR_RNDN);
-                    mpfr_add(*sum,lsum,rsum,MPFR_RNDN);
+                    sum->Accumulate(lsum);
+                    sum->Accumulate(rsum);
+                    rmps.Accumulate(lsum);
 
-                    if(mpfr_cmp(rmps,*mps)>=0){
-                        mpfr_set(*mps,rmps,MPFR_RNDN);
+                    if(!rmps.comp(*mps)){
+                        *mps = Superaccumulator(rmps.get_accumulator());
                         *position = rPos;
                     }
                     else {
-                        mpfr_set(*mps,lmps,MPFR_RNDN);
+                        *mps = Superaccumulator(lmps.get_accumulator());
                         *position = lPos;
                     }
                 }
@@ -404,8 +395,8 @@ class MpsTask2: public task {
         int left;
         int right;
         /* Intervals for sum and mps */
-        mpfr_t* sum;
-        mpfr_t* mps;
+        Superaccumulator* sum;
+        Superaccumulator* mps;
         /* Position of the mps */
         int* position;
         Status** memo;

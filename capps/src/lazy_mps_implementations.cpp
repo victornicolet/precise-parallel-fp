@@ -146,17 +146,14 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
     task::spawn_root_and_wait(root);
 
     // Get precise position
-    mpfr_t sum, mps;
-    mpfr_init2(sum,30000);
-    mpfr_init2(mps,30000);
-    mpfr_set_d(sum,0.,MPFR_RNDN);
-    mpfr_set_d(mps,0.,MPFR_RNDN);
+    Superaccumulator sum = Superaccumulator();
+    Superaccumulator mps = Superaccumulator();
     int position2 = 0;
     task_scheduler_init init(1);
 
     MpsTask2& root2 = *new(task::allocate_root()) MpsTask2(Cutoff,array,size,&sum,&mps,&position2,memo);
 
-    //task::spawn_root_and_wait(root2);
+    task::spawn_root_and_wait(root2);
 
     if(PRINT){
         // Printing result
@@ -175,10 +172,8 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
             cout << "Unvalid position" << endl;
         }
         cout << "Precise result" << endl;
-        cout << "Sum: ";
-        mpfr_out_str(stdout,10,10,sum,MPFR_RNDN);
-        cout << endl << "Mps: ";
-        mpfr_out_str(stdout,10,10,mps,MPFR_RNDN);
+        cout << "Sum: " << sum.Round();
+        cout << endl << "Mps: " << mps.Round();
         cout << endl << "Position: " << position2 << endl;
         
 
