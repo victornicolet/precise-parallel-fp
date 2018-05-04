@@ -77,6 +77,34 @@ void Superaccumulator::Accumulate(Superaccumulator & other)
     }
 }
 
+bool Superaccumulator::comp(Superaccumulator other){
+    // Normalize accumulators (might be better removed, let's be cautious first)
+    Normalize();
+    other.Normalize();
+
+    // Add other to this and check sign of the final carry
+    
+    // First get bounds
+    int imintemp = std::min(imin, other.imin);
+    int imaxtemp = std::max(imax, other.imax);
+    if(imintemp > imaxtemp) {
+        return false;
+    }
+    int64_t carry_in = (accumulator[imintemp]-other.accumulator[imintemp]) >> digits;
+    int i;
+    // Sign-extend all the way
+    for(i = imintemp + 1;
+        i < f_words + e_words;
+        ++i)
+    {
+        int64_t aux = accumulator[i] - other.accumulator[i] + carry_in;
+        carry_in = aux >> digits;    // Arithmetic shift
+    }
+    
+    return carry_in < 0;
+}
+        
+
 double Superaccumulator::Round()
 {
     assert(digits >= 52);

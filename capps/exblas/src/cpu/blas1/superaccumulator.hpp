@@ -111,6 +111,13 @@ struct Superaccumulator
      * Sets the superaccumulator, actually an array of summation
      */
     void set_accumulator(std::vector<int64_t> other);
+    
+    /* Comparison function, added by Raphael Dang-Nhu. The implementation is naive and very costly, it should be used with caution.
+    Returns False if this is greater or equal to other.
+    Else returns True.
+    No modification is done either to this or other. */
+    bool comp(Superaccumulator other);
+
 
     
 
