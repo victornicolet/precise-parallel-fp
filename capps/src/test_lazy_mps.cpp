@@ -14,6 +14,7 @@
 #include "common.hpp"
 #include "pfpdefs.hpp"
 #include "tbb/tbb.h"
+#include "sequential_mps.hpp"
 
 using namespace tbb;
 
