@@ -8,7 +8,7 @@
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 
 void sequential_summation_superacc(double* array, int size, double* sum){
@@ -31,7 +31,7 @@ void sequential_mps_superacc(double*array, int size, double* sum, double* mps, i
     int t = 0;
     for(int i = 0; i != size; i++){
         sumA.Accumulate(array[i]);
-        if(sumA.comp(mpsA)){
+        if(!sumA.comp(mpsA)){
             mpsA = Superaccumulator(sumA.get_accumulator());
             t = i+1;
         }
@@ -81,6 +81,7 @@ enum Dec{
 
 void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int* pos){
     // Internal variables and memorization of decisions
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
     __m128d mpsI = in2_create(0.,0.);     
     Dec* da = new Dec[size]; 
@@ -113,16 +114,17 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
         cout << endl << "Mps: ";
         print(mpsI) ;
         cout << endl << "Pos: " << t << endl;
-        for(int i = 0; i++; i != size){
+        for(int i = 0;  i != size; i++){
             Dec d = da[i]; 
             if(d == Dsum) cout << "X";
-            else if(d = Dmps) cout << "_";
+            else if(d == Dmps) cout << "_";
             else cout << "|";
         }
         cout << endl;
     }
     
     /* Second iteration with superaccumulators */
+    _MM_SET_ROUNDING_MODE(0);
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();
 
@@ -136,7 +138,7 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
         }
         else if (d == Dundef){
             // Redo the comparison
-            if(sumA.comp(mpsA)){
+            if(!sumA.comp(mpsA)){
                 mpsA = Superaccumulator(sumA.get_accumulator());
                 t = i+1;
             }
