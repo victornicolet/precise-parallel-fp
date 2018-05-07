@@ -197,8 +197,8 @@ void runtime_comparison_sequential(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
-    int N = 5;
+    int size = pow(10,4);
+    int N = 100;
 
     // for each dynamic range
     vector<int> dynRanges  {300,600,900,1200,1500,1800};
@@ -207,7 +207,7 @@ void runtime_comparison_sequential(){
     // Store results to plot
     fstream results;
     results.open("Plots/plot2.csv", ofstream::out | ofstream::trunc);
-    vector<double> x(s),r0(s),r1(s),r2(s),r3(s);
+    vector<double> x(s),r0(s),r1(s),r2(s),r3(s),r4(s);
 
     // Random seed
     srand(time(NULL));
@@ -215,7 +215,8 @@ void runtime_comparison_sequential(){
     for(int r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
-        double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.; 
+        double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.,mean_lazy_opt = 0.; 
+        
 
         for(int i = 0; i < N; i++){
             
@@ -235,17 +236,20 @@ void runtime_comparison_sequential(){
             
             double time_double = 0.0;
             PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_double);
-            double time_sum_superacc = 0.0;
-            PFP_TIME(sequential_summation_superacc(drray,size,&sum),start,time_sum_superacc);
             double time_superacc = 0.0;
             PFP_TIME(sequential_mps_superacc(drray,size,&sum,&mps,&pos),start,time_superacc);
             double time_lazy = 0.0;
-            PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos),start,time_lazy);
+            PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos,0),start,time_lazy);
+            double time_lazy_opt = 0.0;
+            PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos,1),start,time_lazy_opt);
+            double time_sum_superacc = 0.0;
+            PFP_TIME(sequential_summation_superacc(drray,size,&sum),start,time_sum_superacc);
         
             mean_double += time_double;
             mean_sum_superacc += time_sum_superacc;
             mean_superacc += time_superacc;
             mean_lazy += time_lazy;
+            mean_lazy_opt += time_lazy_opt;
             
             delete[] drray;
         }
@@ -254,15 +258,17 @@ void runtime_comparison_sequential(){
         mean_sum_superacc = mean_sum_superacc /N;
         mean_superacc = mean_superacc /N;
         mean_lazy = mean_lazy /N;
+        mean_lazy_opt = mean_lazy_opt /N;
         
         x[r]= dynRanges[r];
         r0[r]= mean_double/mean_double;
         r1[r]= mean_sum_superacc/mean_double;
         r2[r]= mean_superacc/mean_double;
         r3[r]= mean_lazy/mean_double;
+        r4[r]= mean_lazy_opt/mean_double;
 
         // Writing results to a file
-        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< endl;
+        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << endl;
         
         
     }

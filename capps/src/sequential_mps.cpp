@@ -79,7 +79,7 @@ enum Dec{
     Dundef,
 };
 
-void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int* pos){
+void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int* pos,int opt){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
@@ -122,7 +122,21 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
         }
         cout << endl;
     }
-    
+
+    /* Iterate in da in reverse order */
+    if(opt){
+        bool seenDsum = 0;
+        for(int i = size - 1; i >= 0 ; i--){
+            Dec d = da[i];
+            if(!seenDsum && d == Dsum){
+                seenDsum = 1;
+            }
+            else if(seenDsum){
+                da[i] = Dmps;
+            }
+        }
+    }
+
     /* Second iteration with superaccumulators */
     _MM_SET_ROUNDING_MODE(0);
     Superaccumulator sumA = Superaccumulator();
