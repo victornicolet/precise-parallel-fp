@@ -1,0 +1,1 @@
+/usr/bin/c++    -fopenmp -std=c++11 -g -D TBB_USE_DEBUG=1 -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel   CMakeFiles/graph_test.dir/bellman_ford.cpp.o  -o ../../bin/graph_test -rdynamic 

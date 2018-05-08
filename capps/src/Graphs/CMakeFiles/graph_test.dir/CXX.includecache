@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs/bellman_ford.cpp
+iostream
+-
+utility
+-
+algorithm
+-
+boost/graph/graph_traits.hpp
+-
+boost/graph/adjacency_list.hpp
+-
+
