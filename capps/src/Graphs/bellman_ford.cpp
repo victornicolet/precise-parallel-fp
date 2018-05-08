@@ -12,26 +12,42 @@ using namespace std;
 using namespace boost;
 
 void test0(){
-
+    
+    // Create a struct to hold the weights
+    struct edge_info{
+        string name;
+        int weight;
+    };
+    
     // create a typedef for the graph type
-    typedef adjacency_list<vecS,vecS, bidirectionalS> Graph;
+    typedef adjacency_list<vecS,vecS, bidirectionalS,no_property,edge_info> Graph;
+    typedef graph_traits<Graph>::edge_iterator edge_iterator; 
+    
+    // Declare a graph with 10 vertices
+    Graph g(10);
+    
+    // Add some edges
+    edge_info i1;
+    i1.name = "First edge";
+    i1.weight = 10;
 
-    // Create evrtices labels
-    enum { A,B,C,D,E,N};
-    const int num_vertices = N;
-    const char* name = "ABCDE";
+    edge_info i2;
+    i2.name = "Second edge";
+    i2.weight = -5;
 
-    // writing out edges in the graph
-    typedef std::pair<int, int> Edge;
-    Edge edge_array[] = {Edge(A,B),Edge(A,D),Edge(B,C)};
-    const int num_edges = sizeof(edge_array)/sizeof(edge_array[0]);
+    add_edge(0,1,g);
+    add_edge(1,2,g);
 
-    // Declare graph object
-    Graph g(num_vertices);
+    // Print edges
+    pair<edge_iterator,edge_iterator> ei = edges(g);
+    cout << "Number of edges: " << num_edges(g) << endl;
+    cout << "Edge list: " << endl;
 
-    // add the edges to the graph object
-    for(int i = 0; i < num_edges; i++){
-        add_edge(edge_array[i].first,edge_array[i].second, g);
+    for(;ei.first != ei.second;++ei.first){
+        cout << "Name: " << (*ei.first.name) << endl;
+        cout << "Weight: " << (*ei.first.weight) << endl;
+        cout << endl << "(" << source(*ei.first,g) << ",";
+        cout << target(*ei.first,g) << ")" << endl;
     }
 }
 
