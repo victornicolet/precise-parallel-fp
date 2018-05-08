@@ -17,4 +17,10 @@ boost/graph/graph_traits.hpp
 -
 boost/graph/adjacency_list.hpp
 -
+boost/graph/erdos_renyi_generator.hpp
+-
+boost/random/linear_congruential.hpp
+-
+boost/graph/random.hpp
+-
 
