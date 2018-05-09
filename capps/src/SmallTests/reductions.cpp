@@ -20,6 +20,36 @@ using namespace std;
 
 #define DEBUG 0
 
+/* Continuation passing class */
+class MpsContinuation: public task {
+    public :
+    double* sum;
+    double* mps;
+    double rsum;
+    double rmps;
+    int* position;
+    int rposition;
+
+    MpsContinuation(double* sum_, double* mps_, int* pos_, int middle):
+        sum(sum_),
+        mps(mps_),
+        rsum(0),
+        rmps(0),
+        position(pos_),
+        rposition(middle)
+    {}
+    
+    task* execute(){
+        rmps = *sum + rmps;
+        *sum = *sum + rsum;
+        if(rmps >= *mps){
+            *mps = rmps;
+            *position = rposition;
+        }
+        return NULL;
+    }
+};
+
 /* Homemade reduction operation */
 class MpsTask1: public task {
     public:
@@ -50,36 +80,31 @@ class MpsTask1: public task {
                        *position = i+1;
                     }
                 }
+                return NULL;
 
             }else{
                 // Parameters for subtasks
                 int middle = (right+left)/2;
 
                 // Variables for results
-                int rPos = middle;
                 int sizel = left - middle;
                 int sizer = middle - right;
-                double rsum = 0, rmps = 0;
 
                 // Create subtasks
-                set_ref_count(3);
+                MpsContinuation& c = *new(allocate_continuation()) MpsContinuation(sum, mps, position, middle);
 
-                MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,sum,mps,position,left,middle);
-                
-                spawn(lTask);
+                //MpsTask1& lTask = *new(c.allocate_child()) MpsTask1(Cutoff,array,sizel,sum,mps,position,left,middle);
+                MpsTask1 &rTask = *new(c.allocate_child()) MpsTask1(Cutoff,array,sizer,&c.rsum, &c.rmps,&c.rposition,middle,right);
 
-                MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&rsum, &rmps,&rPos,middle,right);
-                
-                spawn_and_wait_for_all(rTask);
+                recycle_as_child_of(c);
+                right = middle;
+                size = sizel;
 
-                rmps = *sum + rmps;
-                *sum = *sum + rsum;
-                if(rmps >= *mps){
-                    *mps = rmps;
-                    *position = rPos;
-                }
+                c.set_ref_count(2);
+                spawn(rTask);
+
+                return this;
             }
-            return NULL;
         }
 
     private:
@@ -195,11 +220,11 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
-    int N = 2;
+    int size = pow(10,8);
+    int N = 1;
 
     // for each dynamic range
-    vector<int> grainsSizes  {100,300,1000,2000,3000,6000,10000,20000,30000};
+    vector<int> grainsSizes  {100,300,600,1000,2000,3000,6000,10000,20000,30000};
     int s = grainsSizes.size();
     
     // Store results to plot
@@ -209,6 +234,27 @@ void runtime_comparison(){
 
     // Random seed
     srand(time(NULL));
+    
+    // Warm-up
+    for(int r = 0; r < s; r++){
+        // Generating array
+        double* drray = new double[size];
+        init_fpuniform(size, drray, 100, 50);
+
+        // Randomly change signs
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+        
+        // Declare result variables
+        double time_tbb = 0.0;
+        PFP_TIME(tbb_main(drray,size),start,time_tbb);
+        double time_homemade = 0.0;
+        PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
+   
+        
+        delete[] drray;
+    }
     
     for(int r = 0; r < s; r++){
 
