@@ -18,7 +18,7 @@
 using namespace tbb;
 using namespace std;
 
-#define DEBUG 0
+#define DEBUG 1
 
 /* Continuation passing class */
 class MpsContinuation: public task {
@@ -190,9 +190,9 @@ void __mps::join(__mps& rightMps){
 }
 
 // Parallel reduce main function
-void tbb_main(double* a, int size){
+void tbb_main(double* a, int size, int grainsize){
     __mps result = __mps(a);
-    parallel_reduce(blocked_range<int>(0,size),result);
+    parallel_deterministic_reduce(blocked_range<int>(0,size,grainsize),result);
     if(DEBUG){
         cout << endl << "Parallel Reduce" << endl;
         result.print_mps();
@@ -215,16 +215,78 @@ void homemade_main(double *a, int size,int grainsize){
     }
 }
 
+/*
+// Reduction step
+inline static void ReductionStep(int step, int tid1, int tid2, Superaccumulator * acc1, Superaccumulator * acc2,
+    int volatile * ready1, int volatile * ready2)
+{
+    _mm_prefetch((char const*)ready2, _MM_HINT_T0);
+    // Wait for thread 2
+    while(*ready2 < step) {
+        // wait
+        _mm_pause();
+    }
+    acc1->Accumulate(*acc2);
+}
+
+// Reduction function
+void Reduction(unsigned int tid, unsigned int tnum){
+    // Custom reduction
+    for(unsigned int s = 1; (1 << (s-1)) < tnum; ++s) 
+    {
+        int32_t volatile * c = &ready[tid * linesize];
+        ++*c;
+        if(tid % (1 << s) == 0) {
+            unsigned int tid2 = tid | (1 << (s-1));
+            if(tid2 < tnum) {
+                ReductionStep(s, tid, tid2, &acc[tid], &acc[tid2],
+                    &ready[tid * linesize], &ready[tid2 * linesize]);
+            }
+        }
+    }
+}
+
+
+// Openmp reduction operation
+void omp_main(double* a, int size){
+
+    #pragma omp parallel
+    {
+        // Get thread index
+        unsigned int tid = omp_get_thread_num();
+        unsigned int tnum = omp_get_num_threads();
+
+        int l = ((tid * int64_t(size)) / tnum) & ~7ul;
+        int r = ((((tid+1) * int64_t(size)) / tnum) & ~7ul) - 1;
+
+        // Variables
+        double sum = 0.;
+        double mps = 0.;
+        int pos = l;
+
+        for(int i=l; i < r; i++){
+            sum += a[i];
+
+            if(sum >= mps){
+                mps = sum;
+                pos = i+1;
+            }
+        }
+
+        Reduction(tid, tnum)
+    }
+}*/
+
 // Function to compare the implementations
 void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,8);
+    int size = pow(10,3);
     int N = 1;
 
     // for each dynamic range
-    vector<int> grainsSizes  {100,300,600,1000,2000,3000,6000,10000,20000,30000};
+    vector<int> grainsSizes  {100,300,600,1000,2000,3000,6000,10000,20000,30000,50000};
     int s = grainsSizes.size();
     
     // Store results to plot
@@ -248,7 +310,7 @@ void runtime_comparison(){
         
         // Declare result variables
         double time_tbb = 0.0;
-        PFP_TIME(tbb_main(drray,size),start,time_tbb);
+        PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
         double time_homemade = 0.0;
         PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
    
@@ -274,7 +336,7 @@ void runtime_comparison(){
             
             // Declare result variables
             double time_tbb = 0.0;
-            PFP_TIME(tbb_main(drray,size),start,time_tbb);
+            PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
             double time_homemade = 0.0;
             PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
        
@@ -299,8 +361,9 @@ void runtime_comparison(){
 
     results.close();
 }
-
+/*
 int main(){
     runtime_comparison();
     return 0;
 }
+*/

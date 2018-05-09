@@ -92,7 +92,7 @@ void __mps_naive::join(__mps_naive& rightMps){
 void test(){
     
     // Initialization
-    const int size = 1000;
+    const int size = 100;
     double* array = new double[size];
     
     // Put random elements in the array
@@ -104,7 +104,7 @@ void test(){
     tbb::atomic<int> counter = 1;
     __mps_naive result(array,memo,&counter);
 
-    parallel_reduce(blocked_range<int>(0,size),result);
+    parallel_deterministic_reduce(blocked_range<int>(0,size,10),result);
 
     // Printing memo
     cout << endl << endl;
@@ -113,14 +113,14 @@ void test(){
     }
     cout << endl;
 }
-/*
+
 int main(){
     // Init task scheduler
-    task_scheduler_init init(3);
+    //task_scheduler_init init(2);
 
     for(int i = 0; i != 10; i++) 
     test();
 
     return 0;
 
-}*/
+}
