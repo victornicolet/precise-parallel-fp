@@ -151,49 +151,6 @@ void runtime_comparison_parallel(){
     results.close();
 }
 
-// This function tests the scalability of the parallel implememtation
-void par_vs_seq(){
-    cout << "Started par vs seq" << endl;
-    clock_t t;
-
-    // Variables declaration and initialisation 
-    double start1,start2;
-    int size = pow(10,8);
-    int N = 1;
-    int dynrange = 50;
-    
-    // Random seed
-    srand(time(NULL));
-    
-    // N trials
-    for(int i = 0; i < N; i++){
-        
-        // Generating array
-        double* drray = new double[size];
-        init_fpuniform(size, drray, dynrange, dynrange/2);
-
-        // Randomly change signs
-         for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-        }
-        
-        cout << "Started computing" << endl;
-        t = clock();
-        parallel_mps_float(drray,size);
-        t = clock() - t;
-        cout << endl << "Parallel time " << (double)t << endl;
-        t = clock();
-        sequential_mps(drray,size);
-        t = clock() - t;
-        cout << endl << "Sequential time: " << (double) t << endl;
-
-    
-        /* Print times */
-        
-        delete[] drray;
-    }
-}
-
 /* This function compares the runtime of the different sequential mps implementations */
 void runtime_comparison_sequential(){
     
@@ -451,14 +408,14 @@ int main(int argc, char** argv){
                 runtime_comparison_parallel();
                 break;
             case 2 :
-                par_vs_seq();
+                runtime_comparison_sequential();
                 break;
             case 3 :
-                runtime_comparison_sequential();
-            case 4 :
                 runtime_comparison_sequential_mts();
-            case 5 :
+                break;
+            case 4 :
                 runtime_comparison_sequential_mss();
+                break;
         }
     }
 }

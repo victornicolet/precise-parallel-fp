@@ -113,7 +113,7 @@ void test(){
     }
     cout << endl;
 }
-
+/*
 int main(){
     // Init task scheduler
     task_scheduler_init init(3);
@@ -123,4 +123,4 @@ int main(){
 
     return 0;
 
-}
+}*/

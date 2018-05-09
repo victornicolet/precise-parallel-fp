@@ -3,3 +3,7 @@
 
 src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o: src/SmallTests/parallel_reduce.cpp
 
+src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/SmallTests/reductions.cpp
+src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/../exblas/include/common.hpp
+src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/../include/Victor/pfpdefs.hpp
+

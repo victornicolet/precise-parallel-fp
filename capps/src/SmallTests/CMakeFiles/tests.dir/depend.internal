@@ -3,3 +3,7 @@
 
 src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o
  /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/parallel_reduce.cpp
+src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o
+ /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/reductions.cpp
+ src/../exblas/include/common.hpp
+ src/../include/Victor/pfpdefs.hpp

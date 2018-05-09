@@ -218,6 +218,33 @@ parallel_reduce.cpp.s:
 	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.s
 .PHONY : parallel_reduce.cpp.s
 
+reductions.o: reductions.cpp.o
+
+.PHONY : reductions.o
+
+# target to build an object file
+reductions.cpp.o:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o
+.PHONY : reductions.cpp.o
+
+reductions.i: reductions.cpp.i
+
+.PHONY : reductions.i
+
+# target to preprocess a source file
+reductions.cpp.i:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.i
+.PHONY : reductions.cpp.i
+
+reductions.s: reductions.cpp.s
+
+.PHONY : reductions.s
+
+# target to generate assembly for a file
+reductions.cpp.s:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.s
+.PHONY : reductions.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -236,6 +263,9 @@ help:
 	@echo "... parallel_reduce.o"
 	@echo "... parallel_reduce.i"
 	@echo "... parallel_reduce.s"
+	@echo "... reductions.o"
+	@echo "... reductions.i"
+	@echo "... reductions.s"
 .PHONY : help
 
 
