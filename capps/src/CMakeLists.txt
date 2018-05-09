@@ -30,6 +30,9 @@ find_package(PythonLibs 2.7)
 include_directories(PRIVATE ${PYTHON_INCLUDE_DIRS})
 link_libraries(${PYTHON_LIBRARIES})
 
+# Small Tests
+add_subdirectory(SmallTests/)
+
 # Define targets
 file(GLOB SOURCE_FILES "*.cpp" "*.hpp" "*.h")
 add_executable(precise_parallel_fp ${SOURCE_FILES})

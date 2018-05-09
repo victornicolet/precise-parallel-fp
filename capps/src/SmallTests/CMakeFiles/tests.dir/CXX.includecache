@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/parallel_reduce.cpp
+iostream
+-
+tbb/parallel_reduce.h
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/tbb/parallel_reduce.h
+tbb/blocked_range.h
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/tbb/blocked_range.h
+tbb/task_scheduler_init.h
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/tbb/task_scheduler_init.h
+tbb/atomic.h
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/tbb/atomic.h
+tbb/mutex.h
+/home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/tbb/mutex.h
+

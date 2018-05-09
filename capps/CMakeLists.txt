@@ -14,7 +14,7 @@ set (EXBLAS_HOME "./exblas/")
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # Compilation flags
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -g -D TBB_USE_DEBUG=1 -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -msse3 -march=native -fabi-version=0 -O3 -Wall -fopenmp -masm=intel")
 
 # Define output directory for binaries
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)

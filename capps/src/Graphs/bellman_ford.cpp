@@ -68,10 +68,10 @@ void test1(){
    
     // Generate Erdos-Renyi random graph
     boost::minstd_rand gen(0);
-    Graph g(ERGen(gen,10,0.5),ERGen(),10);
+    /*Graph g(ERGen(gen,10,0.5),ERGen(),10);
 
     // Give random weights to the edges
-    randomize_property<edge_bundle_t>(g,gen);
+    //randomize_property<edge_bundle_t>(g,gen);
 
     // Print edges
     pair <edge_iterator,edge_iterator> ei = edges(g);
@@ -82,7 +82,7 @@ void test1(){
         cout << endl << "(" << source(*ei.first,g) << ",";
         cout << target(*ei.first,g) << ")" << endl;
         cout << "Weight: " << g[*ei.first].weight << endl;
-    }
+    }*/
     
 }
 
