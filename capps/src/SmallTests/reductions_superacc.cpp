@@ -11,216 +11,229 @@
 #include "tbb/task_group.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_reduce.h"
-#include "tbb/partitioner.h"
-#include "tbb/task_scheduler_init.h"
 
-#include <common.hpp>
+#include "common.hpp"
+#include "superaccumulator.hpp"
 #include "pfpdefs.hpp"
 
 using namespace tbb;
 using namespace std;
 
-#define DEBUG 0
+#define DEBUGSUPERACC 0
 
-struct mps_struct{
-    mps_struct(){};
-    double sum;
-    double mps;
-    int pos;
-};
-
-/* Continuation passing class */
-class MpsContinuation: public task {
+/*
+// Continuation passing class
+class MpsContinuationSuperacc: public task {
     public :
-    mps_struct* lres;
-    mps_struct rres;
+    Superaccumulator* sum;
+    Superaccumulator* mps;
+    Superaccumulator* rsum;
+    Superaccumulator* rmps;
+    int* position;
+    int rposition;
 
-    MpsContinuation(mps_struct* lres_):
-        lres(lres_)
+    MpsContinuationSuperacc(Superaccumulator* sum_, Superaccumulator* mps_, int* pos_, int middle):
+        sum(sum_),
+        mps(mps_),
+        rsum(),
+        rmps(),
+        position(pos_),
+        rposition(middle)
     {}
     
     task* execute(){
-        double s = lres->sum;
-        double rmps = s + rres.mps;
-        lres->sum = s + rres.sum;
-        if(rmps >= lres->mps){
-            lres->mps = rmps;
-            lres->pos = rres.pos;
+        rmps.Accumulate(*sum);
+        sum->Accumulate(*sum);
+        if(!rmps.comp(*mps)){
+            mps = rmps;
+            *position = rposition;
         }
         return NULL;
     }
 };
 
-/* Homemade reduction operation */
-class MpsTask1: public task {
+// Homemade reduction operation 
+class MpsTaskSuperacc: public task {
     public:
-        MpsTask1(int D, double* a, mps_struct* res_, unsigned int left_, unsigned int right_) : 
-            depth(D),
+        MpsTaskSuperacc(int C, double* a,int size_, double*s, double*m,int*p, int left_ = 0, int right_ = -1) : 
+            Cutoff(C),
             array(a),
-            res(res_),
-            left(left_),
-            right(right_)
+            size(size_),
+            sum(s),
+            mps(m),
+            position(p),
+            left(left_)
         {
+            if(right_ == -1){
+                right_ = size;
+            }
+            right = right_;
+
         }
-        ~MpsTask1(){}
+        ~MpsTaskSuperacc(){}
         
         task* execute(){
-            if(depth == 0){
-                double s = 0.;
-                double m = 0.;
-                int p = left;
+            if(size <= Cutoff){
+
                 for(int i = left; i != right; i++){
-                    s += array[i];
-                    if(s >= m){
-                       m = s;
-                       p = i+1;
+                    *sum += array[i];
+                    if(*sum >= *mps){
+                       *mps = *sum;
+                       *position = i+1;
                     }
                 }
-                res->sum = s;
-                res->mps = m;
-                res->pos = p;
                 return NULL;
 
             }else{
                 // Parameters for subtasks
-                unsigned int middle = (right+left) >> 1;
+                int middle = (right+left)/2;
+
                 // Variables for results
-                depth--;
+                int sizel = left - middle;
+                int sizer = middle - right;
 
                 // Create subtasks
-                MpsContinuation& c = *new(allocate_continuation()) MpsContinuation(res);
+                MpsContinuationSuperacc& c = *new(allocate_continuation()) MpsContinuationSuperacc(sum, mps, position, middle);
 
-                //MpsTask1& lTask = *new(c.allocate_child()) MpsTask1(Cutoff,array,sizel,sum,mps,position,left,middle);
-                MpsTask1 &rTask = *new(c.allocate_child()) MpsTask1(depth,array,&c.rres,middle,right);
-
-                c.set_ref_count(2);
-                spawn(rTask);
+                //MpsTaskSuperacc& lTask = *new(c.allocate_child()) MpsTaskSuperacc(Cutoff,array,sizel,sum,mps,position,left,middle);
+                MpsTaskSuperacc &rTask = *new(c.allocate_child()) MpsTaskSuperacc(Cutoff,array,sizer,&c.rsum, &c.rmps,&c.rposition,middle,right);
 
                 recycle_as_child_of(c);
                 right = middle;
+                size = sizel;
 
+                c.set_ref_count(2);
+                spawn(rTask);
 
                 return this;
             }
         }
 
     private:
-        /* Below this size, the mps and sum are computed sequentially */
-        int depth;
-        /* Input array and its size */
+        // Below this size, the mps and sum are computed sequentially
+        int Cutoff;
+        // Input array and its size
         double* array;
-        /* Intervals for sum and mps */
-        mps_struct* res;
-        /* Bounds */
-        unsigned int left;
-        unsigned int right;
+        int size;
+        // Intervals for sum and mps
+        Superaccumulator* sum;
+        Superaccumulator* mps;
+        // Position of the mps
+        int* position;
+        // Bounds 
+        int left;
+        int right;
 };
-
+*/
 // Parallel reduce implementation 
-struct __mps{
+struct __mps_acc{
     // pointer to the array
     double* array;
     // Superaccumulators for sum and mps
-    double sum;
-    double mps;
+    Superaccumulator sum;
+    Superaccumulator mps;
     // Position of the maximum prefix sum
     int position;
     // Constructor
-    __mps(double* a);
+    __mps_acc(double* a);
     // Splitting constructor
-    __mps(__mps&,split);
+    __mps_acc(__mps_acc&,split);
     // Accumulate result for subrange
     void operator()(const blocked_range<int>&);
     // Join operation for the reduction
-    void join(__mps& rightMps); 
+    void join(__mps_acc& rightMps); 
     // Printing function
     void print_mps();
 };
 
-__mps::__mps(double* a):
+__mps_acc::__mps_acc(double* a):
     array(a),
-    sum(0),
-    mps(0),
     position(0)
-{}
+{
+    sum = Superaccumulator();
+    mps = Superaccumulator();
+}
 
-__mps::__mps(__mps& x, split) :
+__mps_acc::__mps_acc(__mps_acc& x, split) :
     array(x.array),
-    sum(0),
-    mps(0),
     position(0)
-{}
+{
+    sum = Superaccumulator();
+    mps = Superaccumulator();
+}
 
-void __mps::print_mps(){
-    cout << "sum: " << sum;
-    cout << endl << "mps: " << mps;
+void __mps_acc::print_mps(){
+    cout << "sum: " << sum.Round();
+    cout << endl << "mps: " << mps.Round();
     cout << endl << "position: " << position << endl;
 }
 
-void __mps::operator()(const blocked_range<int>& r){
+void __mps_acc::operator()(const blocked_range<int>& r){
     if(position == 0){
         position = r.begin();
     }
     for(int i = r.begin(); i != r.end(); i++){
-        sum += array[i];
-        if(sum >= mps){
-            mps = sum;
+        sum.Accumulate(array[i]);
+        if(!sum.comp(mps)){
+            mps = Superaccumulator(sum.get_accumulator());
             position = i+1; 
         }
     }
 }
 
-void __mps::join(__mps& rightMps){
+void __mps_acc::join(__mps_acc& rightMps){
+   //Set rounding mode
+   _MM_SET_ROUNDING_MODE(0);
    // computing sum-l + mps-r
-   rightMps.mps += sum;
+   rightMps.mps.Accumulate(sum);
    // adding two sums
-   sum += rightMps.sum;
+   sum.Accumulate(rightMps.sum);
    // comparison of mpsCandidate and mps-l
-   if(rightMps.mps >= mps){
+   double candidate = rightMps.mps.Round();
+   double mpsAux = mps.Round();
+   if(candidate >= mpsAux){
        mps = rightMps.mps;
        position = rightMps.position;
    }
 }
 
 // Parallel reduce main function
-void tbb_main(double* a, int size, int grainsize){
-    __mps result = __mps(a);
-    parallel_reduce(blocked_range<int>(0,size),result);
-    if(DEBUG){
+void tbb_main_s(double* a, int size, int grainsize){
+    __mps_acc result = __mps_acc(a);
+    parallel_reduce(blocked_range<int>(0,size,grainsize),result);
+    if(DEBUGSUPERACC){
         cout << endl << "Parallel Reduce" << endl;
         result.print_mps();
     }
 }
 
 // Parallel deterministic reduce main function
-void tbb_deterministic_main(double* a, int size, int grainsize){
-    __mps result = __mps(a);
+void tbb_deterministic_main_s(double* a, int size, int grainsize){
+    __mps_acc result = __mps_acc(a);
     parallel_deterministic_reduce(blocked_range<int>(0,size,grainsize),result);
-    if(DEBUG){
+    if(DEBUGSUPERACC){
         cout << endl << "Parallel Deterministic Reduce" << endl;
         result.print_mps();
     }
 }
 
+/*
 // Homemade main function
-void homemade_main(double *a, int size,int grainsize){
+void homemade_main_s(double *a, int size,int grainsize){
     
-    mps_struct result;
-    
-    // Computing maxdepth
-    double ratio = (double) (size)/(double)grainsize;
-    int depth = ceil(log2(ratio));
-    if(depth < 0) depth = 0;
+    double sum = 0, mps = 0;
+    int pos = 0;
 
-    MpsTask1& root = *new(task::allocate_root()) MpsTask1(depth,a,&result,0,size);
+    MpsTaskSuperacc& root = *new(task::allocate_root()) MpsTaskSuperacc(grainsize,a,size,&sum,&mps,&pos);
 
     task::spawn_root_and_wait(root);
 
-    if(DEBUG){
+    if(DEBUGSUPERACC){
         cout << endl <<"Homemade reduction" << endl;
-        cout << "Sum: " << result.sum << endl << "Mps " << result.mps << endl << "Pos: " << result.pos << endl;
+        cout << "Sum: " << sum << endl << "Mps " << mps << endl << "Pos: " << pos << endl;
     }
 }
+*/
 
 /*
 // Reduction step
@@ -254,6 +267,7 @@ void Reduction(unsigned int tid, unsigned int tnum){
 }
 
 
+
 // Openmp reduction operation
 void omp_main(double* a, int size){
 
@@ -285,7 +299,7 @@ void omp_main(double* a, int size){
 }*/
 
 // Function to compare the implementations
-void runtime_comparison(){
+void runtime_comparison_s(){
     
     // Variables declaration and initialisation 
     double start;
@@ -293,13 +307,12 @@ void runtime_comparison(){
     int N = 1;
 
     // for each dynamic range
-    vector<int> grainsSizes  {100,600,1000,3000,10000,20000,30000};
-    //vector<int> grainsSizes  {10};
+    vector<int> grainsSizes  {100,300,600,1000,2000,3000,6000,10000,20000,30000};
     int s = grainsSizes.size();
     
     // Store results to plot
     fstream results;
-    results.open("Plots/reductions.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/reductions_superacc.csv", ofstream::out | ofstream::trunc);
     vector<double> x(s),r0(s),r1(s),r2(s);
 
     // Random seed
@@ -317,12 +330,12 @@ void runtime_comparison(){
         }
         
         // Declare result variables
-        double time_deterministic_tbb = 0.0;
-        PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
         double time_tbb = 0.0;
-        PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
+        PFP_TIME(tbb_main_s(drray,size,grainsSizes[r]),start,time_tbb);
         double time_homemade = 0.0;
-        PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
+        //PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
+        double time_deterministic_tbb = 0.0;
+        PFP_TIME(tbb_deterministic_main_s(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
    
         
         delete[] drray;
@@ -346,11 +359,11 @@ void runtime_comparison(){
             
             // Declare result variables
             double time_tbb = 0.0;
-            PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
-            double time_deterministic_tbb = 0.0;
-            PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
+            PFP_TIME(tbb_main_s(drray,size,grainsSizes[r]),start,time_tbb);
             double time_homemade = 0.0;
-            PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
+            //PFP_TIME(homemade_main_s(drray,size,grainsSizes[r]),start,time_homemade);
+            double time_deterministic_tbb = 0.0;
+            PFP_TIME(tbb_deterministic_main_s(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
        
             mean_tbb += time_tbb;
             mean_homemade += time_homemade;
@@ -364,9 +377,9 @@ void runtime_comparison(){
         mean_deterministic_tbb += mean_deterministic_tbb / N;
         
         x[r]= grainsSizes[r];
-        r0[r]= mean_tbb/mean_tbb;
-        r1[r]= mean_homemade/mean_tbb;
-        r2[r]= mean_deterministic_tbb/mean_tbb;
+        r0[r]= mean_tbb;
+        r1[r]= mean_homemade/ mean_tbb;
+        r2[r]= mean_deterministic_tbb;
 
         // Writing results to a file
         results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << endl;
@@ -375,9 +388,8 @@ void runtime_comparison(){
 
     results.close();
 }
-
+/*
 int main(){
-    task_scheduler_init init(1);
-    runtime_comparison();
+    runtime_comparison_s();
     return 0;
-}
+}*/

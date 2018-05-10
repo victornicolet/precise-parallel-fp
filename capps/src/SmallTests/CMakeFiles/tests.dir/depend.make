@@ -7,3 +7,17 @@ src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/SmallTests/reductions.
 src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/../exblas/include/common.hpp
 src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/../include/Victor/pfpdefs.hpp
 
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/SmallTests/reductions_superacc.cpp
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/include/common.hpp
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/include/mylibm.hpp
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/include/superaccumulator.hpp
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/instrset.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectorclass.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectorf128.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectorf256.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectorf256e.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectori128.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectori256.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../exblas/src/common/vectori256e.h
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/../include/Victor/pfpdefs.hpp
+

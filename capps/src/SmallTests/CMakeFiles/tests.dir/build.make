@@ -57,9 +57,33 @@ include src/SmallTests/CMakeFiles/tests.dir/progress.make
 # Include the compile flags for this target's objects.
 include src/SmallTests/CMakeFiles/tests.dir/flags.make
 
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/SmallTests/CMakeFiles/tests.dir/flags.make
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o: src/SmallTests/reductions_superacc.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o"
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && /usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tests.dir/reductions_superacc.cpp.o -c /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/reductions_superacc.cpp
+
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/tests.dir/reductions_superacc.cpp.i"
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/reductions_superacc.cpp > CMakeFiles/tests.dir/reductions_superacc.cpp.i
+
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/tests.dir/reductions_superacc.cpp.s"
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/reductions_superacc.cpp -o CMakeFiles/tests.dir/reductions_superacc.cpp.s
+
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.requires:
+
+.PHONY : src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.requires
+
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.provides: src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.requires
+	$(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.provides.build
+.PHONY : src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.provides
+
+src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.provides.build: src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o
+
+
 src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/SmallTests/CMakeFiles/tests.dir/flags.make
 src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o: src/SmallTests/reductions.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o"
 	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && /usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tests.dir/reductions.cpp.o -c /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/reductions.cpp
 
 src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.i: cmake_force
@@ -83,7 +107,7 @@ src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o.provides.build: src/SmallTe
 
 src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o: src/SmallTests/CMakeFiles/tests.dir/flags.make
 src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o: src/SmallTests/parallel_reduce.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o"
 	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && /usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/tests.dir/parallel_reduce.cpp.o -c /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests/parallel_reduce.cpp
 
 src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.i: cmake_force
@@ -107,19 +131,21 @@ src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o.provides.build: src/Sm
 
 # Object files for target tests
 tests_OBJECTS = \
+"CMakeFiles/tests.dir/reductions_superacc.cpp.o" \
 "CMakeFiles/tests.dir/reductions.cpp.o" \
 "CMakeFiles/tests.dir/parallel_reduce.cpp.o"
 
 # External object files for target tests
 tests_EXTERNAL_OBJECTS =
 
+bin/tests: src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o
 bin/tests: src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o
 bin/tests: src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o
 bin/tests: src/SmallTests/CMakeFiles/tests.dir/build.make
 bin/tests: exblas/src/cpu/libexblas.a
 bin/tests: /usr/lib/x86_64-linux-gnu/libpython2.7.so
 bin/tests: src/SmallTests/CMakeFiles/tests.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable ../../bin/tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable ../../bin/tests"
 	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/SmallTests && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tests.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -127,6 +153,7 @@ src/SmallTests/CMakeFiles/tests.dir/build: bin/tests
 
 .PHONY : src/SmallTests/CMakeFiles/tests.dir/build
 
+src/SmallTests/CMakeFiles/tests.dir/requires: src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o.requires
 src/SmallTests/CMakeFiles/tests.dir/requires: src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.o.requires
 src/SmallTests/CMakeFiles/tests.dir/requires: src/SmallTests/CMakeFiles/tests.dir/parallel_reduce.cpp.o.requires
 

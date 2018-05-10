@@ -245,6 +245,33 @@ reductions.cpp.s:
 	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions.cpp.s
 .PHONY : reductions.cpp.s
 
+reductions_superacc.o: reductions_superacc.cpp.o
+
+.PHONY : reductions_superacc.o
+
+# target to build an object file
+reductions_superacc.cpp.o:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.o
+.PHONY : reductions_superacc.cpp.o
+
+reductions_superacc.i: reductions_superacc.cpp.i
+
+.PHONY : reductions_superacc.i
+
+# target to preprocess a source file
+reductions_superacc.cpp.i:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.i
+.PHONY : reductions_superacc.cpp.i
+
+reductions_superacc.s: reductions_superacc.cpp.s
+
+.PHONY : reductions_superacc.s
+
+# target to generate assembly for a file
+reductions_superacc.cpp.s:
+	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/SmallTests/CMakeFiles/tests.dir/build.make src/SmallTests/CMakeFiles/tests.dir/reductions_superacc.cpp.s
+.PHONY : reductions_superacc.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -266,6 +293,9 @@ help:
 	@echo "... reductions.o"
 	@echo "... reductions.i"
 	@echo "... reductions.s"
+	@echo "... reductions_superacc.o"
+	@echo "... reductions_superacc.i"
+	@echo "... reductions_superacc.s"
 .PHONY : help
 
 
