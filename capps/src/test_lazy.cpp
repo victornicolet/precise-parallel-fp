@@ -9,7 +9,7 @@
 
 #include "superaccumulator.hpp"
 #include "lazy_mps_implementations.hpp"
-#include "precise_mps_implementations.hpp"
+#include "parallel_mps.hpp"
 #include "2_lazy_mps_implementations.hpp"
 #include "common.hpp"
 #include "pfpdefs.hpp"
@@ -67,11 +67,11 @@ void runtime_comparison_parallel(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,6);
+    int size = pow(10,7);
     int N = 5;
 
     // for each dynamic range
-    vector<int> dynRanges  {100,500,1000,2000};
+    vector<int> dynRanges  {10,30,60,100,300,600,1000,2000};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -98,17 +98,21 @@ void runtime_comparison_parallel(){
             for(int j = 0; j < size ; j++){
                  drray[j] = (rand() % 2) ? drray[j] : -drray[j];
             }
+
+            // Variables for result
+            double sum, mps;
+            int pos;
             
             double time_float = 0.0;
-            PFP_TIME(sequential_mps(drray,size),start,time_float);
+            PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_float);
             double time_parallel_float = 0.0;
             PFP_TIME(parallel_mps_float(drray,size),start,time_parallel_float);
             double time_superacc = 0.0;
-            PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
+            //PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
             double time_superacc_lazy = 0.0;
             PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
             double time_mpfr = 0.0;
-            PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
+            //PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;

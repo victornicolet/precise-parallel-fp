@@ -17,6 +17,15 @@ using namespace tbb;
 
 #define DEBUG 1
 
+// Mps result
+struct mps_struct{
+    mps_struct(){};
+    __m128d sum;
+    __m128d mps;
+    int pos;
+    bool val;
+};
+
 // Struct to store computation preliminary results
 enum Status {
     leftChild,
@@ -28,53 +37,53 @@ enum Status {
 
 class MpsTask1: public task {
     public:
-        MpsTask1(int C, double* a, int s,int* v, __m128d* sum_i, __m128d* mps_i, int* p,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
+        MpsTask1(int C, double* a, int s, mps_struct* result_,Status** m, int d = 0, int i = 0, int l = 0, int r = -1) : 
             Cutoff(C),
             array(a),
             size(s),
-            validity(v),
             depth(d),
             index(i),
             left(l),
             right(r),
-            sum_interval(sum_i),
-            mps_interval(mps_i),
-            position(p),
+            result(result_),
             memo(m)
         {
-            if(r == -1) right = size;
-            /*cout << endl << "Constructed MpsTask." << endl;
-            cout << "left: " << left << endl;
-            cout << "right: " << right << endl;
-            */
+            //cout << endl << "Constructed MpsTask." << endl;
+            //cout << "left: " << left << endl;
+            //cout << "right: " << right << endl;
+            
         }
         ~MpsTask1(){}
         
         task* execute(){
             if(size <= Cutoff){
                 Status stat = cutoff;
-                __m128d delta_sum = in2_create(0.,0.);
-
                 _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
+                __m128d s = in2_create(0.,0.);  
+                __m128d m = in2_create(0.,0.);  
+                int v = 0;
+                int p = left;
+
                 for(int i = left; i != right; i++){
-                    *sum_interval = in2_add_double(*sum_interval,array[i]);
-                    delta_sum = in2_add_double(delta_sum,array[i]);
-                    boolean b = inferior(*mps_interval,*sum_interval);
-                    //boolean b = inferior_double(0,delta_sum);
+                    s = in2_add_double(s,array[i]);
+                    boolean b = inferior(m,s);
                     if (b == True){
-                        *mps_interval = in2_add(*mps_interval,delta_sum);
-                        delta_sum = in2_create(0.,0.);
-                        *position = i+1; 
+                        m = s;
+                        p = i+1; 
+                        v = 0;
                     }
                     else if(b == Undefined){
-                        *mps_interval = in2_add(*mps_interval,delta_sum);
-                        delta_sum = in2_create(0.,0.);
-                        *position = i+1; 
-                        stat = cutoffPrecise;
-                        *validity = 1;
+                        m = in2_merge(m,s);
+                        p = i+1;
+                        v = 1;
                     }
                 }
+
+                result->sum = s;
+                result->mps = m;
+                result->pos = p;
+                result->val = v;
 
                 memo[depth][index] = stat;
                 return NULL;
@@ -89,23 +98,16 @@ class MpsTask1: public task {
                 int rIndex = lIndex + 1;
 
                 // Variables for results
-                int lPos = left;
-                int rPos = middle;
-                __m128d lsum = in2_create(0.,0.);
-                __m128d rsum = in2_create(0.,0.);
-                __m128d lmps = in2_create(0.,0.);
-                __m128d rmps = in2_create(0.,0.);
-                int vall = 0;
-                int valr = 0;
+                mps_struct rresult;
 
                 // Create subtasks
                 set_ref_count(3);
 
-                MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,&vall,&lsum,&lmps,&lPos,memo,newDepth,lIndex,left,middle);
+                MpsTask1& lTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizel,result,memo,newDepth,lIndex,left,middle);
                 
                 spawn(lTask);
 
-                MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&valr,&rsum, &rmps,&rPos,memo,newDepth,rIndex,middle,right);
+                MpsTask1 &rTask = *new(allocate_child()) MpsTask1(Cutoff,array,sizer,&rresult,memo,newDepth,rIndex,middle,right);
                 
                 spawn(rTask);
                 wait_for_all();
@@ -113,26 +115,21 @@ class MpsTask1: public task {
                 
                 // Gather results
                 _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-                rmps = in2_add(lsum,rmps);
-                *sum_interval = in2_add(lsum,rsum);
-                boolean b = inferior(lmps,rmps);
+
+                rresult.mps = in2_add(result->sum,rresult.mps);
+                result->sum = in2_add(result->sum,rresult.sum);
+                boolean b = inferior(result->mps,rresult.mps);
                 if(b == True){
-                    *mps_interval = rmps;
-                    *position = rPos;
+                    result->mps = rresult.mps;
+                    result->pos = rresult.pos;
                     memo[depth][index] = rightChild;
-                    *validity = valr;
+                    result->val = rresult.val;
                 }
-                else if(b == False){
-                    *mps_interval = lmps;
-                    *position = lPos;
-                    memo[depth][index] = leftChild;
-                    *validity = vall;
-                }
-                else{
+                else if(b == Undefined){
                     // Merge the two intervals
-                    *mps_interval = in2_merge(lmps,rmps);
-                    *position = rPos;
-                    *validity = 1;
+                    result->mps = in2_merge(result->mps,rresult.mps);
+                    result->pos = rresult.pos;
+                    result->val = 1;
                     memo[depth][index] = undefinedComparison;
                 }
                 return NULL;
@@ -145,18 +142,12 @@ class MpsTask1: public task {
         /* Input array and its size */
         double* array;
         int size;    
-        /* Flag for validity of the result */
-        int* validity;
         /* Identification of the task */
         int depth;
         int index;
         int left;
         int right;
-        /* Intervals for sum and mps */
-        __m128d* sum_interval;
-        __m128d* mps_interval;
-        /* Position of the mps */
-        int* position;
+        mps_struct* result;
         Status** memo;
 };
 

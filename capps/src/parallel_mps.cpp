@@ -6,19 +6,9 @@
 
 #include "tbb/blocked_range.h"
 #include "superaccumulator.hpp"
-#include "precise_mps_implementations.hpp"
+#include "parallel_mps.hpp"
 
 using namespace std;
-
-void sequentialMps(double* array, int size, double* sum, double* mps, int* pos){
-    for(int i = 0; i != size; i++){
-        *sum += array[i];
-        if(*sum >= *mps){
-            *mps = *sum;
-            *pos = i+1;
-        }
-    }
-}
 
 __mps_naive::__mps_naive(double* a):
     array(a),
@@ -93,16 +83,11 @@ void __mps_acc::operator()(const blocked_range<int>& r){
         position = r.begin();
     }
     for(int i = r.begin(); i != r.end(); i++){
-        //Set rounding mode
-
         sum.Accumulate(array[i]);
-        double sumAux = sum.Round();
-        double mpsAux = mps.Round();
-        if(sumAux >= mpsAux){
+        if(!sum.comp(mps)){
             mps = Superaccumulator(sum.get_accumulator());
             position = i+1; 
         }
-        //Set back rounding mode
     }
 }
 
@@ -114,9 +99,7 @@ void __mps_acc::join(__mps_acc& rightMps){
    // adding two sums
    sum.Accumulate(rightMps.sum);
    // comparison of mpsCandidate and mps-l
-   double candidate = rightMps.mps.Round();
-   double mpsAux = mps.Round();
-   if(candidate >= mpsAux){
+   if(!rightMps.mps.comp(mps)){
        mps = rightMps.mps;
        position = rightMps.position;
    }
@@ -145,7 +128,7 @@ __mps_mpfr::__mps_mpfr(double* array) :
     mpfr_init2(sum,30000);
     mpfr_init2(mps,30000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
-    mpfr_set_d(sum,0.,MPFR_RNDN);
+    mpfr_set_d(mps,0.,MPFR_RNDN);
 }
 
 __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
@@ -155,7 +138,7 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     mpfr_init2(sum,30000);
     mpfr_init2(mps,30000);
     mpfr_set_d(sum,0.,MPFR_RNDN);
-    mpfr_set_d(sum,0.,MPFR_RNDN);
+    mpfr_set_d(mps,0.,MPFR_RNDN);
 }
 
 void __mps_mpfr::operator()(const blocked_range<int>& range){

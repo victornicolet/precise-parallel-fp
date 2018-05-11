@@ -45,7 +45,7 @@ class MpsContinuation: public task {
         lres->sum = s + rres.sum;
         if(rmps >= lres->mps){
             lres->mps = rmps;
-            lres->pos = rres.pos;
+            //lres->pos = rres.pos;
         }
         return NULL;
     }
@@ -68,17 +68,17 @@ class MpsTask1: public task {
             if(depth == 0){
                 double s = 0.;
                 double m = 0.;
-                int p = left;
+                //int p = left;
                 for(int i = left; i != right; i++){
                     s += array[i];
                     if(s >= m){
                        m = s;
-                       p = i+1;
+                       //p = i+1;
                     }
                 }
                 res->sum = s;
                 res->mps = m;
-                res->pos = p;
+                //res->pos = p;
                 return NULL;
 
             }else{
