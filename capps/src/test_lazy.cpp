@@ -64,14 +64,15 @@ void debug_test(){
 
 /* This function compares the runtime of mps with superaccumulators or mpfr, and its lazy implementation with interval arithmetic */
 void runtime_comparison_parallel(){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     
     // Variables declaration and initialisation 
     double start;
     int size = pow(10,7);
-    int N = 5;
+    int N = 2;
 
     // for each dynamic range
-    vector<int> dynRanges  {10,30,60,100,300,600,1000,2000};
+    vector<int> dynRanges  {6,10,20,30,60,100,300,600,1000,2000};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -110,7 +111,7 @@ void runtime_comparison_parallel(){
             double time_superacc = 0.0;
             //PFP_TIME(parallel_mps_superacc(drray,size),start,time_superacc);
             double time_superacc_lazy = 0.0;
-            PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
+            //PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
             double time_mpfr = 0.0;
             //PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
             double time_mpfr_lazy = 0.0;

@@ -19,7 +19,7 @@
 using namespace std;
 using namespace tbb;
 
-#define PRINT 0
+#define PRINT 1
 
 void printA(double* array, int size){
     // printing the array
@@ -117,6 +117,7 @@ void parallel_mps_mpfr(double* array, int size){
 } 
 
 void parallel_mps_mpfr_lazy(double* array, int size){
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // First step of computation with interval arithmetic
     __mps result(array);
@@ -172,7 +173,6 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
     Superaccumulator sum = Superaccumulator();
     Superaccumulator mps = Superaccumulator();
     int position2 = 0;
-    task_scheduler_init init(1);
 
     MpsTask2& root2 = *new(task::allocate_root()) MpsTask2(Cutoff,array,size,&sum,&mps,&position2,memo);
 
@@ -259,7 +259,7 @@ void __mps::print_mps(){
 }
 
 void __mps::join(__mps& rightMps){
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
    // computing sum-l + mps-r
    __m128d mpsCandidate = in2_add(sum_interval,rightMps.mps_interval);
    // adding two sums
@@ -279,14 +279,15 @@ void __mps::join(__mps& rightMps){
 }
 
 void __mps::operator()(const blocked_range<int>& r){
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     if(lposition == 0 && rposition == 0){
         lposition = r.begin();
         rposition = r.begin();
     }
     // iterating over the subrange
-    for(int i = r.begin(); i != r.end(); i++){        sum_interval = in2_add_double(sum_interval,array[i]);
+    for(int i = r.begin(); i != r.end(); i++){
+        sum_interval = in2_add_double(sum_interval,array[i]);
         boolean b = inferior(mps_interval,sum_interval);
         if (b == True){
             mps_interval = sum_interval;
