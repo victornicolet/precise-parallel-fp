@@ -2,8 +2,14 @@
  * Author: Raphaël Dang-Nhu
  * Date: 11/05/18 */
 
+#include "tbb/blocked_range.h"
+
 using namespace tbb;
 using namespace std;
+
+// Main function for naive parallel mss
+void parallel_mss_double(double* array, long size);
+
 
 // Naive mss structure
 struct __mss_naive{

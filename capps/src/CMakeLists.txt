@@ -1,4 +1,4 @@
-# Graph subproject
+# Graph subproject (single directory project without includes)
 add_subdirectory(Graphs/)
 
 ##################################
@@ -12,6 +12,9 @@ include_directories(/usr/lib/gcc/x86_64-linux-gnu/6/include/)
 include_directories(Victor/)
 include_directories(../include/)
 include_directories(../include/Victor/)
+include_directories(../include/Common/)
+include_directories(../include/Mps/)
+include_directories(../include/Mss/)
 
 # Link directories
 link_directories (../exblas/lib/)
@@ -30,9 +33,14 @@ find_package(PythonLibs 2.7)
 include_directories(PRIVATE ${PYTHON_INCLUDE_DIRS})
 link_libraries(${PYTHON_LIBRARIES})
 
-# Small Tests
+# Single directory project with includes
 add_subdirectory(SmallTests/)
 
-# Define targets
-file(GLOB SOURCE_FILES "*.cpp" "*.hpp" "*.h")
-add_executable(precise_parallel_fp ${SOURCE_FILES})
+
+file(GLOB Common_sources RELATIVE "Common" "*cpp")
+file(GLOB Mps_sources RELATIVE "Mps" "*.cpp")
+file(GLOB Mss_sources RELATIVE "Mps" "*.cpp")
+
+add_executable(test_mss ${Common_sources} ${Mss_sources})
+add_executable(test_mps ${Common_sources} ${Mps_sources})
+

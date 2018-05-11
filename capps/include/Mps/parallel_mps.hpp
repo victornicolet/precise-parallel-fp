@@ -12,7 +12,6 @@
 using namespace tbb;
 using namespace std;
 
-
 // Naive mps structure
 struct __mps_naive{
     // pointer to the array

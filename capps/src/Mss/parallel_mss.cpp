@@ -1,10 +1,44 @@
 
+#include <iostream>
+
+#include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
 
 #include "parallel_mss.hpp"
 
+#define PRINT 1
+
 using namespace tbb;
 using namespace std;
+
+
+void printA(double* array, int size){
+    // printing the array
+    cout << "{";
+    if(size <= 10){
+        for(int i = 0; i < size; i++){
+            cout << array[i] << ",";
+        }
+        cout << "}" << endl;
+    }
+    else{
+        for(int i = 0; i < 10; i++){
+            cout << array[i] << ",";
+        }
+        cout << "... (size: " << size << ")" << endl;
+    }
+
+}
+
+void parallel_mss_double(double* array, long size){
+    __mss_naive result(array);
+    parallel_reduce(blocked_range<int>(0,size),result);
+    if(PRINT){
+        cout << endl << "Parallel double" << endl;
+        printA(array,size);
+        result.print_mss();
+    }
+}
 
 __mss_naive::__mss_naive(double* a) :
     array(a),

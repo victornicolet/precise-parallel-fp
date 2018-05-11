@@ -38,7 +38,7 @@ void printA(double* array, int size){
     }
 
 }
-
+/*
 void sequential_mps(double* array, int size){
     double sum = 0., mps = 0.;
     int position = 0;
@@ -50,7 +50,7 @@ void sequential_mps(double* array, int size){
         cout << endl << "mps: " << mps;
         cout << endl << "pos: " << position << endl;
     }
-}
+}*/
 
 void parallel_mps_float(double* array, int size){
     __mps_naive result(array);
