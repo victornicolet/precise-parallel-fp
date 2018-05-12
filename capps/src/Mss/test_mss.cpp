@@ -25,7 +25,7 @@ void runtime_comparison_sequential_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    long size = pow(10,3);
+    long size = pow(10,2);
     long N = 1;
 
     // for each dynamic range
@@ -104,7 +104,7 @@ void runtime_comparison_parallel_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    long size = pow(10,3);
+    long size = pow(10,5);
     long N = 1;
 
     // for each dynamic range

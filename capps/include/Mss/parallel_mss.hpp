@@ -66,7 +66,7 @@ struct __mss_interval{
 
     void operator()(const blocked_range<long>&);
     
-    void join(__mss_interval right);
+    void join(__mss_interval& right);
 
     void print_mss();
 };
