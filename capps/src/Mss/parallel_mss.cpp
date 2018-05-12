@@ -71,10 +71,8 @@ void __mss_naive::operator()(const blocked_range<int>& r){
     if(posmts == 0){
         posmts = r.begin();
     }
-    if(posmssl == 0){
+    if(posmssl == 0 && posmssr == 0){
         posmssl = r.begin();
-    }
-    if(posmssr == 0){
         posmssr = r.begin();
     }
 
@@ -139,4 +137,14 @@ void __mss_naive::join(__mss_naive& right){
     }
 }
 
+void __mss_naive::print_mss(){
+    cout << "Sum: " << sum << endl;
+    cout << "Mss: " << mss << endl;
+    cout << "Left pos: " << posmssl << endl;
+    cout << "Right pos: " << posmssr << endl;
+    cout << "Mts: " << mts << endl;
+    cout << "Pos: " << posmts << endl;
+    cout << "Mps: " << mps << endl;
+    cout << "Pos: " << posmps << endl;
 
+}

@@ -8,21 +8,21 @@
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 
-void sequential_mss_superacc(double*array, int size, double* mss, int* posl, int* posr){
+void sequential_mss_superacc(double*array, long size, double* mss, long* posl, long* posr){
     // Positions for mss
-    int poslt = 0; 
-    int posrt = 0;
+    long poslt = 0; 
+    long posrt = 0;
     
     // Position for mts
-    int post = 0; 
+    long post = 0; 
 
     Superaccumulator mssA = Superaccumulator();
     Superaccumulator mtsA = Superaccumulator();
 
-    for(int i = 0; i != size; i++){
+    for(long i = 0; i != size; i++){
 
         // Update msst
         mtsA.Accumulate(array[i]);
@@ -51,18 +51,18 @@ void sequential_mss_superacc(double*array, int size, double* mss, int* posl, int
 
 }
 
-void sequential_mss_double(double* array, int size, double* mss, int* posl, int*posr){
+void sequential_mss_double(double* array, long size, double* mss, long* posl, long*posr){
     // Positions for mss
-    int poslt = 0; 
-    int posrt = 0;
+    long poslt = 0; 
+    long posrt = 0;
     
     // Position for mts
-    int post = 0; 
+    long post = 0; 
 
     double msst = 0.;
     double mtst = 0.;
     
-    for(int i = 0; i != size; i++){
+    for(long i = 0; i != size; i++){
 
         // Update msst
         mtst += array[i];
@@ -111,7 +111,7 @@ enum Var{
     Vnull
 };
 
-void sequential_mss_lazy(double* array, int size,  double* mss, int* posl, int* posr){
+void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, long* posr){
     // Rounding mode
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
@@ -119,17 +119,17 @@ void sequential_mss_lazy(double* array, int size,  double* mss, int* posl, int* 
     __m128d mtsI = in2_create(0.,0.);     
 
     // Positions for mss
-    int poslt = 0; 
-    int posrt = 0;
+    long poslt = 0; 
+    long posrt = 0;
     
     // Position for mts
-    int post = 0; 
+    long post = 0; 
 
     Dec* da = new Dec[size]; 
     Decc* dca = new Decc[size]; 
     
-    /* First iteration with interval arithmetic */
-    for(int i = 0; i != size; i++){
+    /* First iteration with longerval arithmetic */
+    for(long i = 0; i != size; i++){
         mtsI = in2_add_double(mtsI,array[i]);
 
         // Update mssI
@@ -172,7 +172,7 @@ void sequential_mss_lazy(double* array, int size,  double* mss, int* posl, int* 
     /* Iterate in reverse order */
     Var* va = new Var[size];
     Var v = Vmss;
-    for(int i = size - 1; i >= 0 ; i--){
+    for(long i = size - 1; i >= 0 ; i--){
         va[i] = v;
         if(v == Vmss && da[i] == Dmts){
             v = Vmts;
@@ -188,21 +188,21 @@ void sequential_mss_lazy(double* array, int size,  double* mss, int* posl, int* 
         print(mssI) ;
         cout << endl << "Posl: " << poslt ;
         cout << endl << "Posr: " << posrt << endl << endl;
-        for(int i = 0;  i != size; i++){
+        for(long i = 0;  i != size; i++){
             Dec d = da[i]; 
             if(d == Dmts) cout << "X";
             else if(d == Dmss) cout << "_";
             else cout << "|";
         }
         cout << endl << endl << endl << endl;
-        for(int i = 0;  i != size; i++){
+        for(long i = 0;  i != size; i++){
             Decc dc = dca[i]; 
             if(dc == Dc0) cout << "X";
             else if(dc == Dcmts) cout << "_";
             else cout << "|";
         }
         cout << endl << endl << endl << endl;
-        for(int i = 0;  i != size; i++){
+        for(long i = 0;  i != size; i++){
             Var v = va[i]; 
             if(v == Vmss) cout << "2";
             else if(v == Vmts) cout << "1";
@@ -223,7 +223,7 @@ void sequential_mss_lazy(double* array, int size,  double* mss, int* posl, int* 
     Superaccumulator mssA = Superaccumulator();
     Superaccumulator mtsA = Superaccumulator();
 
-    for(int i = 0; i != size; i++){
+    for(long i = 0; i != size; i++){
         
         // Check which variables need to be computed
         Var v = va[i];

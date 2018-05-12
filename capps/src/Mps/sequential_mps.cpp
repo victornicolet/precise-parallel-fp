@@ -11,20 +11,6 @@
 #define VERBOSE 0
 
 
-void sequential_summation_superacc(double* array, int size, double* sum){
-    Superaccumulator sumA = Superaccumulator();
-    for(int i = 0; i != size; i++){
-        sumA.Accumulate(array[i]);
-    }
-    *sum = sumA.Round();
-
-    if(VERBOSE){
-        cout << endl << "Summation with superaccumulators" << endl;
-        cout << "Sum: " << *sum << endl;
-    }
-
-}
-
 void sequential_mps_superacc(double*array, int size, double* sum, double* mps, int* pos){
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();

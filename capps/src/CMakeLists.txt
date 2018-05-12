@@ -37,9 +37,9 @@ link_libraries(${PYTHON_LIBRARIES})
 add_subdirectory(SmallTests/)
 
 
-file(GLOB Common_sources RELATIVE "Common" "*cpp")
-file(GLOB Mps_sources RELATIVE "Mps" "*.cpp")
-file(GLOB Mss_sources RELATIVE "Mps" "*.cpp")
+file(GLOB Common_sources "Common/*.cpp")
+file(GLOB Mps_sources "Mps/*.cpp")
+file(GLOB Mss_sources "Mss/*.cpp")
 
 add_executable(test_mss ${Common_sources} ${Mss_sources})
 add_executable(test_mps ${Common_sources} ${Mps_sources})

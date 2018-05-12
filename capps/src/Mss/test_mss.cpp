@@ -13,9 +13,9 @@
 
 #include "tbb/tbb.h"
 
-#include "sequential_mps.hpp"
 #include "sequential_mss.hpp"
 #include "parallel_mss.hpp"
+#include "summation.hpp"
 
 using namespace tbb;
 using namespace std;
@@ -25,12 +25,12 @@ void runtime_comparison_sequential_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,3);
-    int N = 1;
+    long size = pow(10,3);
+    long N = 1;
 
     // for each dynamic range
-    vector<int> dynRanges  {100,400,700,1000,1300,1600,1900};
-    int s = dynRanges.size();
+    vector<long> dynRanges  {100,400,700,1000,1300,1600,1900};
+    unsigned long s = dynRanges.size();
     
     // Store results to plot
     fstream results;
@@ -40,27 +40,27 @@ void runtime_comparison_sequential_mss(){
     // Random seed
     srand(time(NULL));
     
-    for(int r = 0; r < dynRanges.size(); r++){
+    for(long r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.; 
         
 
-        for(int i = 0; i < N; i++){
+        for(long i = 0; i < N; i++){
             
             // Generating array
             double* drray = new double[size];
             init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
 
             // Randomly change signs
-            for(int j = 0; j < size ; j++){
+            for(long j = 0; j < size ; j++){
                  drray[j] = (rand() % 2) ? drray[j] : -drray[j];
             }
             
             // Declare result variables
             double sum;
             double mss;
-            int pos,pos0;
+            long pos,pos0;
             
             double time_double = 0.0;
             PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_double);
@@ -105,11 +105,11 @@ void runtime_comparison_parallel_mss(){
     // Variables declaration and initialisation 
     double start;
     long size = pow(10,3);
-    int N = 1;
+    long N = 1;
 
     // for each dynamic range
-    vector<int> dynRanges  {100,400,700,1000,1300,1600,1900};
-    int s = dynRanges.size();
+    vector<long> dynRanges  {100,400,700,1000,1300,1600,1900};
+    unsigned long s = dynRanges.size();
     
     // Store results to plot
     fstream results;
@@ -119,28 +119,29 @@ void runtime_comparison_parallel_mss(){
     // Random seed
     srand(time(NULL));
     
-    for(int r = 0; r < dynRanges.size(); r++){
+    for(long r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
-        double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.; 
+        double mean_double = 0.; 
         
 
-        for(int i = 0; i < N; i++){
+        for(long i = 0; i < N; i++){
             
             // Generating array
             double* drray = new double[size];
             init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
 
             // Randomly change signs
-            for(int j = 0; j < size ; j++){
+            for(long j = 0; j < size ; j++){
                  drray[j] = (rand() % 2) ? drray[j] : -drray[j];
             }
             
             // Declare result variables
-            double sum;
-            double mss;
-            long pos,pos0;
+            double sum, mss;
+            long pos, pos0;
             
+            double time_seq_double = 0.0;
+            PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_seq_double);
             double time_double = 0.0;
             PFP_TIME(parallel_mss_double(drray,size),start,time_double);
         
@@ -163,12 +164,15 @@ void runtime_comparison_parallel_mss(){
     results.close();
 }
 
-int main(int argc, char** argv){
+int main(long argc, char** argv){
     if(argc >= 1){
-        int a = atoi(argv[1]);
+        long a = atoi(argv[1]);
         switch (a){
             case 0 :
                 runtime_comparison_sequential_mss();
+                break;
+            case 1 :
+                runtime_comparison_parallel_mss();
                 break;
         }
     }
