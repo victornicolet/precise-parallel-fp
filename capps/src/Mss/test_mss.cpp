@@ -144,6 +144,8 @@ void runtime_comparison_parallel_mss(){
             PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_seq_double);
             double time_double = 0.0;
             PFP_TIME(parallel_mss_double(drray,size),start,time_double);
+            double time_interval = 0.0;
+            PFP_TIME(parallel_mss_interval(drray,size),start,time_interval);
         
             mean_double += time_double;
             
@@ -164,9 +166,9 @@ void runtime_comparison_parallel_mss(){
     results.close();
 }
 
-int main(long argc, char** argv){
+int main(int argc, char** argv){
     if(argc >= 1){
-        long a = atoi(argv[1]);
+        int long a = atoi(argv[1]);
         switch (a){
             case 0 :
                 runtime_comparison_sequential_mss();
