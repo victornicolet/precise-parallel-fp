@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rdangnhu/Stage3A/precise-parallel-fp/capps
+CMAKE_SOURCE_DIR = /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rdangnhu/Stage3A/precise-parallel-fp/capps
+CMAKE_BINARY_DIR = /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -67,17 +67,6 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target package_source
-package_source:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Run CPack packaging tool for source..."
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && /usr/bin/cpack --config ./CPackSourceConfig.cmake /home/rdangnhu/Stage3A/precise-parallel-fp/capps/CPackSourceConfig.cmake
-.PHONY : package_source
-
-# Special rule for the target package_source
-package_source/fast: package_source
-
-.PHONY : package_source/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -89,71 +78,16 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target package
-package: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Run CPack packaging tool..."
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && /usr/bin/cpack --config ./CPackConfig.cmake
-.PHONY : package
-
-# Special rule for the target package
-package/fast: package
-
-.PHONY : package/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: install/strip
-
-.PHONY : install/strip/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: install/local
-
-.PHONY : install/local/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
 # The main all target
 all: cmake_check_build_system
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(CMAKE_COMMAND) -E cmake_progress_start /home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs/CMakeFiles/progress.marks
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f CMakeFiles/Makefile2 src/Graphs/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rdangnhu/Stage3A/precise-parallel-fp/capps/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs/CMakeFiles /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs/CMakeFiles/progress.marks
+	$(MAKE) -f CMakeFiles/Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rdangnhu/Stage3A/precise-parallel-fp/capps/src/Graphs/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f CMakeFiles/Makefile2 src/Graphs/clean
+	$(MAKE) -f CMakeFiles/Makefile2 clean
 .PHONY : clean
 
 # The main clean target
@@ -163,60 +97,46 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f CMakeFiles/Makefile2 src/Graphs/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f CMakeFiles/Makefile2 src/Graphs/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-# Convenience name for target.
-src/Graphs/CMakeFiles/graph_test.dir/rule:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f CMakeFiles/Makefile2 src/Graphs/CMakeFiles/graph_test.dir/rule
-.PHONY : src/Graphs/CMakeFiles/graph_test.dir/rule
+#=============================================================================
+# Target rules for targets named graph_test
 
-# Convenience name for target.
-graph_test: src/Graphs/CMakeFiles/graph_test.dir/rule
-
+# Build rule for target.
+graph_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 graph_test
 .PHONY : graph_test
 
 # fast build rule for target.
 graph_test/fast:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/Graphs/CMakeFiles/graph_test.dir/build.make src/Graphs/CMakeFiles/graph_test.dir/build
+	$(MAKE) -f CMakeFiles/graph_test.dir/build.make CMakeFiles/graph_test.dir/build
 .PHONY : graph_test/fast
 
-bellman_ford.o: bellman_ford.cpp.o
-
+# target to build an object file
+bellman_ford.o:
+	$(MAKE) -f CMakeFiles/graph_test.dir/build.make CMakeFiles/graph_test.dir/bellman_ford.o
 .PHONY : bellman_ford.o
 
-# target to build an object file
-bellman_ford.cpp.o:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/Graphs/CMakeFiles/graph_test.dir/build.make src/Graphs/CMakeFiles/graph_test.dir/bellman_ford.cpp.o
-.PHONY : bellman_ford.cpp.o
-
-bellman_ford.i: bellman_ford.cpp.i
-
+# target to preprocess a source file
+bellman_ford.i:
+	$(MAKE) -f CMakeFiles/graph_test.dir/build.make CMakeFiles/graph_test.dir/bellman_ford.i
 .PHONY : bellman_ford.i
 
-# target to preprocess a source file
-bellman_ford.cpp.i:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/Graphs/CMakeFiles/graph_test.dir/build.make src/Graphs/CMakeFiles/graph_test.dir/bellman_ford.cpp.i
-.PHONY : bellman_ford.cpp.i
-
-bellman_ford.s: bellman_ford.cpp.s
-
-.PHONY : bellman_ford.s
-
 # target to generate assembly for a file
-bellman_ford.cpp.s:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(MAKE) -f src/Graphs/CMakeFiles/graph_test.dir/build.make src/Graphs/CMakeFiles/graph_test.dir/bellman_ford.cpp.s
-.PHONY : bellman_ford.cpp.s
+bellman_ford.s:
+	$(MAKE) -f CMakeFiles/graph_test.dir/build.make CMakeFiles/graph_test.dir/bellman_ford.s
+.PHONY : bellman_ford.s
 
 # Help Target
 help:
@@ -225,14 +145,8 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... package_source"
 	@echo "... rebuild_cache"
-	@echo "... package"
-	@echo "... install/strip"
-	@echo "... install/local"
-	@echo "... list_install_components"
 	@echo "... graph_test"
-	@echo "... install"
 	@echo "... bellman_ford.o"
 	@echo "... bellman_ford.i"
 	@echo "... bellman_ford.s"
@@ -247,6 +161,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/rdangnhu/Stage3A/precise-parallel-fp/capps && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -63,7 +63,7 @@ void runtime_comparison_sequential_mss(){
             long pos,pos0;
             
             double time_double = 0.0;
-            PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_double);
+            PFP_TIME(sequential_mss_double(drray,size),start,time_double);
             double time_superacc = 0.0;
             PFP_TIME(sequential_mss_superacc(drray,size,&mss,&pos,&pos0),start,time_superacc);
             double time_lazy = 0.0;
@@ -104,11 +104,11 @@ void runtime_comparison_parallel_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    long size = pow(10,8);
+    long size = pow(10,7);
     long N = 1;
 
     // for each dynamic range
-    vector<long> dynRanges  {100,400,700,1000,1300,1600,1900};
+    vector<long> dynRanges  {1000,1900};
     unsigned long s = dynRanges.size();
     
     // Store results to plot
@@ -143,7 +143,7 @@ void runtime_comparison_parallel_mss(){
             // Check result
             //sequential_mss_superacc(drray,size,&mss,&pos,&pos0);
             double time_seq_double = 0.0;
-            PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_seq_double);
+            PFP_TIME(sequential_mss_double(drray,size),start,time_seq_double);
             double time_double = 0.0;
             PFP_TIME(parallel_mss_double(drray,size),start,time_double);
             double time_interval = 0.0;

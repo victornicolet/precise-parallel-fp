@@ -36,7 +36,7 @@ void printA(double* array, int size){
 }
 
 void parallel_mss_double(double* array, long size){
-    task_scheduler_init init(4);
+    task_scheduler_init init(2);
     __mss_naive result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     if(PRINT){
@@ -48,7 +48,7 @@ void parallel_mss_double(double* array, long size){
 
 void parallel_mss_interval(double* array, long size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    task_scheduler_init init(4);
+    task_scheduler_init init(2);
     __mss_interval result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     init.terminate();
@@ -61,7 +61,7 @@ void parallel_mss_interval(double* array, long size){
 
        // First case : posmssl2 <= posmssr1
        if(result.posmssl2 <= result.posmssr1){
-           task_scheduler_init init2;
+           task_scheduler_init init2(2);
            __mps_mpfr resultmps(array);
                        
            parallel_reduce(blocked_range<long>(result.posmssr1,result.posmssr2),resultmps);
@@ -84,7 +84,7 @@ void parallel_mss_interval(double* array, long size){
         }
     }
     else if(result.posmssr1 != result.posmssr2){
-           task_scheduler_init init2;
+           task_scheduler_init init2(2);
            __mps_mpfr resultmps(array);
                        
            parallel_reduce(blocked_range<long>(result.posmssr1,result.posmssr2),resultmps);

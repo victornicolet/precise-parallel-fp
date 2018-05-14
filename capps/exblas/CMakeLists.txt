@@ -10,6 +10,7 @@ project (EXBLAS)
 enable_language (CXX)
 set (CMAKE_CXX_STANDARD 11)
 
+
 # The version number.
 set (EXBLAS_VERSION_MAJOR 1)
 set (EXBLAS_VERSION_MINOR 0)

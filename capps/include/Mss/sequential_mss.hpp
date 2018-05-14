@@ -7,7 +7,7 @@
 void sequential_mss_superacc(double*,long,double*,long* posl,long* posr);
 
 /* This function computes the maximum prefix sum of an array with doubles */
-void sequential_mss_double(double*,long,double*,long* posl,long* posr);
+void sequential_mss_double(double*,long);
 
 /* This function computes the maximum prefix sum in a lazy way
  * Last argument is for optional optimization method */

@@ -51,7 +51,7 @@ void sequential_mss_superacc(double*array, long size, double* mss, long* posl, l
 
 }
 
-void sequential_mss_double(double* array, long size, double* mss, long* posl, long*posr){
+void sequential_mss_double(double* array, long size ){
     // Positions for mss
     long poslt = 0; 
     long posrt = 0;
@@ -64,30 +64,28 @@ void sequential_mss_double(double* array, long size, double* mss, long* posl, lo
     
     for(long i = 0; i != size; i++){
 
-        // Update msst
+        // Update mtst
         mtst += array[i];
+        if(mtst < 0){
+            mtst = 0.;
+            post = i+1;
+        }
+
+        // Update msst
         if(msst <= mtst){
             msst = mtst;
             poslt = post;
             posrt = i+1;
         }
 
-        // Update mtst
-        if(mtst < 0){
-            mtst = 0.;
-            post = i+1;
-        }
     }
-    *mss = msst;
-    *posl = poslt;
-    *posr = posrt;
 
-    if(PRINT){
+    //if(PRINT){
         cout << endl << "mss with doubles" << endl;
-        cout << "mss: " << *mss << endl;
-        cout << "Posl: " << *posl << endl;
-        cout << "Posr: " << *posr << endl;
-    }
+        cout << "mss: " << msst << endl;
+        cout << "Posl: " << poslt << endl;
+        cout << "Posr: " << posrt << endl;
+    //}
 }
 
 // Enum to represent decisions for mss

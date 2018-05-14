@@ -11,35 +11,41 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/graph/random.hpp>
 
+#include <random>
+
 using namespace std;
 using namespace boost;
 
+double randDouble(int emin, int emax, int neg_ratio) {
+    // Uniform mantissa
+    double x = double(rand()) / double(RAND_MAX * .99) + 1.;
+    // Uniform exponent
+    int e = (rand() % (emax - emin)) + emin;
+    // Sign
+    if(neg_ratio > 1 && rand() % neg_ratio == 0) {
+        x = -x;
+    }
+    return ldexp(x, e);
+}
+
 void test0(){
     
-    // Create a struct to hold the weights
-    struct edge_info{
-        string name;
-        int weight;
-    };
-    
+    // Create property
+    typedef property<edge_weight_t,double> EdgeProperty; 
+
     // create a typedef for the graph type
-    typedef adjacency_list<vecS,vecS, bidirectionalS,no_property,edge_info> Graph;
+    typedef adjacency_list<vecS,vecS, bidirectionalS,no_property,EdgeProperty> Graph;
     typedef graph_traits<Graph>::edge_iterator edge_iterator; 
     
     // Declare a graph with 10 vertices
     Graph g(10);
-    
+   
+    // Obtain property map
+    property_map<Graph, edge_weight_t>::type w = get(edge_weight,g);
+
     // Add some edges
-    edge_info i1;
-    i1.name = "First edge";
-    i1.weight = 10;
-
-    edge_info i2;
-    i2.name = "Second edge";
-    i2.weight = -5;
-
-    add_edge(0,1,i1,g);
-    add_edge(1,2,i2,g);
+    add_edge(0,1,10,g);
+    add_edge(1,2,20,g);
 
     // Print edges
     pair<edge_iterator,edge_iterator> ei = edges(g);
@@ -47,31 +53,40 @@ void test0(){
     cout << "Edge list: " << endl;
 
     for(;ei.first != ei.second;++ei.first){
-        cout << endl << "Name: " << g[*ei.first].name << endl;
-        cout << "Weight: " << g[*ei.first].weight << endl;
-        cout <<  "(" << source(*ei.first,g) << ",";
-        cout << target(*ei.first,g) << ")" << endl;
+        cout << endl << "Vertice 1: " << source(*ei.first,g)<< endl;
+        cout << endl << "Vertice 2: " << target(*ei.first,g)<< endl;
+        cout << "Weight: " << w[*ei.first] << endl;
     }
 }
 
 // Function to test random graph generation */
 void test1(){
     
-    struct edge_info{
-        edge_info(int x) : weight(x) {}
-        int weight;
-    };
+    // Create property
+    typedef boost::property<boost::edge_weight_t, double> WeightProperty;
 
-    typedef adjacency_list<vecS,vecS,bidirectionalS,no_property,edge_info> Graph;
+    typedef adjacency_list<vecS,vecS,bidirectionalS,no_property,WeightProperty> Graph;
     typedef graph_traits<Graph>::edge_iterator edge_iterator; 
     typedef sorted_erdos_renyi_iterator<boost::minstd_rand, Graph> ERGen;
    
+    
     // Generate Erdos-Renyi random graph
     boost::minstd_rand gen(0);
-    /*Graph g(ERGen(gen,10,0.5),ERGen(),10);
+    Graph g(ERGen(gen,10,0.5),ERGen(),10);
+
+    // Properties
+    property_map<Graph, edge_weight_t>::type w = get(edge_weight,g);
+    // To store parents
+
+      IndexMap indexMap = boost::get(boost::vertex_index, g);
+        PredecessorMap predecessorMap(&predecessors[0], indexMap);
+          DistanceMap distanceMap(&distances[0], indexMap);
 
     // Give random weights to the edges
-    //randomize_property<edge_bundle_t>(g,gen);
+    pair <edge_iterator,edge_iterator> eiw = edges(g);
+    for(;eiw.first != eiw.second;++eiw.first){
+        w[*eiw.first] = randDouble(-100,100,2);      
+    }
 
     // Print edges
     pair <edge_iterator,edge_iterator> ei = edges(g);
@@ -81,13 +96,15 @@ void test1(){
     for(;ei.first != ei.second;++ei.first){
         cout << endl << "(" << source(*ei.first,g) << ",";
         cout << target(*ei.first,g) << ")" << endl;
-        cout << "Weight: " << g[*ei.first].weight << endl;
-    }*/
-    
+        cout << "Weight: " << w[*ei.first] << endl;
+    }
+
+    // Bellman-Ford algorithm
+    bellman_ford_shortest_paths(g,0,boost::distance_map(
 }
 
 int main(){
-    test0();
+    test1();
     cout << endl << "Finished test" << endl;
     return 0;
 }
