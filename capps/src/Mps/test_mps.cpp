@@ -241,7 +241,7 @@ void runtime_comparison_sequential_mts(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,6);
+    long size = pow(10,6);
     int N = 5;
 
     // for each dynamic range
@@ -276,7 +276,7 @@ void runtime_comparison_sequential_mts(){
             // Declare result variables
             double sum;
             double mts;
-            int pos;
+            long pos;
             
             double time_double = 0.0;
             PFP_TIME(sequential_mts_double(drray,size,&mts,&pos),start,time_double);

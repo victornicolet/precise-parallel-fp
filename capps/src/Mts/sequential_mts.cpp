@@ -11,10 +11,10 @@
 #define VERBOSE 0
 
 
-void sequential_mts_superacc(double*array, int size, double* mts, int* pos){
+void sequential_mts_superacc(double*array, long size, double* mts, long* pos){
     Superaccumulator mtsA = Superaccumulator();
-    int t = 0;
-    for(int i = 0; i != size; i++){
+    long t = 0;
+    for(long i = 0; i != size; i++){
         mtsA.Accumulate(array[i]);
         if(mtsA.Normalize()){
             mtsA = Superaccumulator();
@@ -32,10 +32,10 @@ void sequential_mts_superacc(double*array, int size, double* mts, int* pos){
 
 }
 
-void sequential_mts_double(double* array, int size, double* mts, int* pos){
-    int t = 0; 
+void sequential_mts_double(double* array, long size, double* mts, long* pos){
+    long t = 0; 
     double mtst = 0.;
-    for(int i = 0; i != size; i++){
+    for(long i = 0; i != size; i++){
         mtst += array[i];
         if(mtst < 0){
             mtst = 0;
@@ -60,15 +60,15 @@ enum Dec{
     Dirrelevant
 };
 
-void sequential_mts_lazy(double* array, int size,  double* mts, int* pos,int opt){
-    // Internal variables and memorization of decisions
+void sequential_mts_lazy(double* array, long size,  double* mts, long* pos,long opt){
+    // longernal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d mtsI = in2_create(0.,0.);     
     Dec* da = new Dec[size]; 
-    int t = 0;
+    long t = 0;
     
-    /* First iteration with interval arithmetic */
-    for(int i = 0; i != size; i++){
+    /* First iteration with longerval arithmetic */
+    for(long i = 0; i != size; i++){
         mtsI = in2_add_double(mtsI,array[i]);
         boolean b = inferior_double(0.,mtsI);
 
@@ -91,7 +91,7 @@ void sequential_mts_lazy(double* array, int size,  double* mts, int* pos,int opt
         cout <<  "mts: ";
         print(mtsI) ;
         cout << endl << "Pos: " << t << endl;
-        for(int i = 0;  i != size; i++){
+        for(long i = 0;  i != size; i++){
             Dec d = da[i]; 
             if(d == D0) cout << "X";
             else if(d == Dmts) cout << "_";
@@ -103,7 +103,7 @@ void sequential_mts_lazy(double* array, int size,  double* mts, int* pos,int opt
     /* Iterate in da in reverse order */
     if(opt){
         bool seenD0 = 0;
-        for(int i = size - 1; i >= 0 ; i--){
+        for(long i = size - 1; i >= 0 ; i--){
             Dec d = da[i];
             if(!seenD0 && d == D0){
                 seenD0 = 1;
@@ -118,7 +118,7 @@ void sequential_mts_lazy(double* array, int size,  double* mts, int* pos,int opt
     _MM_SET_ROUNDING_MODE(0);
     Superaccumulator mtsA = Superaccumulator();
 
-    for(int i = 0; i != size; i++){
+    for(long i = 0; i != size; i++){
     
         Dec d = da[i];
         if(d == D0){

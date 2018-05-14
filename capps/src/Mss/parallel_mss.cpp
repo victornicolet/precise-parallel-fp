@@ -8,6 +8,8 @@
 #include "tbb/task_scheduler_init.h"
 
 #include "parallel_mss.hpp"
+#include "parallel_mps.hpp"
+#include "sequential_mts.hpp"
 
 #include "debug.hpp"
 
@@ -50,33 +52,42 @@ void parallel_mss_interval(double* array, long size){
     __mss_interval result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     init.terminate();
+    _MM_SET_ROUNDING_MODE(0);
 
     // If non precise result redo computation
     if(result.posmssl1 != result.posmssl2 || result.posmssr1 != result.posmssr2){
        task_scheduler_init init2();
 
-       // Compute bounds
-       long limit1 = result.posmssl1;
-       long limit4 = result.posmssr2;
-       long limit2 = min(result.posmssl2,result.posmssr1);
-       long limit3 = max(result.posmssl2,result.posmssr1);
-      
-       __mps_mpfr result(array);
-       __mts_mpfr result(array);
-       __mss_mpfr result(array);
-        
-       parallel_reduce(blocked_range<long>(limit1,limit2),resultmts);
-       // Check if no problem in case of null length
-       parallel_reduce(blocked_range<long>(limit2,limit3),resultmss);
-       parallel_reduce(blocked_range<long>(limit3,limit4),resultmps);
+       // First case : posmssl2 <= posmssr1
+       if(result.posmssl2 <= result.posmssr1){
+           __mps_mpfr resultmps(array);
+                       
+           parallel_reduce(blocked_range<long>(result.posmssr1,result.posmssr2),resultmps);
 
-       // Check which solution gives higher mss
+           long posl = resultmps.position;
+           
+           // Creation of parameters
+           long length = result.posmssl2 - result.posmssl1;
+           double* a = new double[length];
+           for(long i = 0; i != length; i++){
+               a[i] = array[i+result.posmssl1];
+           }
+           double mps;
+           long posr;
+           sequential_mts_superacc(a,length,&mps,&posr);
 
-        if(PRINT){
-            cout << endl << "Dynamic lazy computation first results" << endl;
-            printA(array,size);
-            result.print_mss();
-            cout << endl << "Precise results" << endl;
+            if(PRINT){
+                cout << endl << "Dynamic lazy computation first results" << endl;
+                printA(array,size);
+                result.print_mss();
+                cout << endl << "Precise results" << endl;
+                cout << "Left pos: " << posl << endl;
+                cout << "Right pos: " << posr << endl;
+            }
+        }
+       // Second case : posmssl2 > posmssr1
+       else {
+           cout << endl <<  "Recomputation not yet implemented, because super rare" << endl;
         }
     }
 }

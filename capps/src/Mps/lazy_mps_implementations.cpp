@@ -104,7 +104,7 @@ void parallel_mps_superacc_lazy(double* array, int size){
 void parallel_mps_mpfr(double* array, int size){
     task_scheduler_init init;
     __mps_mpfr result(array);
-    parallel_reduce(blocked_range<int>(0,size),result);
+    parallel_reduce(blocked_range<long>(0,size),result);
     if(PRINT){
         cout << endl << "Parallel mpfr" << endl;
         //printA(array,size);
@@ -130,7 +130,7 @@ void parallel_mps_mpfr_lazy(double* array, int size){
     // Second step of computation
     if(result.lposition != result.rposition){
         __mps_mpfr resultM(array);
-        parallel_reduce(blocked_range<int>(result.lposition,result.rposition),resultM);
+        parallel_reduce(blocked_range<long>(result.lposition,result.rposition),resultM);
         if(PRINT){
             cout <<  "Parallel mpfr lazy, precise results" << endl;
             resultM.print_mps();

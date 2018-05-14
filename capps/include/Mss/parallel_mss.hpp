@@ -2,6 +2,8 @@
  * Author: Raphaël Dang-Nhu
  * Date: 11/05/18 */
 
+#ifndef PARALLEL_MPS_H
+#define PARALLEL_MPS_H
 #include "interval_arithmetic.hpp"
 
 #include "tbb/blocked_range.h"
@@ -70,3 +72,5 @@ struct __mss_interval{
 
     void print_mss();
 };
+
+#endif

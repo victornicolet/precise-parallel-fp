@@ -141,11 +141,11 @@ __mps_mpfr::__mps_mpfr(__mps_mpfr& x,split) :
     mpfr_set_d(mps,0.,MPFR_RNDN);
 }
 
-void __mps_mpfr::operator()(const blocked_range<int>& range){
+void __mps_mpfr::operator()(const blocked_range<long>& range){
     if(position == 0){
         position = range.begin();
     }
-    for(int i = range.begin(); i != range.end(); i++){
+    for(long i = range.begin(); i != range.end(); i++){
         mpfr_add_d(sum,sum,array[i],MPFR_RNDN);
         if(mpfr_cmp(sum,mps)>=0){
             mpfr_set(mps,sum,MPFR_RNDN);

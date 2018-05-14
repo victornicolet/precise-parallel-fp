@@ -15,6 +15,7 @@ include_directories(../include/Victor/)
 include_directories(../include/Common/)
 include_directories(../include/Mps/)
 include_directories(../include/Mss/)
+include_directories(../include/Mts/)
 
 # Link directories
 link_directories (../exblas/lib/)
@@ -38,9 +39,9 @@ add_subdirectory(SmallTests/)
 
 
 file(GLOB Common_sources "Common/*.cpp")
-file(GLOB Mps_sources "Mps/*.cpp")
-file(GLOB Mss_sources "Mss/*.cpp")
+file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
+file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")
 
-add_executable(test_mss ${Common_sources} ${Mss_sources})
+add_executable(test_mss ${Common_sources} ${Mss_sources} )
 add_executable(test_mps ${Common_sources} ${Mps_sources})
 

@@ -93,10 +93,10 @@ struct __mps_mpfr{
     double* array;
     mpfr_t sum;
     mpfr_t mps;
-    int position;
+    long position;
     __mps_mpfr(double* a);
     __mps_mpfr(__mps_mpfr&,split);
-    void operator()(const blocked_range<int>&);
+    void operator()(const blocked_range<long>&);
     void join(__mps_mpfr& right);
     void print_mps();
     // Rounding functions

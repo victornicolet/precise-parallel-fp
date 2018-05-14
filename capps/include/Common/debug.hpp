@@ -1,1 +1,1 @@
-#define PRINT 0
+#define PRINT 1
