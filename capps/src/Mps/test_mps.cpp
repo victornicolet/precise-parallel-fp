@@ -61,7 +61,6 @@ void debug_test(){
 
 /* This function compares the runtime of mps with superaccumulators or mpfr, and its lazy implementation with interval arithmetic */
 void runtime_comparison_parallel(){
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     
     // Variables declaration and initialisation 
     double start;

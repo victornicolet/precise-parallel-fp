@@ -88,7 +88,7 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
         }
         else {
             da[i] = Dundef;
-            mpsI = in2_merge(sumI,mpsI);
+            mpsI = in2_max(sumI,mpsI);
             t = i+1;
         }
     }

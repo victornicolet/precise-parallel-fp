@@ -74,7 +74,7 @@ class MpsTask1: public task {
                         v = 0;
                     }
                     else if(b == Undefined){
-                        m = in2_merge(m,s);
+                        m = in2_max(m,s);
                         p = i+1;
                         v = 1;
                     }
@@ -127,7 +127,7 @@ class MpsTask1: public task {
                 }
                 else if(b == Undefined){
                     // Merge the two intervals
-                    result->mps = in2_merge(result->mps,rresult.mps);
+                    result->mps = in2_max(result->mps,rresult.mps);
                     result->pos = rresult.pos;
                     result->val = 1;
                     memo[depth][index] = undefinedComparison;

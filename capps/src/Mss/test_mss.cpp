@@ -40,7 +40,7 @@ void runtime_comparison_sequential_mss(){
     // Random seed
     srand(time(NULL));
     
-    for(long r = 0; r < dynRanges.size(); r++){
+    for(unsigned long r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.; 
@@ -104,7 +104,7 @@ void runtime_comparison_parallel_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    long size = pow(10,5);
+    long size = pow(10,8);
     long N = 1;
 
     // for each dynamic range
@@ -119,10 +119,10 @@ void runtime_comparison_parallel_mss(){
     // Random seed
     srand(time(NULL));
     
-    for(long r = 0; r < dynRanges.size(); r++){
+    for(unsigned long r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
-        double mean_double = 0.; 
+        double mean_double = 0., mean_parallel_double = 0., mean_dynamic_lazy = 0.; 
         
 
         for(long i = 0; i < N; i++){
@@ -137,7 +137,7 @@ void runtime_comparison_parallel_mss(){
             }
             
             // Declare result variables
-            double sum, mss;
+            double  mss;
             long pos, pos0;
             
             double time_seq_double = 0.0;
@@ -147,18 +147,24 @@ void runtime_comparison_parallel_mss(){
             double time_interval = 0.0;
             PFP_TIME(parallel_mss_interval(drray,size),start,time_interval);
         
-            mean_double += time_double;
+            mean_double += time_seq_double;
+            mean_parallel_double += time_double;
+            mean_dynamic_lazy += time_interval;
             
             delete[] drray;
         }
         // Finalize mean computation
         mean_double = mean_double / N;
+        mean_parallel_double = mean_parallel_double / N;
+        mean_dynamic_lazy = mean_dynamic_lazy / N;
         
         x[r]= dynRanges[r];
         r0[r]= mean_double/mean_double;
+        r1[r] = mean_parallel_double / mean_double;
+        r2[r] = mean_dynamic_lazy / mean_double;
 
         // Writing results to a file
-        results << to_string(x[r]) << "," << to_string(r0[r]);
+        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << endl;
         
         
     }

@@ -4,10 +4,12 @@
 
 #include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
+#include "tbb/task_group.h"
+#include "tbb/task_scheduler_init.h"
 
 #include "parallel_mss.hpp"
 
-#define PRINT 1
+#include "debug.hpp"
 
 using namespace tbb;
 using namespace std;
@@ -32,6 +34,7 @@ void printA(double* array, int size){
 }
 
 void parallel_mss_double(double* array, long size){
+    task_scheduler_init init;
     __mss_naive result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     if(PRINT){
@@ -42,14 +45,39 @@ void parallel_mss_double(double* array, long size){
 }
 
 void parallel_mss_interval(double* array, long size){
-    task_scheduler_init init();
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    task_scheduler_init init;
     __mss_interval result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
-    if(PRINT){
-        cout << endl << "Parallel interval" << endl;
-        printA(array,size);
-        result.print_mss();
+    init.terminate();
+
+    // If non precise result redo computation
+    if(result.posmssl1 != result.posmssl2 || result.posmssr1 != result.posmssr2){
+       task_scheduler_init init2();
+
+       // Compute bounds
+       long limit1 = result.posmssl1;
+       long limit4 = result.posmssr2;
+       long limit2 = min(result.posmssl2,result.posmssr1);
+       long limit3 = max(result.posmssl2,result.posmssr1);
+      
+       __mps_mpfr result(array);
+       __mts_mpfr result(array);
+       __mss_mpfr result(array);
+        
+       parallel_reduce(blocked_range<long>(limit1,limit2),resultmts);
+       // Check if no problem in case of null length
+       parallel_reduce(blocked_range<long>(limit2,limit3),resultmss);
+       parallel_reduce(blocked_range<long>(limit3,limit4),resultmps);
+
+       // Check which solution gives higher mss
+
+        if(PRINT){
+            cout << endl << "Dynamic lazy computation first results" << endl;
+            printA(array,size);
+            result.print_mss();
+            cout << endl << "Precise results" << endl;
+        }
     }
 }
 
@@ -158,10 +186,10 @@ void __mss_naive::print_mss(){
     cout << "Mss: " << mss << endl;
     cout << "Left pos: " << posmssl << endl;
     cout << "Right pos: " << posmssr << endl;
-    cout << "Mts: " << mts << endl;
-    cout << "Pos: " << posmts << endl;
     cout << "Mps: " << mps << endl;
     cout << "Pos: " << posmps << endl;
+    cout << "Mts: " << mts << endl;
+    cout << "Pos: " << posmts << endl;
 
 }
 
@@ -236,7 +264,7 @@ void __mss_interval::operator()(const blocked_range<long>& r){
             mps = sum;
             posmps1 = i+1;
         } else if (b0 == Undefined){
-            mps = in2_merge(mps,sum);
+            mps = in2_max(mps,sum);
             posmps2 = i+1;
         }
 
@@ -249,7 +277,7 @@ void __mss_interval::operator()(const blocked_range<long>& r){
             posmssr1 = i+1;
             posmssr2 = i+1;
         } else if(b1 == Undefined){
-            mss = in2_merge(mss,mts);
+            mss = in2_max(mss,mts);
             if(posmssl1 > posmts1) posmssl1 = posmts1; 
             if(posmssl2 < posmts2) posmssl2 = posmts2;
             posmssr2 = i+1;
@@ -284,7 +312,7 @@ void __mss_interval::join(__mss_interval& right){
     else if (test1 == False && test3 == False){}
     else if (test1 == True || test3 == True){
         // Then either aux or right.mss
-        mss = in2_merge(aux,right.mss);
+        mss = in2_max(aux,right.mss);
         posmssl1 = posmts1;
         posmssl2 = right.posmssl2;
         posmssr1 = min(right.posmssr1,right.posmps1);
@@ -292,21 +320,21 @@ void __mss_interval::join(__mss_interval& right){
     }
     else if (test1 == False || test2 == True){
         // Then either mss or right.mss
-        mss = in2_merge(mss,right.mss);
+        mss = in2_max(mss,right.mss);
         posmssl2 = right.posmssl2;
         posmssr2 = right.posmssr2;
     }
     else if (test2 == False || test3 == False){
         // Then either aux or mss
-        mss = in2_merge(mss,aux);
+        mss = in2_max(mss,aux);
         posmssl1 = min(posmssl1,posmts1);
         posmssl2 = max(posmssl2,posmts2);
         posmssr2 = right.posmps2;
     }
     else {
         // Then merge all three intervals
-        mss = in2_merge(mss,aux);
-        mss = in2_merge(mss,right.mps);
+        mss = in2_max(mss,aux);
+        mss = in2_max(mss,right.mps);
         // Merge all three positions
         posmssl1 = min(posmssl1,posmts1);
         posmssl2 = right.posmssl2;
@@ -323,7 +351,7 @@ void __mss_interval::join(__mss_interval& right){
         posmps2 = right.posmps2;
     }
     else if(b == Undefined){
-        mps = in2_merge(mps,right.mps);
+        mps = in2_max(mps,right.mps);
         posmps2 = right.posmps2;
     }
 
@@ -336,8 +364,7 @@ void __mss_interval::join(__mss_interval& right){
         posmts2 = right.posmts2;
     }
     else if (b0 == Undefined){
-        mts = in2_merge(mts,right.mps);
-        posmts1 = posmts1;
+        mts = in2_max(mts,right.mps);
         posmts2 = right.posmts2;
     }
 

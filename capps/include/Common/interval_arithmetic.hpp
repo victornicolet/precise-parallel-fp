@@ -47,6 +47,6 @@ boolean inferior(__m128d a,__m128d b);
 boolean inferior_double(double a, __m128d b);
 
 // Function to merge two intervals in case of undefined comparison
-__m128d in2_merge(__m128d,__m128d);
+__m128d in2_max(__m128d,__m128d);
 
 #endif

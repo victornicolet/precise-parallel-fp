@@ -19,7 +19,7 @@
 using namespace std;
 using namespace tbb;
 
-#define PRINT 1
+#define PRINT 0
 
 void printA(double* array, int size){
     // printing the array
@@ -38,21 +38,9 @@ void printA(double* array, int size){
     }
 
 }
-/*
-void sequential_mps(double* array, int size){
-    double sum = 0., mps = 0.;
-    int position = 0;
-    sequential_mps_double(array,size,&sum,&mps,&position);
-    if(PRINT){
-        cout << endl << "Sequential mps" << endl;
-        //printA(array,size);
-        cout <<  "sum: " << sum;
-        cout << endl << "mps: " << mps;
-        cout << endl << "pos: " << position << endl;
-    }
-}*/
 
 void parallel_mps_float(double* array, int size){
+    task_scheduler_init init;
     __mps_naive result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     if(PRINT){
@@ -63,6 +51,7 @@ void parallel_mps_float(double* array, int size){
 }
 
 void parallel_mps_Collange(double* array, int size){
+    task_scheduler_init init;
     __mps_precise<4> result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     if(PRINT){
@@ -73,6 +62,7 @@ void parallel_mps_Collange(double* array, int size){
 }
 
 void parallel_mps_superacc(double* array, int size){
+    task_scheduler_init init;
     __mps_acc result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     if(PRINT){
@@ -83,6 +73,8 @@ void parallel_mps_superacc(double* array, int size){
 }
 
 void parallel_mps_superacc_lazy(double* array, int size){
+    task_scheduler_init init;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // First step of computation with interval arithmetic
     __mps result(array);
@@ -94,9 +86,12 @@ void parallel_mps_superacc_lazy(double* array, int size){
         cout << endl << "Parallel superacc lazy, first results" << endl;
         result.print_mps();
     }
+    init.terminate();
 
     // Second step of computation
     if(result.lposition != result.rposition){
+        task_scheduler_init init;
+        _MM_SET_ROUNDING_MODE(0);
         __mps_acc resultAcc(array);
         parallel_reduce(blocked_range<int>(result.lposition,result.rposition),resultAcc);
         if(PRINT){
@@ -107,6 +102,7 @@ void parallel_mps_superacc_lazy(double* array, int size){
 }
 
 void parallel_mps_mpfr(double* array, int size){
+    task_scheduler_init init;
     __mps_mpfr result(array);
     parallel_reduce(blocked_range<int>(0,size),result);
     if(PRINT){
@@ -117,6 +113,7 @@ void parallel_mps_mpfr(double* array, int size){
 } 
 
 void parallel_mps_mpfr_lazy(double* array, int size){
+    task_scheduler_init init;
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     // First step of computation with interval arithmetic
@@ -259,7 +256,6 @@ void __mps::print_mps(){
 }
 
 void __mps::join(__mps& rightMps){
-    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
    // computing sum-l + mps-r
    __m128d mpsCandidate = in2_add(sum_interval,rightMps.mps_interval);
    // adding two sums
@@ -273,13 +269,12 @@ void __mps::join(__mps& rightMps){
    }
    // In case of undefined comparison:
    else if(b == Undefined){
-       mps_interval = in2_merge(mps_interval,mpsCandidate);
+       mps_interval = in2_max(mps_interval,mpsCandidate);
        rposition = rightMps.rposition;
    } 
 }
 
 void __mps::operator()(const blocked_range<int>& r){
-    //_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
 
     if(lposition == 0 && rposition == 0){
         lposition = r.begin();
@@ -295,7 +290,7 @@ void __mps::operator()(const blocked_range<int>& r){
             rposition = i+1; 
         }
         else if(b == Undefined){
-            mps_interval = in2_merge(mps_interval,sum_interval);
+            mps_interval = in2_max(mps_interval,sum_interval);
             rposition = i+1; 
         }
     }

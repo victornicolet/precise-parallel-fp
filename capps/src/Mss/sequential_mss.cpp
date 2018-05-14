@@ -8,7 +8,7 @@
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
 
-#define VERBOSE 1
+#include "debug.hpp"
 
 
 void sequential_mss_superacc(double*array, long size, double* mss, long* posl, long* posr){
@@ -42,7 +42,7 @@ void sequential_mss_superacc(double*array, long size, double* mss, long* posl, l
     *posl = poslt;
     *posr = posrt;
     
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "mss with superaccumulators" << endl;
         cout << "mss: " << *mss << endl;
         cout << "Posl: " << *posl << endl;
@@ -82,7 +82,7 @@ void sequential_mss_double(double* array, long size, double* mss, long* posl, lo
     *posl = poslt;
     *posr = posrt;
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "mss with doubles" << endl;
         cout << "mss: " << *mss << endl;
         cout << "Posl: " << *posl << endl;
@@ -146,7 +146,7 @@ void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, lon
         }
         else {
             da[i] = Dundef;
-            mssI = in2_merge(mssI,mtsI);
+            mssI = in2_max(mssI,mtsI);
             poslt = post;
             posrt = i+1;
         }
@@ -182,7 +182,7 @@ void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, lon
         }
     }
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Lazy mss, first results"  << endl;
         cout <<  "mss: ";
         print(mssI) ;
@@ -293,7 +293,7 @@ void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, lon
     *posl = poslt;
     *posr = posrt;
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Lazy mss, precise results" << endl;
         cout << "mss: " << *mss << endl;
         cout << "Posl: " << *posl << endl;

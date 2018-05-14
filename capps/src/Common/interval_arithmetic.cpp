@@ -36,7 +36,7 @@ __m128d in2_raw_create(double nmin, double max)
 
 __m128d in2_add(__m128d x, __m128d y)
 {
-        if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
+        //if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
         /* Component-wise addition */
         return  x + y;
 }
@@ -58,13 +58,11 @@ boolean inferior(__m128d a, __m128d b){
 }
 
 boolean inferior_double(double a, __m128d b){
-    if(a <= in2_min(b)) return True;
-    else if( a > in2_max(b)) return False;
+    if(a <= -b[0]) return True;
+    else if( a > b[1]) return False;
     else return Undefined;
 }
 
-__m128d in2_merge(__m128d a,__m128d b){
-    double min = (in2_min(a) <= in2_min(b))?in2_min(a) : in2_min(b);
-    double max = (in2_max(a) >= in2_max(b))?in2_max(a) : in2_max(b);
-    in2_create(min, max);
+__m128d in2_max(__m128d a,__m128d b){
+    return (__m128d){min(a[0],b[0]),max(a[1],b[1])};
 }
