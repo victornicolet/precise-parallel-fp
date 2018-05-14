@@ -139,7 +139,9 @@ void runtime_comparison_parallel_mss(){
             // Declare result variables
             double  mss;
             long pos, pos0;
-            
+           
+            // Check result
+            //sequential_mss_superacc(drray,size,&mss,&pos,&pos0);
             double time_seq_double = 0.0;
             PFP_TIME(sequential_mss_double(drray,size,&mss,&pos,&pos0),start,time_seq_double);
             double time_double = 0.0;

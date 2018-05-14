@@ -36,7 +36,7 @@ void printA(double* array, int size){
 }
 
 void parallel_mss_double(double* array, long size){
-    task_scheduler_init init;
+    task_scheduler_init init(4);
     __mss_naive result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     if(PRINT){
@@ -48,23 +48,25 @@ void parallel_mss_double(double* array, long size){
 
 void parallel_mss_interval(double* array, long size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    task_scheduler_init init;
+    task_scheduler_init init(4);
     __mss_interval result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     init.terminate();
     _MM_SET_ROUNDING_MODE(0);
 
     // If non precise result redo computation
-    if(result.posmssl1 != result.posmssl2 || result.posmssr1 != result.posmssr2){
-       task_scheduler_init init2();
+    long posl = -1;
+    long posr = -1;
+    if(result.posmssl1 != result.posmssl2 && result.posmssr1 != result.posmssr2){
 
        // First case : posmssl2 <= posmssr1
        if(result.posmssl2 <= result.posmssr1){
+           task_scheduler_init init2;
            __mps_mpfr resultmps(array);
                        
            parallel_reduce(blocked_range<long>(result.posmssr1,result.posmssr2),resultmps);
 
-           long posl = resultmps.position;
+           posr = resultmps.position;
            
            // Creation of parameters
            long length = result.posmssl2 - result.posmssl1;
@@ -72,23 +74,41 @@ void parallel_mss_interval(double* array, long size){
            for(long i = 0; i != length; i++){
                a[i] = array[i+result.posmssl1];
            }
-           double mps;
-           long posr;
-           sequential_mts_superacc(a,length,&mps,&posr);
-
-            if(PRINT){
-                cout << endl << "Dynamic lazy computation first results" << endl;
-                printA(array,size);
-                result.print_mss();
-                cout << endl << "Precise results" << endl;
-                cout << "Left pos: " << posl << endl;
-                cout << "Right pos: " << posr << endl;
-            }
+           double mts;
+           sequential_mts_superacc(a,length,&mts,&posl);
+           posl += result.posmssl1;
         }
        // Second case : posmssl2 > posmssr1
        else {
            cout << endl <<  "Recomputation not yet implemented, because super rare" << endl;
         }
+    }
+    else if(result.posmssr1 != result.posmssr2){
+           task_scheduler_init init2;
+           __mps_mpfr resultmps(array);
+                       
+           parallel_reduce(blocked_range<long>(result.posmssr1,result.posmssr2),resultmps);
+
+           posr = resultmps.position;
+    }
+    else if(result.posmssl1 != result.posmssl2){
+           // Creation of parameters
+           long length = result.posmssl2 - result.posmssl1;
+           double* a = new double[length];
+           for(long i = 0; i != length; i++){
+               a[i] = array[i+result.posmssl1];
+           }
+           double mts;
+           sequential_mts_superacc(a,length,&mts,&posr);
+           posl += result.posmssl1;
+    }
+    if(PRINT){
+        cout << endl << "Dynamic lazy computation first results" << endl;
+        printA(array,size);
+        result.print_mss();
+        cout << endl << "Precise results" << endl;
+        cout << "Left pos: " << posl << endl;
+        cout << "Right pos: " << posr << endl;
     }
 }
 
@@ -274,6 +294,7 @@ void __mss_interval::operator()(const blocked_range<long>& r){
         if(b0 == True){
             mps = sum;
             posmps1 = i+1;
+            posmps2 = i+1;
         } else if (b0 == Undefined){
             mps = in2_max(mps,sum);
             posmps2 = i+1;

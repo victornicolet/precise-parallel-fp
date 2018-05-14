@@ -173,7 +173,7 @@ void parallel_mps_mpfr_lazy_2(double* array, int size, int grainsize){
 
     MpsTask2& root2 = *new(task::allocate_root()) MpsTask2(Cutoff,array,size,&sum,&mps,&position2,memo);
 
-    //task::spawn_root_and_wait(root2);
+    task::spawn_root_and_wait(root2);
 
     if(PRINT){
         // Printing result

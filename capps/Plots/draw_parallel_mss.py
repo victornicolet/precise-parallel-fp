@@ -23,6 +23,6 @@ pypl.ylabel("Relative mean computation time")
 
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Computation time for parallel mss as a function of the dynamic range");
-pypl.show()
+#pypl.show()
 pypl.savefig("Plots/lazymsspar.jpg");
 
