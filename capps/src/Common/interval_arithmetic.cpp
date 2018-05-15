@@ -53,6 +53,7 @@ __m128d in2_add_double(__m128d x, double y){
 
 boolean inferior(__m128d a, __m128d b){
     if(in2_max(a) <= in2_min(b)) return True;
+    // Should it be equal or inferior or equal there ?
     else if (in2_min(a) > in2_max(b)) return False;
     else return Undefined;
 }
@@ -65,4 +66,8 @@ boolean inferior_double(double a, __m128d b){
 
 __m128d in2_max(__m128d a,__m128d b){
     return (__m128d){min(a[0],b[0]),max(a[1],b[1])};
+}
+
+__m128d in2_min(__m128d a,__m128d b){
+    return (__m128d){max(a[0],b[0]),min(a[1],b[1])};
 }

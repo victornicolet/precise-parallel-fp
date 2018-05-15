@@ -4,18 +4,20 @@
 
 #include <vector>
 
+#include "interval_arithmetic.hpp"
+
 using namespace std;
 
 class edge {
     
     public:
-    edge(int target_, double weight_) :
-        target(target_),
+    edge(int source_, double weight_) :
+        source(source_),
         weight(weight_)
     {}
     void print();
 
-    int target;
+    int source;
     double weight;
 };
 
@@ -36,9 +38,11 @@ class Graph {
     // Constructor to generate a Erdos-Renyi random graph with random edge weights
     Graph(int nVertices, double edgeProba, int emin, int emax, int negratio);
     // Function to print a graph
-    void print();
+    void printGraph();
     // Function to perform Bellman-Ford algorithm on the graph. Takes as a parameter the index of the origin, an array to put distances, and an array to put predecessors
-    void bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
+    bool bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
+    // Same function with interval arithmetic
+    boolean intervalBellmanFord(int origin, vector<__m128d> &distance, vector<int> &predecessors, vector<vector<int>>& totalc, vector<vector<int>>& undefinedc);
    
     int nVertices;
     vector<node*> nodes;

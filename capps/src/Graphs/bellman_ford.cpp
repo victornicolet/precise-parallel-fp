@@ -5,9 +5,11 @@
 #include <iostream>
 #include <random>
 #include<math.h>
+#include <emmintrin.h>
 
 #include "common.hpp"
 #include "bellman_ford.hpp"
+#include "interval_arithmetic.hpp"
 
 using namespace std;
 
@@ -18,8 +20,26 @@ template<class t> void  printVector(vector<t> v){
     cout << endl;
 }
 
+void  printVectorInt(vector<__m128d> v){
+    for(vector<__m128d>::iterator it = v.begin(); it != v.end(); it++){
+        print(*it);
+        cout << endl;
+    }
+}
+
+void printComps(vector<vector<int>> undefc, vector<vector<int>> totalc){
+    for(int i = 0; i!=undefc.size(); i++){
+
+        for(int j = 0; j!= undefc[i].size(); j++){
+            cout << undefc[i][j] << "/" << totalc[i][j] << " ";
+        }
+    cout << endl;
+    }
+    cout << endl;
+}
+
 void edge::print(){
-    cout << "Target: " << target << endl;
+    cout << "source: " << source << endl;
     cout << "Weight: " << weight << endl;
 }
 
@@ -42,16 +62,20 @@ Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio) 
                 // Generate weight
                 double w = randDouble(emin,emax,negratio);
                 // Create edges
-                edge* ei = new edge(j,w);
-                nodes[i]->adjacentEdges.push_back(ei);
-                edge* ej = new edge(i,w);
-                nodes[j]->adjacentEdges.push_back(ej);
+                edge* ei = new edge(i,w);
+                nodes[j]->adjacentEdges.push_back(ei);
+            }
+            test = rand() / (double) (RAND_MAX);
+            if(test <= edgeProba){
+                double w = randDouble(emin,emax,negratio);
+                edge* ej = new edge(j,w);
+                nodes[i]->adjacentEdges.push_back(ej);
             }
         }
     }
 }
 
-void Graph::print(){
+void Graph::printGraph(){
     for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
         cout << endl << "Vertice: " << (*it)->index << endl;
         for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
@@ -60,7 +84,7 @@ void Graph::print(){
     }
 }
 
-void Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors){
+bool Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors){
     
     // Create structure to memoize distances
     vector<vector<double>> distancesAux;
@@ -80,7 +104,7 @@ void Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &pred
             for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
 
                 // If using this edge makes the distance shorter...
-                int sourceIndex = (*it0)->target;
+                int sourceIndex = (*it0)->source;
                 double aux = distancesAux[i-1][sourceIndex] + (*it0)-> weight;
                 if(aux < distancesAux[i][nodeindex]){
                     distancesAux[i][nodeindex] = aux;
@@ -90,24 +114,169 @@ void Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &pred
         }
     }
     distances = distancesAux[nVertices-1];
+
+    // Check that no negative cycles
+    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+        // For each edge adjacent to this node
+        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+
+            // If using this edge makes the distance shorter...
+            int sourceIndex = (*it0)->source;
+            double aux = distancesAux[nVertices-1][sourceIndex] + (*it0)-> weight;
+            if(aux < distancesAux[nVertices-1][(*it)->index]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vector<int> &predecessors, vector<vector<int>> & totalComps, vector<vector<int>> & undefComps){
+    
+    // Create structure to memoize distances
+    vector<vector<__m128d>> distancesAux;
+    for(int i = 0; i != nVertices; i++){
+        vector<__m128d> distancesLine(nVertices,in2_create(INFINITY,INFINITY));
+        distancesAux.push_back(distancesLine);
+    }
+    distancesAux[0][origin] = in2_create(0,0);
+
+    // Create structure to memoize undefined comparisons
+    for(int i = 0; i != nVertices+1; i++){
+        vector<int> undefCompsLine(nVertices,0);
+        vector<int> totalCompsLine(nVertices,0);
+        undefComps.push_back(undefCompsLine);
+        totalComps.push_back(totalCompsLine);
+    }
+    
+    // Main loop
+    for(int i = 1; i != nVertices; i++){
+        // For each node
+        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+            // Counting undefined comparisons
+            int undefinedc = 0;
+            int totalc = 0;
+
+            int nodeindex = (*it)->index;
+            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+
+            // For each edge adjacent to this node
+            for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+    
+                // If using this edge makes the distance shorter...
+                int sourceIndex = (*it0)->source;
+                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],(*it0)-> weight);
+                /*cout << "node: " << nodeindex<< endl;
+                cout << "source: " << sourceIndex << endl;
+                print(aux);
+                cout << endl;
+                print(distancesAux[i][nodeindex]);
+                cout << endl;*/
+                boolean b = inferior(distancesAux[i][nodeindex],aux);
+                if(b == False){
+                    distancesAux[i][nodeindex] = aux;
+                    predecessors[nodeindex] = sourceIndex;
+                }else if (b == Undefined){
+                /*cout << endl;
+                print(aux);
+                cout << endl;
+                print(distancesAux[nVertices-1][nodeindex]);
+                cout << endl;
+                */
+                    distancesAux[i][nodeindex] = in2_min(aux,distancesAux[i][nodeindex]);
+                    undefinedc += 1;
+                    // What do we do for predecessors ? 
+                }
+                totalc += 1;
+            }
+
+            totalComps[i][nodeindex] = totalc;
+            undefComps[i][nodeindex] = undefinedc;
+        }
+    }
+    distances = distancesAux[nVertices-1];
+    
+    boolean result = True;
+    // Check that no negative cycles
+    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+        int undefinedc = 0;
+        int totalc = 0;
+        int nodeindex = (*it)->index;
+        // For each edge adjacent to this node
+        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+
+            // If using this edge makes the distance shorter...
+            int sourceIndex = (*it0)->source;
+            __m128d aux = in2_add_double(distancesAux[nVertices-1][sourceIndex],(*it0)-> weight);
+
+            boolean b = inferior(distancesAux[nVertices-1][nodeindex],aux);
+            if(b == False) result = False;
+            else if(b == Undefined){
+                /*cout << endl;
+                print(aux);
+                cout << endl;
+                print(distancesAux[nVertices-1][nodeindex]);
+                cout << endl;
+                */
+                undefinedc += 1;
+                result = Undefined;
+            }
+            totalc += 1;
+        }
+        totalComps[nVertices][nodeindex] = totalc;
+        undefComps[nVertices][nodeindex] = undefinedc;
+    }
+    return result;
 }
                 
 int main(){
-    int n = 5;
+    int n = 30;
 
-    Graph g(n,0.01,-100,100,1);    
-    g.print();
-
+    Graph g(n,0.5,-1000,1000,1);    
+    g.printGraph();
+    
+    // Test with doubles
     vector<double> distances;
     vector<int> pred(n,-1);
     pred[0] = 0;
-    g.bellmanFord(0,distances,pred);
-   
+  
     cout << endl;
+    if(g.bellmanFord(0,distances,pred)){
+        cout << "No negative cycles" << endl;
+    }
+    else{
+        cout << "Negative cycle" << endl;
+    }
     cout << "Distances: " << endl;
     printVector(distances);
     cout << "Predecessors: " << endl;
     printVector(pred);
+
+    // Test with interval arithmetic
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    vector<__m128d> distancesI;
+    vector<int> predI(n,-1);
+    vector<vector<int>> totalc;
+    vector<vector<int>> undefc;
+    predI[0] = 0;
+  
+    cout << endl;
+    boolean b = g.intervalBellmanFord(0,distancesI,predI,totalc,undefc); 
+    if(b == True){
+        cout << "No negative cycles" << endl;
+    }
+    else if ( b == False) {
+        cout << "Negative cycle" << endl;
+    }
+    else if (b == Undefined){
+        cout << "Uncertain presence of negative cycles" << endl;
+    }
+    cout << "Distances: " << endl;
+    printVectorInt(distancesI);
+    cout << "Predecessors: " << endl;
+    printVector(predI);
+    cout << "Undefined comparisons" << endl;
+    printComps(undefc,totalc);
     
 }
 
