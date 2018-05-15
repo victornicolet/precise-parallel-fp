@@ -1,110 +1,115 @@
-/* Testing Boost Graph Lib.
+/* Class to implement Bellam Ford algorithm.
  * Author: Raphaël Dang-Nhu.
  * Date: 08/05 */
 
 #include <iostream>
-#include <utility>
-#include <algorithm>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/erdos_renyi_generator.hpp>
-#include <boost/random/linear_congruential.hpp>
-#include <boost/graph/random.hpp>
-
 #include <random>
+#include<math.h>
+
+#include "common.hpp"
+#include "bellman_ford.hpp"
 
 using namespace std;
-using namespace boost;
 
-double randDouble(int emin, int emax, int neg_ratio) {
-    // Uniform mantissa
-    double x = double(rand()) / double(RAND_MAX * .99) + 1.;
-    // Uniform exponent
-    int e = (rand() % (emax - emin)) + emin;
-    // Sign
-    if(neg_ratio > 1 && rand() % neg_ratio == 0) {
-        x = -x;
+template<class t> void  printVector(vector<t> v){
+    for(typename vector<t>::iterator it = v.begin(); it != v.end(); it++){
+        cout << *it << ",";
     }
-    return ldexp(x, e);
+    cout << endl;
 }
 
-void test0(){
-    
-    // Create property
-    typedef property<edge_weight_t,double> EdgeProperty; 
+void edge::print(){
+    cout << "Target: " << target << endl;
+    cout << "Weight: " << weight << endl;
+}
 
-    // create a typedef for the graph type
-    typedef adjacency_list<vecS,vecS, bidirectionalS,no_property,EdgeProperty> Graph;
-    typedef graph_traits<Graph>::edge_iterator edge_iterator; 
-    
-    // Declare a graph with 10 vertices
-    Graph g(10);
-   
-    // Obtain property map
-    property_map<Graph, edge_weight_t>::type w = get(edge_weight,g);
+Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio) : 
+    nVertices(nVertices),
+    nodes(nVertices)    
+{
+    // Generate all nodes
+    for(int i = 0; i != nVertices; i++){
+        nodes[i] = new node(i);
+    }
 
-    // Add some edges
-    add_edge(0,1,10,g);
-    add_edge(1,2,20,g);
+    // For all pair of nodes, generate random edges
+    srand(time(NULL));
+    for(int i = 0; i !=nVertices; i++){
+        for(int j = i+1; j!= nVertices; j++){
 
-    // Print edges
-    pair<edge_iterator,edge_iterator> ei = edges(g);
-    cout << "Number of edges: " << num_edges(g) << endl;
-    cout << "Edge list: " << endl;
-
-    for(;ei.first != ei.second;++ei.first){
-        cout << endl << "Vertice 1: " << source(*ei.first,g)<< endl;
-        cout << endl << "Vertice 2: " << target(*ei.first,g)<< endl;
-        cout << "Weight: " << w[*ei.first] << endl;
+            double test = rand() / (double) (RAND_MAX);
+            if(test <= edgeProba){
+                // Generate weight
+                double w = randDouble(emin,emax,negratio);
+                // Create edges
+                edge* ei = new edge(j,w);
+                nodes[i]->adjacentEdges.push_back(ei);
+                edge* ej = new edge(i,w);
+                nodes[j]->adjacentEdges.push_back(ej);
+            }
+        }
     }
 }
 
-// Function to test random graph generation */
-void test1(){
-    
-    // Create property
-    typedef boost::property<boost::edge_weight_t, double> WeightProperty;
-
-    typedef adjacency_list<vecS,vecS,bidirectionalS,no_property,WeightProperty> Graph;
-    typedef graph_traits<Graph>::edge_iterator edge_iterator; 
-    typedef sorted_erdos_renyi_iterator<boost::minstd_rand, Graph> ERGen;
-   
-    
-    // Generate Erdos-Renyi random graph
-    boost::minstd_rand gen(0);
-    Graph g(ERGen(gen,10,0.5),ERGen(),10);
-
-    // Properties
-    property_map<Graph, edge_weight_t>::type w = get(edge_weight,g);
-    // To store parents
-
-      IndexMap indexMap = boost::get(boost::vertex_index, g);
-        PredecessorMap predecessorMap(&predecessors[0], indexMap);
-          DistanceMap distanceMap(&distances[0], indexMap);
-
-    // Give random weights to the edges
-    pair <edge_iterator,edge_iterator> eiw = edges(g);
-    for(;eiw.first != eiw.second;++eiw.first){
-        w[*eiw.first] = randDouble(-100,100,2);      
+void Graph::print(){
+    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+        cout << endl << "Vertice: " << (*it)->index << endl;
+        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+            (*it0)->print();
+        }
     }
-
-    // Print edges
-    pair <edge_iterator,edge_iterator> ei = edges(g);
-    cout << "Number of edges: " << num_edges(g) << endl;
-    cout << "Edge list: " << endl;
-
-    for(;ei.first != ei.second;++ei.first){
-        cout << endl << "(" << source(*ei.first,g) << ",";
-        cout << target(*ei.first,g) << ")" << endl;
-        cout << "Weight: " << w[*ei.first] << endl;
-    }
-
-    // Bellman-Ford algorithm
-    bellman_ford_shortest_paths(g,0,boost::distance_map(
 }
 
+void Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors){
+    
+    // Create structure to memoize distances
+    vector<vector<double>> distancesAux;
+    for(int i = 0; i != nVertices; i++){
+        vector<double> distancesLine(nVertices,INFINITY);
+        distancesAux.push_back(distancesLine);
+    }
+    distancesAux[0][origin] = 0;
+    
+    // Main loop
+    for(int i = 1; i != nVertices; i++){
+        // For each node
+        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+            int nodeindex = (*it)->index;
+            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+            // For each edge adjacent to this node
+            for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+
+                // If using this edge makes the distance shorter...
+                int sourceIndex = (*it0)->target;
+                double aux = distancesAux[i-1][sourceIndex] + (*it0)-> weight;
+                if(aux < distancesAux[i][nodeindex]){
+                    distancesAux[i][nodeindex] = aux;
+                    predecessors[nodeindex] = sourceIndex;
+                }
+            }
+        }
+    }
+    distances = distancesAux[nVertices-1];
+}
+                
 int main(){
-    test1();
-    cout << endl << "Finished test" << endl;
-    return 0;
+    int n = 5;
+
+    Graph g(n,0.01,-100,100,1);    
+    g.print();
+
+    vector<double> distances;
+    vector<int> pred(n,-1);
+    pred[0] = 0;
+    g.bellmanFord(0,distances,pred);
+   
+    cout << endl;
+    cout << "Distances: " << endl;
+    printVector(distances);
+    cout << "Predecessors: " << endl;
+    printVector(pred);
+    
 }
+
+
+

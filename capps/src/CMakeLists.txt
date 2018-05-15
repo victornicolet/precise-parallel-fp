@@ -1,5 +1,3 @@
-# Graph subproject (single directory project without includes)
-add_subdirectory(Graphs/)
 
 ##################################
 # Settings for precise parallel fp
@@ -16,6 +14,7 @@ include_directories(../include/Common/)
 include_directories(../include/Mps/)
 include_directories(../include/Mss/)
 include_directories(../include/Mts/)
+include_directories(../include/Graphs/)
 
 # Link directories
 link_directories (../exblas/lib/)
@@ -41,7 +40,9 @@ add_subdirectory(SmallTests/)
 file(GLOB Common_sources "Common/*.cpp")
 file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")
+file(GLOB Graph_sources "Graphs/bellman_ford.cpp")
 
 add_executable(test_mss ${Common_sources} ${Mss_sources} )
 add_executable(test_mps ${Common_sources} ${Mps_sources})
+add_executable(test_graph ${Common_sources} ${Graph_sources})
 
