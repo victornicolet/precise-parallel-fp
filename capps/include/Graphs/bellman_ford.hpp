@@ -32,6 +32,13 @@ class node {
     vector<edge*> adjacentEdges;
 };
 
+
+enum CompResult{
+    newOptimum,
+    noChange,
+    undefined
+};
+
 class Graph {
 
     public:
@@ -42,9 +49,9 @@ class Graph {
     // Function to perform Bellman-Ford algorithm on the graph. Takes as a parameter the index of the origin, an array to put distances, and an array to put predecessors
     bool bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
     // Same function with interval arithmetic
-    boolean intervalBellmanFord(int origin, vector<__m128d> &distance, vector<int> &predecessors, vector<vector<int>>& totalc, vector<vector<int>>& undefinedc);
+    boolean intervalBellmanFord(int origin, vector<__m128d> &distance, vector<int> &predecessors, vector<vector<int>>& totalc, vector<vector<int>>& undefinedc, vector<vector<vector<CompResult>>>& c);
     // Same function with superaccumulators
-    bool mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
+    bool mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors,vector<vector<vector<CompResult>>> c);
     
     int nVertices;
     vector<node*> nodes;

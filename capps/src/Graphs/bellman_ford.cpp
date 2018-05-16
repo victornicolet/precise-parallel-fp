@@ -142,7 +142,7 @@ bool Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &pred
     return true;
 }
 
-boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vector<int> &predecessors, vector<vector<int>> & totalComps, vector<vector<int>> & undefComps){
+boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vector<int> &predecessors, vector<vector<int>> & totalComps, vector<vector<int>> & undefComps,vector<vector<vector<CompResult>>>& c){
     
     // Create structure to memoize distances
     vector<vector<__m128d>> distancesAux;
@@ -172,11 +172,11 @@ boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vecto
             distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
 
             // For each edge adjacent to this node
-            for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+            for(int k = 0; k != (*it)->adjacentEdges.size(); k++){
     
                 // If using this edge makes the distance shorter...
-                int sourceIndex = (*it0)->source;
-                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],(*it0)-> weight);
+                int sourceIndex = (*it)->adjacentEdges[k]->source;
+                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],(*it)->adjacentEdges[k]->weight);
                 /*cout << "node: " << nodeindex<< endl;
                 cout << "source: " << sourceIndex << endl;
                 print(aux);
@@ -187,7 +187,9 @@ boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vecto
                 if(b == False){
                     distancesAux[i][nodeindex] = aux;
                     predecessors[nodeindex] = sourceIndex;
+                    c[i][nodeindex][k] = newOptimum;
                 }else if (b == Undefined){
+                    c[i][nodeindex][k] = undefined;
                     /*cout<< endl;
                     cout << nodeindex;
                     cout<< endl;
@@ -246,7 +248,7 @@ boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vecto
     return result;
 }
 
-bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors){
+bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors,vector<vector<vector<CompResult>>> c){
 
     // Create structure to memoize distances
     vector<vector<mpreal>> distancesAux(nVertices);
@@ -269,13 +271,26 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
             distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
 
             // For each edge adjacent to this node
-            for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+            for(int k = 0; k != (*it)->adjacentEdges.size(); k++){
+    
+                // Take the result of the lazy comparison
+                CompResult cr = c[i][nodeindex][k];
+    
+                if(cr == undefined){
+                    // If using this edge makes the distance shorter...
+                    int sourceIndex = (*it)->adjacentEdges[k]->source;
+                    mpreal aux = distancesAux[i-1][sourceIndex]+(*it)->adjacentEdges[k]->weight;
+                    
+                    
 
-                int sourceIndex = (*it0)->source;
-                // If using this edge makes the distance shorter...
-                
-                mpreal aux = distancesAux[i-1][sourceIndex]+(*it0)-> weight;
-                if(distancesAux[i][nodeindex]>aux){
+                    if(distancesAux[i][nodeindex]>aux){
+                        distancesAux[i][nodeindex] = aux;
+                        predecessors[nodeindex] = sourceIndex;
+                    }
+                }
+                else if(cr == newOptimum){
+                    int sourceIndex = (*it)->adjacentEdges[k]->source;
+                    mpreal aux = distancesAux[i-1][sourceIndex]+(*it)->adjacentEdges[k]->weight;
                     distancesAux[i][nodeindex] = aux;
                     predecessors[nodeindex] = sourceIndex;
                 }
@@ -307,7 +322,7 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
 void test(){
     int n = 200;
 
-    Graph g(n,1,-1000,1000,2);    
+    Graph g(n,1,-1000,1000,1);    
     g.printGraph();
     
     // Test with doubles
@@ -336,9 +351,21 @@ void test(){
     vector<vector<int>> totalc;
     vector<vector<int>> undefc;
     predI[0] = 0;
+
+    // Generate comparison memorization
+    vector<vector<vector<CompResult>>> c(g.nVertices);
+    for(int i = 1; i != g.nVertices; i++){
+        vector<vector<CompResult>> c0(g.nVertices);
+        for(int j = 0; j!= g.nVertices; j++){
+            vector<CompResult> c1(g.nodes[j]->adjacentEdges.size(),noChange);
+            c0[j] = c1;
+        }
+        c[i] = c0;
+    }
+
   
     cout << endl;
-    boolean b1 = g.intervalBellmanFord(0,distancesI,predI,totalc,undefc); 
+    boolean b1 = g.intervalBellmanFord(0,distancesI,predI,totalc,undefc,c); 
     if(b1 == True){
         cout << "No negative cycles" << endl;
     }
@@ -362,7 +389,7 @@ void test(){
     predM[0] = 0;
   
     cout << endl;
-    if(g.mpfrBellmanFord(0,distancesM,predM)){
+    if(g.mpfrBellmanFord(0,distancesM,predM,c)){
         cout << "No negative cycles" << endl;
     }
     else{
@@ -386,7 +413,7 @@ void test(){
 void runtimeTest(){
    
     // Generate a graph
-    int n = 100;
+    int n = 1000;
     Graph g(n,0.5,-1000,1000,2);    
 
     // Variables
@@ -399,12 +426,24 @@ void runtimeTest(){
     vector<vector<int>> undefc;
     vector<vector<int>> totalc;
 
+
+    // Generate comparison memorization
+    vector<vector<vector<CompResult>>> c(g.nVertices);
+    for(int i = 1; i != g.nVertices; i++){
+        vector<vector<CompResult>> c0(g.nVertices);
+        for(int j = 0; j!= g.nVertices; j++){
+            vector<CompResult> c1(g.nodes[j]->adjacentEdges.size(),noChange);
+            c0[j] = c1;
+        }
+        c[i] = c0;
+    }
+
     // Tests
     double start = 0.0, time_double = 0.0, time_interval = 0.0, time_mpfr = 0.0;
 
     PFP_TIME(g.bellmanFord(0,distances,predecessors),start,time_double);
-    PFP_TIME(g.intervalBellmanFord(0,distancesI,predecessorsI,undefc,totalc),start,time_interval);
-    PFP_TIME(g.mpfrBellmanFord(0,distancesM,predecessorsM),start,time_mpfr);
+    PFP_TIME(g.intervalBellmanFord(0,distancesI,predecessorsI,undefc,totalc,c),start,time_interval);
+    PFP_TIME(g.mpfrBellmanFord(0,distancesM,predecessorsM,c),start,time_mpfr);
 
     cout << endl << time_interval/time_double << endl;
     cout << endl << time_mpfr/time_double << endl;
@@ -414,7 +453,7 @@ void runtimeTest(){
 int main(){
     srand(time(NULL));
     for(int i = 0; i != 1; i++){
-        test();
+        runtimeTest();
     }
 }
 
