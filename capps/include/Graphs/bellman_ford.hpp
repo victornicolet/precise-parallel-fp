@@ -43,7 +43,9 @@ class Graph {
     bool bellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
     // Same function with interval arithmetic
     boolean intervalBellmanFord(int origin, vector<__m128d> &distance, vector<int> &predecessors, vector<vector<int>>& totalc, vector<vector<int>>& undefinedc);
-   
+    // Same function with superaccumulators
+    bool mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors);
+    
     int nVertices;
     vector<node*> nodes;
 };
