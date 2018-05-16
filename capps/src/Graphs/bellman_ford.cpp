@@ -2,19 +2,28 @@
  * Author: Raphaël Dang-Nhu.
  * Date: 08/05 */
 
+#include "debug.hpp"
+
 #include <iostream>
 #include <random>
 #include<math.h>
 #include <emmintrin.h>
 
+#include <mpreal.h>
 #include <mpfr.h>
 #include <gmp.h>
 
+#include "pfpdefs.hpp"
 #include "common.hpp"
 #include "bellman_ford.hpp"
 #include "interval_arithmetic.hpp"
 
 using namespace std;
+using mpfr::mpreal;
+
+struct mpfr_wrapper{
+    mpfr_t val;
+};
 
 template<class t> void  printVector(vector<t> v){
     for(typename vector<t>::iterator it = v.begin(); it != v.end(); it++){
@@ -108,7 +117,7 @@ bool Graph::bellmanFord(int origin, vector<double> &distances, vector<int> &pred
                 // If using this edge makes the distance shorter...
                 int sourceIndex = (*it0)->source;
                 double aux = distancesAux[i-1][sourceIndex] + (*it0)-> weight;
-                if(aux <= distancesAux[i][nodeindex]){
+                if(aux < distancesAux[i][nodeindex]){
                     distancesAux[i][nodeindex] = aux;
                     predecessors[nodeindex] = sourceIndex;
                 }
@@ -219,7 +228,7 @@ boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vecto
 
             boolean b = inferior(distancesAux[nVertices-1][nodeindex],aux);
             if(b == False) result = False;
-            else if(b == Undefined){
+            else if(b == Undefined && result == True){
                 /*cout << endl;
                 print(aux);
                 cout << endl;
@@ -240,17 +249,16 @@ boolean Graph::intervalBellmanFord(int origin, vector<__m128d> &distances, vecto
 bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &predecessors){
 
     // Create structure to memoize distances
-    vector<vector<mpfr_t*>> distancesAux(nVertices);
+    vector<vector<mpreal>> distancesAux(nVertices);
     for(int i = 0; i != nVertices; i++){
-        vector<mpfr_t*> distancesLine(nVertices);
-        distancesAux[i] = distancesLine;
+        
+        distancesAux[i] = vector<mpreal>(nVertices);
+        for(int j = 0; j!= nVertices; j++){
+            distancesAux[i][j] = mpfr::const_infinity(1,mpreal::get_default_prec());
+        }
+        
     }
-    // Initialize the values
-    for(int j = 0; j != nVertices; j++){
-        mpfr_init2(*distancesAux[0][j],30000);
-        mpfr_set_inf(*distancesAux[0][j],1);
-    }
-    mpfr_set_zero(*distancesAux[0][origin],1);
+    distancesAux[0][origin] = 0;
     
     // Main loop
     for(int i = 1; i != nVertices; i++){
@@ -258,7 +266,7 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
         for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
 
             int nodeindex = (*it)->index;
-            mpfr_set(*distancesAux[i][nodeindex],*distancesAux[i-1][nodeindex],MPFR_RNDN);
+            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
 
             // For each edge adjacent to this node
             for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
@@ -266,19 +274,17 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
                 int sourceIndex = (*it0)->source;
                 // If using this edge makes the distance shorter...
                 
-                mpfr_t aux;
-                mpfr_init2(aux,30000);
-                mpfr_add_d(aux,*distancesAux[i-1][sourceIndex],(*it0)-> weight,MPFR_RNDN);
-                if(mpfr_cmp(*distancesAux[i][nodeindex],aux) > 0){
-                    mpfr_set(*distancesAux[i][nodeindex],aux,MPFR_RNDN);
+                mpreal aux = distancesAux[i-1][sourceIndex]+(*it0)-> weight;
+                if(distancesAux[i][nodeindex]>aux){
+                    distancesAux[i][nodeindex] = aux;
                     predecessors[nodeindex] = sourceIndex;
                 }
             }
         }
     }
-
+    
     for(unsigned int i = 0; i != distancesAux[nVertices-1].size(); i++){
-        distances[i] = mpfr_get_d(*distancesAux[nVertices-1][i],MPFR_RNDN);
+        distances[i] = (double)distancesAux[nVertices-1][i];
     }
 
     // Check that no negative cycles
@@ -288,10 +294,8 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
 
             int sourceIndex = (*it0)->source;
             // If using this edge makes the distance shorter...
-            mpfr_t aux;
-            mpfr_init2(aux,30000);
-            mpfr_add_d(aux,*distancesAux[nVertices-1][sourceIndex],(*it0)-> weight,MPFR_RNDN);
-            if(mpfr_cmp(*distancesAux[nVertices-1][(*it)->index],aux) > 0){
+            mpreal aux = distancesAux[nVertices-1][sourceIndex]+(*it0)-> weight;
+            if(distancesAux[nVertices-1][(*it)->index]>aux){
                 return false;
             }
         }
@@ -301,10 +305,10 @@ bool Graph::mpfrBellmanFord(int origin, vector<double> &distances, vector<int> &
 }
                 
 void test(){
-    int n = 100;
+    int n = 200;
 
-    Graph g(n,0.5,-1000,1000,2);    
-    //g.printGraph();
+    Graph g(n,1,-1000,1000,2);    
+    g.printGraph();
     
     // Test with doubles
     vector<double> distances;
@@ -312,12 +316,14 @@ void test(){
     pred[0] = 0;
   
     cout << endl;
-    if(g.bellmanFord(0,distances,pred)){
+    bool b = g.bellmanFord(0,distances,pred);
+    if(b){
         cout << "No negative cycles" << endl;
     }
     else{
         cout << "Negative cycle" << endl;
     }
+    
     //cout << "Distances: " << endl;
     //printVector(distances);
     cout << "Predecessors: " << endl;
@@ -332,20 +338,20 @@ void test(){
     predI[0] = 0;
   
     cout << endl;
-    boolean b = g.intervalBellmanFord(0,distancesI,predI,totalc,undefc); 
-    /*if(b == True){
+    boolean b1 = g.intervalBellmanFord(0,distancesI,predI,totalc,undefc); 
+    if(b1 == True){
         cout << "No negative cycles" << endl;
     }
-    else if ( b == False) {
+    else if ( b1 == False) {
         cout << "Negative cycle" << endl;
     }
-    else if (b == Undefined){
+    else if (b1 == Undefined){
         cout << "Uncertain presence of negative cycles" << endl;
-    }*/
+    }
     //cout << "Distances: " << endl;
     //printVectorInt(distancesI);
-    //cout << "Predecessors: " << endl;
-    //printVector(predI);
+    cout << "Predecessors: " << endl;
+    printVector(predI);
     //cout << "Undefined comparisons" << endl;
     //printComps(undefc,totalc);
     _MM_SET_ROUNDING_MODE(0);
@@ -356,7 +362,7 @@ void test(){
     predM[0] = 0;
   
     cout << endl;
-    if(g.bellmanFord(0,distancesM,predM)){
+    if(g.mpfrBellmanFord(0,distancesM,predM)){
         cout << "No negative cycles" << endl;
     }
     else{
@@ -368,16 +374,41 @@ void test(){
     printVector(predM);
 
     // Check if different result
-    bool bt = true;
+    int d = 0;
     for(unsigned int i = 0; i != pred.size(); i++){
         if(pred[i] != predM[i]){
-            cout << endl << "Different result." << endl;
-            bt = false;
+            d++;
         }
     }
-    if(bt){
-        cout << endl << "No different result"<< endl;
-    }
+    cout << endl << "Number of different results: "<< d <<  endl;
+}
+
+void runtimeTest(){
+   
+    // Generate a graph
+    int n = 100;
+    Graph g(n,0.5,-1000,1000,2);    
+
+    // Variables
+    vector<double> distances;
+    vector<__m128d> distancesI;
+    vector<double> distancesM(n);
+    vector<int> predecessors(n,-1);
+    vector<int> predecessorsI(n,-1);
+    vector<int> predecessorsM(n,-1);
+    vector<vector<int>> undefc;
+    vector<vector<int>> totalc;
+
+    // Tests
+    double start = 0.0, time_double = 0.0, time_interval = 0.0, time_mpfr = 0.0;
+
+    PFP_TIME(g.bellmanFord(0,distances,predecessors),start,time_double);
+    PFP_TIME(g.intervalBellmanFord(0,distancesI,predecessorsI,undefc,totalc),start,time_interval);
+    PFP_TIME(g.mpfrBellmanFord(0,distancesM,predecessorsM),start,time_mpfr);
+
+    cout << endl << time_interval/time_double << endl;
+    cout << endl << time_mpfr/time_double << endl;
+
 }
 
 int main(){
