@@ -40,7 +40,7 @@ add_subdirectory(SmallTests/)
 file(GLOB Common_sources "Common/*.cpp")
 file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")
-file(GLOB Graph_sources "Graphs/bellman_ford.cpp")
+file(GLOB Graph_sources "Graphs/bellman_ford.cpp" "Graphs/test_graph.cpp")
 
 add_executable(test_mss ${Common_sources} ${Mss_sources} )
 add_executable(test_mps ${Common_sources} ${Mps_sources})
