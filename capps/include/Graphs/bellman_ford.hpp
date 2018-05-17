@@ -68,7 +68,7 @@ class Graph {
     public:
 
     // Constructor to generate a Erdos-Renyi random graph with random edge weights
-    Graph(int nVertices, double edgeProba, int emin, int emax, int negratio);
+    Graph(int nVertices, double edgeProba, int emin, int emax, int negratio, double offset);
 
     // Function to print a graph
     void printGraph();

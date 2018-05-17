@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 #include "debug.hpp"
 #include "pfpdefs.hpp"
@@ -13,8 +14,8 @@
 using namespace std;
                 
 void test(){
-    int n = 10;
-    Graph g(n,1,-1000,1000,1);    
+    int n = 30;
+    Graph g(n,0.5,-1000,1000,1,1);    
 
     if(PRINT){
         g.printGraph();
@@ -70,9 +71,9 @@ void test(){
             cout << "Negative cycle" << endl;
         }
         cout << "Distances: " << endl;
-        printVector(R.distances);
+        printVector(mR.distances);
         cout << "Predecessors: " << endl;
-        printVector(R.pred);
+        printVector(mR.pred);
     }
 
     // Check if different result
@@ -99,20 +100,31 @@ void runtimeTest(){
         
         // Generate a graph
         int nV = graphSizes[r];
-        Graph g(nV,0.5,-1000,1000,1);    
+        Graph g(nV,0.5,-1000,1000,1,0);    
 
         // Tests
         double start = 0.0, time_double = 0.0, time_interval = 0.0, time_mpfr = 0.0, time_lazy_mpfr = 0.0;
 
-        PFP_TIME(g.bellmanFord(0),start,time_double);
-        PFP_TIME(intervalBellmanFordResult R = g.intervalBellmanFord(0),start,time_interval);
-        PFP_TIME(g.mpfrBellmanFord(0),start,time_mpfr);
-        PFP_TIME(g.lazyMpfrBellmanFord(0,R.memo),start,time_lazy_mpfr);
+        PFP_TIME(bellmanFordResult R = g.bellmanFord(0),start,time_double);
+        PFP_TIME(intervalBellmanFordResult R0 = g.intervalBellmanFord(0),start,time_interval);
+        PFP_TIME(mpfrBellmanFordResult R1 = g.mpfrBellmanFord(0),start,time_mpfr);
+        PFP_TIME(mpfrBellmanFordResult R2 = g.lazyMpfrBellmanFord(0,R0.memo),start,time_lazy_mpfr);
 
         double time_double_aux = time_double / time_double;
         time_interval = time_interval / time_double;
         time_mpfr = time_mpfr / time_double;
         time_lazy_mpfr = time_lazy_mpfr / time_double;
+
+        // Compute mean discrepancy between result
+        double mean1 = 0.0, mean2 = 0.0;
+        for(int i = 0; i != nV; i++){
+            //cout << R1.distances[i] << endl;
+            //cout << R.distances[i] << endl;
+            mean1 += abs(R1.distances[i] - R.distances[i]);
+            mean2 += abs(R2.distances[i] - R1.distances[i]);
+        }
+        cout << "Mpfr result - double result: " << mean1 << endl;
+        cout << "Lazy mpfr result - Mpfr result: " << mean2 << endl;
         
         results << to_string(nV) << "," << to_string(time_double_aux) << "," << to_string(time_mpfr) << "," << to_string(time_lazy_mpfr) << "," << to_string(time_interval) << "," << to_string(time_interval+time_lazy_mpfr) << endl;
     }

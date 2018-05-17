@@ -36,7 +36,7 @@ void edge::print(){
     cout << "Weight: " << weight << endl;
 }
 
-Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio) : 
+Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio, double offset) : 
     nVertices(nVertices),
     nodes(nVertices)    
 {
@@ -46,7 +46,25 @@ Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio) 
     }
 
     // For all pair of nodes, generate random edges
-    for(int i = 0; i !=nVertices; i++){
+    for(int j = 1; j!= nVertices; j++){
+
+        double test = rand() / (double) (RAND_MAX);
+        if(test <= edgeProba){
+            // Generate weight
+            double w = offset;
+            // Create edges
+            edge* ei = new edge(0,w);
+            nodes[j]->adjacentEdges.push_back(ei);
+        }
+        test = rand() / (double) (RAND_MAX);
+        if(test <= edgeProba){
+            double w = offset;
+            edge* ej = new edge(j,w);
+            nodes[0]->adjacentEdges.push_back(ej);
+        }
+    }
+
+    for(int i = 1; i !=nVertices; i++){
         for(int j = i+1; j!= nVertices; j++){
 
             double test = rand() / (double) (RAND_MAX);
@@ -283,7 +301,7 @@ mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, vector<vector<vecto
         
         distancesAux[i] = vector<mpreal>(nVertices);
         for(int j = 0; j!= nVertices; j++){
-            distancesAux[i][j] = mpfr::const_infinity(1,mpreal::get_default_prec());
+            distancesAux[i][j] = mpfr::const_infinity(1,1000);
         }
         
     }
@@ -363,7 +381,7 @@ mpfrBellmanFordResult Graph::mpfrBellmanFord(int origin){
         
         distancesAux[i] = vector<mpreal>(nVertices);
         for(int j = 0; j!= nVertices; j++){
-            distancesAux[i][j] = mpfr::const_infinity(1,mpreal::get_default_prec());
+            distancesAux[i][j] = mpfr::const_infinity(1,1000);
         }
         
     }
