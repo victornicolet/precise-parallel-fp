@@ -15,7 +15,7 @@ print results
 pypl.plot(results[0],results[1],label="Doubles")
 pypl.plot(results[0],results[2],label="Summation with superaccumulators")
 pypl.plot(results[0],results[3],label="Mps with superaccumulators")
-pypl.plot(results[0],results[5],label="Lazy computation with superaccumulators")
+pypl.plot(results[0],results[4],label="Lazy computation with superaccumulators")
 pypl.plot(results[0],results[5],label="Lazy computation with superaccumulators, optional optimization")
 
 pypl.xlabel("Dynamic range")

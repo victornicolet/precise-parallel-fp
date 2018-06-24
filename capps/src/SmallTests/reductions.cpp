@@ -20,7 +20,7 @@
 using namespace tbb;
 using namespace std;
 
-#define DEBUG 0
+#define DEBUG 1
 
 struct mps_struct{
     mps_struct(){};
@@ -45,7 +45,7 @@ class MpsContinuation: public task {
         lres->sum = s + rres.sum;
         if(rmps >= lres->mps){
             lres->mps = rmps;
-            //lres->pos = rres.pos;
+            lres->pos = rres.pos;
         }
         return NULL;
     }
@@ -68,17 +68,17 @@ class MpsTask1: public task {
             if(depth == 0){
                 double s = 0.;
                 double m = 0.;
-                //int p = left;
+                int p = left;
                 for(int i = left; i != right; i++){
                     s += array[i];
                     if(s >= m){
                        m = s;
-                       //p = i+1;
+                       p = i+1;
                     }
                 }
                 res->sum = s;
                 res->mps = m;
-                //res->pos = p;
+                res->pos = p;
                 return NULL;
 
             }else{
@@ -184,22 +184,26 @@ void __mps::join(__mps& rightMps){
 
 // Parallel reduce main function
 void tbb_main(double* a, int size, int grainsize){
+    task_scheduler_init init;
     __mps result = __mps(a);
     parallel_reduce(blocked_range<int>(0,size),result);
     if(DEBUG){
         cout << endl << "Parallel Reduce" << endl;
         result.print_mps();
     }
+    init.terminate();
 }
 
 // Parallel deterministic reduce main function
 void tbb_deterministic_main(double* a, int size, int grainsize){
+    task_scheduler_init init;
     __mps result = __mps(a);
     parallel_deterministic_reduce(blocked_range<int>(0,size,grainsize),result);
     if(DEBUG){
         cout << endl << "Parallel Deterministic Reduce" << endl;
         result.print_mps();
     }
+    init.terminate();
 }
 
 // Homemade main function
@@ -305,29 +309,6 @@ void runtime_comparison(){
     // Random seed
     srand(time(NULL));
     
-    // Warm-up
-    for(int r = 0; r < s; r++){
-        // Generating array
-        double* drray = new double[size];
-        init_fpuniform(size, drray, 100, 50);
-
-        // Randomly change signs
-        for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-        }
-        
-        // Declare result variables
-        double time_deterministic_tbb = 0.0;
-        PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
-        double time_tbb = 0.0;
-        PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
-        double time_homemade = 0.0;
-        PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
-   
-        
-        delete[] drray;
-    }
-    
     for(int r = 0; r < s; r++){
 
         // initialization of means
@@ -345,12 +326,12 @@ void runtime_comparison(){
             }
             
             // Declare result variables
-            double time_tbb = 0.0;
-            PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
+            double time_homemade = 0.0;
+            //PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
             double time_deterministic_tbb = 0.0;
             PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
-            double time_homemade = 0.0;
-            PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
+            double time_tbb = 0.0;
+            PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
        
             mean_tbb += time_tbb;
             mean_homemade += time_homemade;
@@ -364,9 +345,9 @@ void runtime_comparison(){
         mean_deterministic_tbb += mean_deterministic_tbb / N;
         
         x[r]= grainsSizes[r];
-        r0[r]= mean_tbb/mean_tbb;
-        r1[r]= mean_homemade/mean_tbb;
-        r2[r]= mean_deterministic_tbb/mean_tbb;
+        r0[r]= mean_tbb;
+        r1[r]= mean_homemade;
+        r2[r]= mean_deterministic_tbb;
 
         // Writing results to a file
         results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << endl;
@@ -377,7 +358,6 @@ void runtime_comparison(){
 }
 
 int main(){
-    task_scheduler_init init(1);
     runtime_comparison();
     return 0;
 }

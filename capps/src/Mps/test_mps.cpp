@@ -8,6 +8,7 @@
 #include <time.h>
 
 #include "superaccumulator.hpp"
+#include "summation.hpp"
 #include "lazy_mps_implementations.hpp"
 #include "parallel_mps.hpp"
 #include "2_lazy_mps_implementations.hpp"
@@ -157,8 +158,8 @@ void runtime_comparison_sequential(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,4);
-    int N = 100;
+    int size = pow(10,6);
+    int N = 10;
 
     // for each dynamic range
     vector<int> dynRanges  {300,600,900,1200,1500,1800};

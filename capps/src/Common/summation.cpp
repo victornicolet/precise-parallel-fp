@@ -3,8 +3,8 @@
 
 #include "summation.hpp"
 #include "superaccumulator.hpp"
+#include "debug.hpp"
 
-#define VERBOSE 1
 
 using namespace std;
 
@@ -15,7 +15,7 @@ void sequential_summation_superacc(double* array, int size, double* sum){
     }
     *sum = sumA.Round();
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Summation with superaccumulators" << endl;
         cout << "Sum: " << *sum << endl;
     }

@@ -7,9 +7,7 @@
 
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
-
-#define VERBOSE 0
-
+#include "debug.hpp"
 
 void sequential_mps_superacc(double*array, int size, double* sum, double* mps, int* pos){
     Superaccumulator sumA = Superaccumulator();
@@ -26,7 +24,7 @@ void sequential_mps_superacc(double*array, int size, double* sum, double* mps, i
     *mps = mpsA.Round();
     *pos = t;
     
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Mps with superaccumulators" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
@@ -50,7 +48,7 @@ void sequential_mps_double(double* array, int size, double* sum, double* mps, in
     *mps = mpst;
     *pos = t;
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Mps with doubles" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
@@ -58,19 +56,13 @@ void sequential_mps_double(double* array, int size, double* sum, double* mps, in
     }
 }
 
-// Enum to represent decisions
-enum Dec{
-    Dsum,
-    Dmps,
-    Dundef,
-};
 
-void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int* pos,int opt){
+void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int* pos){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
     __m128d mpsI = in2_create(0.,0.);     
-    Dec* da = new Dec[size]; 
+    boolean* da = new boolean[size]; 
     int t = 0;
     
     /* First iteration with interval arithmetic */
@@ -79,33 +71,33 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
         boolean b = inferior(mpsI,sumI);
 
         if(b == True){
-            da[i] = Dsum;
+            da[i] = True;
             mpsI = sumI;
             t = i+1;
         }
         else if(b == False){
-            da[i] = Dmps;
+            da[i] = False;
         }
         else {
-            da[i] = Dundef;
+            da[i] = Undefined;
             mpsI = in2_max(sumI,mpsI);
             t = i+1;
         }
     }
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Lazy mps, first results"  << endl;
         cout << "Sum: ";
         print(sumI);
         cout << endl << "Mps: ";
         print(mpsI) ;
         cout << endl << "Pos: " << t << endl;
-        for(int i = 0;  i != size; i++){
+        /*for(int i = 0;  i != size; i++){
             Dec d = da[i]; 
-            if(d == Dsum) cout << "X";
-            else if(d == Dmps) cout << "_";
+            if(d == True) cout << "X";
+            else if(d == False) cout << "_";
             else cout << "|";
-        }
+        }*/
         cout << endl;
     }
 
@@ -149,7 +141,7 @@ void sequential_mps_lazy(double* array, int size, double* sum, double* mps, int*
     *mps = mpsA.Round();
     *pos = t;
 
-    if(VERBOSE){
+    if(PRINT){
         cout << endl << "Lazy mps, precise results" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;

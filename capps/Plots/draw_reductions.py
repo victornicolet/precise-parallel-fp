@@ -13,15 +13,15 @@ results = np.array(results).transpose()
 print results
 
 pypl.plot(results[0],results[1],label="Tbb parallel_reduce")
-pypl.plot(results[0],results[2],label="Homemade reduction")
+#pypl.plot(results[0],results[2],label="Homemade reduction")
 pypl.plot(results[0],results[3],label="Tbb deterministic parallel_reduce")
 
 pypl.xlim(xmin = 0)
-pypl.xlabel("Grain size for homemade reduction")
+pypl.xlabel("Grain size for deterministic parallel reduce")
 pypl.ylabel("Mean computation time")
 
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Comparison of reductions")
-pypl.show()
+#pypl.show()
 pypl.savefig("Plots/reductions.jpg");
 

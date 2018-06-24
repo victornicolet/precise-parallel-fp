@@ -15,11 +15,11 @@
 #include "lazy_mps_implementations.hpp"
 #include "2_lazy_mps_implementations.hpp"
 #include "interval_arithmetic.hpp"
+#include "debug.hpp"
 
 using namespace std;
 using namespace tbb;
 
-#define PRINT 0
 
 void printA(double* array, int size){
     // printing the array
