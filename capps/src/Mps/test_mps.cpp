@@ -18,6 +18,7 @@
 #include "sequential_mps.hpp"
 #include "sequential_mps_alt.hpp"
 #include "sequential_mts.hpp"
+#include "debug.hpp"
 
 using namespace tbb;
 using namespace std;
@@ -173,7 +174,7 @@ void runtime_comparison_sequential(){
 
     // Random seed
     srand(time(NULL));
-    
+   
     for(int r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
@@ -181,6 +182,10 @@ void runtime_comparison_sequential(){
         
 
         for(int i = 0; i < N; i++){
+
+            if(PRINT){
+                cout << endl << endl <<"***********************************" << endl << "New Input Array" << endl;
+            }
             
             // Generating array
             double* drray = new double[size];
@@ -201,34 +206,71 @@ void runtime_comparison_sequential(){
             PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_double);
             double time_superacc = 0.0;
             PFP_TIME(sequential_mps_superacc(drray,size,&sum,&mps,&pos),start,time_superacc);
-            double time_lazy = 0.0;
-            PFP_TIME(sequential_mps_interval(drray,size,&sum,&mps,&pos,da),start,time_lazy);
-            double time_lazy_opt = 0.0;
-            PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos,1),start,time_lazy_opt);
+
             double time_sum_superacc = 0.0;
             PFP_TIME(sequential_summation_superacc(drray,size,&sum),start,time_sum_superacc);
-        
+
+            /* Lazy computation, mps superacc */
+            double time1 = 0.0;
+            PFP_TIME(sequential_mps_interval_memorized(drray,size,&sum,&mps,&pos,&da),start,time1);
+            double time2 = 0.0;
+            PFP_TIME(sequential_mps_iterate_reverse_mps(drray,size,&sum,&mps,&pos,&da),start,time2);
+            double time3 = 0.0;
+            PFP_TIME(sequential_mps_lazy_superacc(drray,size,&sum,&mps,&pos,&da),start,time3);
+            /* Lazy computation, pos superacc */
+            double time4 = 0.0;
+            PFP_TIME(sequential_mps_interval_memorized(drray,size,&sum,&mps,&pos,&da),start,time4);
+            double time5 = 0.0;
+            PFP_TIME(sequential_mps_iterate_reverse_pos(drray,size,&sum,&mps,&pos,&da),start,time5);
+            double time6 = 0.0;
+            PFP_TIME(sequential_mps_lazy_superacc(drray,size,&sum,&mps,&pos,&da),start,time6);
+            
+            /* Lazy computation, mps mpfr */
+            double time7 = 0.0;
+            PFP_TIME(sequential_mps_interval_memorized(drray,size,&sum,&mps,&pos,&da),start,time7);
+            double time8 = 0.0;
+            PFP_TIME(sequential_mps_iterate_reverse_mps(drray,size,&sum,&mps,&pos,&da),start,time8);
+            double time9 = 0.0;
+            PFP_TIME(sequential_mps_lazy_mpfr(drray,size,&sum,&mps,&pos,&da),start,time9);
+            /* Lazy computation, pos mpfr */
+            double time10 = 0.0;
+            PFP_TIME(sequential_mps_interval_memorized(drray,size,&sum,&mps,&pos,&da),start,time10);
+            double time11 = 0.0;
+            PFP_TIME(sequential_mps_iterate_reverse_pos(drray,size,&sum,&mps,&pos,&da),start,time11);
+            double time12 = 0.0;
+            PFP_TIME(sequential_mps_lazy_mpfr(drray,size,&sum,&mps,&pos,&da),start,time12);
+
             mean_double += time_double;
-            mean_sum_superacc += time_sum_superacc;
             mean_superacc += time_superacc;
-            mean_lazy += time_lazy;
-            mean_lazy_opt += time_lazy_opt;
+            mean_sum_superacc += time_sum_superacc;
+            mean_interval += (time1+time4+time7+time10)/4;
+            mean_reverse_mps += (time2+time8)/2;
+            mean_reverse_pos += (time5+time11)/2;
+            mean_lazy_superacc_mps += time3;
+            mean_lazy_superacc_pos += time6;
+            mean_lazy_mpfr_mps += time9;
+            mean_lazy_mpfr_pos += time12;
             
             delete[] drray;
         }
         // Finalize mean computation
         mean_double = mean_double / N;
-        mean_sum_superacc = mean_sum_superacc /N;
-        mean_superacc = mean_superacc /N;
-        mean_lazy = mean_lazy /N;
-        mean_lazy_opt = mean_lazy_opt /N;
+        mean_sum_superacc = mean_sum_superacc / N;
+        mean_superacc = mean_superacc / N;
+        mean_interval = mean_interval/N;
+        mean_reverse_mps = mean_reverse_mps / N;
+        mean_reverse_pos = mean_reverse_pos / N;
+        mean_lazy_superacc_mps = mean_lazy_superacc_mps / N;
+        mean_lazy_superacc_pos = mean_lazy_superacc_pos / N;
+        mean_lazy_mpfr_mps = mean_lazy_mpfr_mps / N;
+        mean_lazy_mpfr_pos = mean_lazy_mpfr_pos / N;
         
         x[r]= dynRanges[r];
         r0[r]= mean_double/mean_double;
         r1[r]= mean_sum_superacc/mean_double;
         r2[r]= mean_superacc/mean_double;
-        r3[r]= mean_lazy/mean_double;
-        r4[r]= mean_lazy_opt/mean_double;
+        r3[r]= mean_interval/mean_double;
+        r4[r]= mean_reverse_mps/mean_double;
 
         // Writing results to a file
         results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << endl;

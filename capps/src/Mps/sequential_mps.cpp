@@ -57,12 +57,12 @@ void sequential_mps_double(double* array, int size, double* sum, double* mps, in
 }
 
 
-void sequential_mps_interval_memorized(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_interval_memorized(double* array, int size, double* sum, double* mps, int* pos, memo** da){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
     __m128d mpsI = in2_create(0.,0.);     
-    da = new memo[size]; 
+    memo* d = new memo[size]; 
     int t = 0;
     
     /* First iteration with interval arithmetic */
@@ -71,22 +71,24 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
         boolean b = inferior(mpsI,sumI);
 
         if(b == True){
-            da[i].useful2 = True;
+            d[i].useful2 = True;
             mpsI = sumI;
             t = i+1;
         }
         else if(b == False){
-            da[i].useful2 = False;
+            d[i].useful2 = False;
         }
         else {
-            da[i].useful2 = Undefined;
+            d[i].useful2 = Undefined;
             mpsI = in2_max(sumI,mpsI);
             t = i+1;
         }
     }
 
+    *da = d;
+
     if(PRINT){
-        cout << endl << "Lazy mps, first results"  << endl;
+        cout << endl << "Interval mps"  << endl;
         cout << "Sum: ";
         print(sumI);
         cout << endl << "Mps: ";
@@ -103,15 +105,16 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     _MM_SET_ROUNDING_MODE(0);
 }
 
-void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, double* mps, int* pos, memo** da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = true;
+    memo* dap = *da;
     for(int i = size - 1; i >= 0 ; i--){
-        memo d = da[i];
+        memo d = dap[i];
 
         // Handling step1
         if(sum_useful){
-            d.useful1 = true;
+            dap[i].useful1 = true;
         }
         
         // Handling step2
@@ -121,11 +124,11 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
                 mps_useful = false;
             }
             else{
-                da[i].useful2 = Useless;
+                dap[i].useful2 = Useless;
             }
         }
         else if(d.useful2 == False){
-            da[i].useful2 = Useless;
+            dap[i].useful2 = Useless;
         }
         else{
             if(mps_useful){
@@ -133,17 +136,21 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
                 mps_useful = true;
             }
             else{
-                da[i].useful2 = Useless;
+                dap[i].useful2 = Useless;
             }
         }
     }
+    if(PRINT){
+        cout << "Finished reverse mps" << endl;
+    }
 }
 
-void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, double* mps, int* pos, memo** da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = false, pos_useful = true;
+    memo* dap = *da;
     for(int i = size - 1; i >= 0 ; i--){
-        memo d = da[i];
+        memo d = dap[i];
 
         // Handling step1
         if(sum_useful){
@@ -160,11 +167,11 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
                 pos_useful = false;
             }
             if(!(mps_useful || pos_useful)){
-                da[i].useful2 = Useless;
+                dap[i].useful2 = Useless;
             }
         }
         else if(d.useful2 == False){
-            da[i].useful2 = Useless;
+            dap[i].useful2 = Useless;
         }
         else{
             if(mps_useful){
@@ -176,21 +183,25 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
                 mps_useful = true;
             }
             if(!(mps_useful || pos_useful)){
-                da[i].useful2 = Useless;
+                dap[i].useful2 = Useless;
             }
         }
     }
+    if(PRINT){
+        cout << "Finished reverse pos" << endl;
+    }
 }
 
-void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* mps, int* pos, memo** da){
 
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();
     double post = 0;
+    memo* dap = *da;
 
     for(int i = 0; i != size; i++){
-        memo d = da[i];
+        memo d = dap[i];
         if(d.useful1){
             sumA.Accumulate(array[i]);
         }
@@ -209,7 +220,7 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
             }
         }
     }
-    delete[] da;
+    delete[] dap;
     *sum = sumA.Round();
     *mps = mpsA.Round();
     *pos = post;
@@ -222,14 +233,16 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
     }
 }
                 
-void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();
     double post = 0;
+    memo* dap = *da;
 
     for(int i = 0; i != size; i++){
-        memo d = da[i];
+        memo d = dap[i];
         if(d.useful1){
             sumA.Accumulate(array[i]);
         }
@@ -248,7 +261,7 @@ void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps,
             }
         }
     }
-    delete[] da;
+    delete[] dap;
     *sum = sumA.Round();
     *mps = mpsA.Round();
     *pos = post;
