@@ -34,8 +34,14 @@ void print(__m128d);
 enum boolean{
     True,
     False,
-    Undefined
+    Undefined,
+    Useless
 };
+
+struct memo{
+    bool useful1;
+    boolean useful2;
+}
 
 // Function to add an interval and a double
 __m128d in2_add_double(__m128d, double);

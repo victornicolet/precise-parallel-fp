@@ -9,7 +9,7 @@
 #include "superaccumulator.hpp"
 #include "debug.hpp"
 
-void sequential_mps_superacc(double*array, int size, double* sum, double* mps, int* pos){
+void sequential_mps_superacc_alt(double*array, int size, double* sum, double* mps, int* pos){
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();
     int t = 0;
@@ -33,7 +33,7 @@ void sequential_mps_superacc(double*array, int size, double* sum, double* mps, i
 
 }
 
-void sequential_mps_double(double* array, int size, double* sum, double* mps, int* pos){
+void sequential_mps_double_alt(double* array, int size, double* sum, double* mps, int* pos){
     int t = 0; 
     double sumt = 0.;
     double mpst = 0.;
@@ -57,7 +57,7 @@ void sequential_mps_double(double* array, int size, double* sum, double* mps, in
 }
 
 
-void sequential_mps_interval_memorized(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_interval_memorized_alt(double* array, int size, double* sum, double* mps, int* pos, memo* da){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
@@ -103,7 +103,7 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     _MM_SET_ROUNDING_MODE(0);
 }
 
-void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum, double* mps, int* pos, memo* da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = true;
     for(int i = size - 1; i >= 0 ; i--){
@@ -139,7 +139,7 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
     }
 }
 
-void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum, double* mps, int* pos, memo* da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = false, pos_useful = true;
     for(int i = size - 1; i >= 0 ; i--){
@@ -182,7 +182,7 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
     }
 }
 
-void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, double* mps, int* pos, memo* da){
 
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
@@ -222,7 +222,7 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
     }
 }
                 
-void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo* da){
+void sequential_mps_lazy_mpfr_alt(double* array, int size, double* sum, double* mps, int* pos, memo* da){
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();

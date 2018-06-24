@@ -16,6 +16,7 @@
 #include "pfpdefs.hpp"
 #include "tbb/tbb.h"
 #include "sequential_mps.hpp"
+#include "sequential_mps_alt.hpp"
 #include "sequential_mts.hpp"
 
 using namespace tbb;
@@ -167,7 +168,7 @@ void runtime_comparison_sequential(){
     
     // Store results to plot
     fstream results;
-    results.open("Plots/plot2.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/lazympsseq.csv", ofstream::out | ofstream::trunc);
     vector<double> x(s),r0(s),r1(s),r2(s),r3(s),r4(s);
 
     // Random seed
@@ -176,7 +177,7 @@ void runtime_comparison_sequential(){
     for(int r = 0; r < dynRanges.size(); r++){
 
         // initialization of means
-        double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_lazy = 0.,mean_lazy_opt = 0.; 
+        double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_interval = 0.,mean_reverse_mps = 0., mean_reverse_pos = 0., mean_lazy_superacc_mps = 0., mean_lazy_superacc_pos = 0., mean_lazy_mpfr_mps = 0., mean_lazy_mpfr_pos = 0.; 
         
 
         for(int i = 0; i < N; i++){
@@ -194,13 +195,14 @@ void runtime_comparison_sequential(){
             double sum;
             double mps;
             int pos;
+            memo* da;
             
             double time_double = 0.0;
             PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_double);
             double time_superacc = 0.0;
             PFP_TIME(sequential_mps_superacc(drray,size,&sum,&mps,&pos),start,time_superacc);
             double time_lazy = 0.0;
-            PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos,0),start,time_lazy);
+            PFP_TIME(sequential_mps_interval(drray,size,&sum,&mps,&pos,da),start,time_lazy);
             double time_lazy_opt = 0.0;
             PFP_TIME(sequential_mps_lazy(drray,size,&sum,&mps,&pos,1),start,time_lazy_opt);
             double time_sum_superacc = 0.0;

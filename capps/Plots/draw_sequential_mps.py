@@ -3,7 +3,7 @@ import matplotlib.pyplot as pypl
 import numpy as np
 
 results = []
-with open("Plots/plot2.csv", "rb") as csvfile:
+with open("Plots/lazympsseq.csv", "rb") as csvfile:
     resultsreader = csv.reader(csvfile)
     for row in resultsreader:
         results.append(map(float, row))
