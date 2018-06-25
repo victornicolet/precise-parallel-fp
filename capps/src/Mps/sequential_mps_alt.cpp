@@ -16,80 +16,84 @@
 
 using mpfr::mpreal;
 
-void sequential_mps_superacc(double*array, int size, double* sum, double* mps, int* pos){
+void sequential_mps_superacc_alt(double*array, int size, double* deltasum, double* mps, int* pos){
     Superaccumulator sumA = Superaccumulator();
     Superaccumulator mpsA = Superaccumulator();
+    Superaccumulator deltasumA = Superaccumulator();
     int t = 0;
     for(int i = 0; i != size; i++){
-        sumA.Accumulate(array[i]);
-        if(!sumA.comp(mpsA)){
-            mpsA = Superaccumulator(sumA.get_accumulator());
+        deltasumA.Accumulate(array[i]);
+        if(!deltasumA.Normalize()){
+            mpsA.Accumulate(deltasumA);
+            deltasumA = Superaccumulator();
             t = i+1;
         }
     }
-    *sum = sumA.Round();
+    *deltasum = deltasumA.Round();
     *mps = mpsA.Round();
     *pos = t;
     
     if(PRINT){
         cout << endl << "Mps with superaccumulators" << endl;
-        cout << "Sum: " << *sum << endl;
+        cout << "Delta Sum: " << *deltasum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
 
 }
 
-void sequential_mps_mpfr(double*array, int size, double* sum, double* mps, int* pos){
-    mpreal sumA(0.,1000);
+void sequential_mps_mpfr_alt(double*array, int size, double* deltasum, double* mps, int* pos){
+    mpreal dsumA(0.,1000);
     mpreal mpsA(0.,1000);
     int t = 0;
 
     for(int i = 0; i != size; i++){
-        sumA += array[i];
-        if(sumA >= mpsA){
-            mpsA = mpreal(sumA);
+        dsumA += array[i];
+        if(dsumA >= 0){
+            mpsA += dsumA;
+            dsumA = 0;
             t = i+1;
         }
     }
-    *sum = sumA.toDouble();
+    *deltasum = dsumA.toDouble();
     *mps = mpsA.toDouble();
     *pos = t;
     
     if(PRINT){
         cout << endl << "Mps with mpfr" << endl;
-        cout << "Sum: " << *sum << endl;
+        cout << "Delta Sum: " << *deltasum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
 
 }
 
-void sequential_mps_double(double* array, int size, double* sum, double* mps, int* pos){
+void sequential_mps_double_alt(double* array, int size, double* deltasum, double* mps, int* pos){
     int t = 0; 
     double sumt = 0.;
     double mpst = 0.;
     for(int i = 0; i != size; i++){
         sumt += array[i];
-        if(sumt >= mpst){
-            mpst = sumt;
+        if(sumt >= 0){
+            mpst += sumt;
+            sumt = 0;
             t = i+1;
         }
     }
-    *sum = sumt;
+    *deltasum = sumt;
     *mps = mpst;
     *pos = t;
 
     if(PRINT){
         cout << endl << "Mps with doubles" << endl;
-        cout << "Sum: " << *sum << endl;
+        cout << "Delta Sum: " << *deltasum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
 }
 
 
-void sequential_mps_interval_memorized(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+void sequential_mps_interval_memorized_alt(double* array, int size, double* deltasum, double* mps, int* pos, memo** da){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
@@ -100,11 +104,12 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     /* First iteration with interval arithmetic */
     for(int i = 0; i != size; i++){
         sumI = in2_add_double(sumI,array[i]);
-        boolean b = inferior(mpsI,sumI);
+        boolean b = inferior_double(0,sumI);
 
         if(b == True){
             d[i].useful2 = True;
             mpsI = sumI;
+            sumI = in2_create(0.,0.);
             t = i+1;
         }
         else if(b == False){
@@ -112,7 +117,7 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
         }
         else {
             d[i].useful2 = Undefined;
-            mpsI = in2_max(sumI,mpsI);
+            mpsI = in2_max(in2_add(mpsI,sumI),mpsI);
             t = i+1;
         }
     }
@@ -121,11 +126,11 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
 
     if(PRINT){
         cout << endl << "Interval mps"  << endl;
-        cout << "Sum: ";
+        cout << "Delta Sum:";
         print(sumI);
-        cout << endl << "Mps: ";
-        print(mpsI) ;
-        cout << endl << "Pos: " << t << endl;
+        cout << endl << "Mps:";
+        print(mpsI);
+        cout << endl << "Pos:" << t << endl;
         /*for(int i = 0;  i != size; i++){
             Dec d = da[i]; 
             if(d == True) cout << "X";
@@ -137,7 +142,7 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     _MM_SET_ROUNDING_MODE(0);
 }
 
-void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum, double* mps, int* pos, memo** da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = true;
     memo* dap = *da;
@@ -147,9 +152,12 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
         
         // Handling step2
         if(d.useful2 == True){
+            if(sum_useful){
+                sum_useful = false;
+            }
             if(mps_useful){
-                sum_useful = true;
                 mps_useful = false;
+                sum_useful = true;
             }
             else{
                 dap[i].useful2 = Useless;
@@ -159,14 +167,21 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
             dap[i].useful2 = Useless;
         }
         else{
+            if(sum_useful){
+                sum_useful = false;
+            }
             if(mps_useful){
+                mps_useful = false;
                 sum_useful = true;
-                mps_useful = true;
+            }
+            if(mps_useful || sum_useful){
+                sum_useful = true;
             }
             else{
                 dap[i].useful2 = Useless;
             }
         }
+
         // Handling step1
         if(sum_useful){
             dap[i].useful1 = true;
@@ -177,24 +192,26 @@ void sequential_mps_iterate_reverse_mps(double* array, int size, double* sum, do
     }
 }
 
-void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum, double* mps, int* pos, memo** da){
     /* Iterate in da in reverse order */
     bool sum_useful = false, mps_useful = false, pos_useful = true;
     memo* dap = *da;
     for(int i = size - 1; i >= 0 ; i--){
         memo d = dap[i];
 
-        
         // Handling step2
         if(d.useful2 == True){
+            if(pos_useful){
+                pos_useful = false;
+            }
+            if(sum_useful){
+                sum_useful = false;
+            }
             if(mps_useful){
                 sum_useful = true;
                 mps_useful = false;
             }
-            if(pos_useful){
-                pos_useful = false;
-            }
-            if(!(mps_useful || pos_useful)){
+            if(!(mps_useful || pos_useful || sum_useful)){
                 dap[i].useful2 = Useless;
             }
         }
@@ -202,15 +219,20 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
             dap[i].useful2 = Useless;
         }
         else{
+            if(pos_useful){
+                pos_useful = false;
+            }
+            if(sum_useful){
+                sum_useful = false;
+            }
             if(mps_useful){
                 sum_useful = true;
-                mps_useful = true;
+                mps_useful = false;
             }
-            if(pos_useful){
+            if(mps_useful || pos_useful || sum_useful){
                 sum_useful = true;
-                mps_useful = true;
             }
-            if(!(mps_useful || pos_useful)){
+            else{ 
                 dap[i].useful2 = Useless;
             }
         }
@@ -225,7 +247,7 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
     }
 }
 
-void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, double* mps, int* pos, memo** da){
 
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
@@ -271,7 +293,7 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
     }
 }
                 
-void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+void sequential_mps_lazy_mpfr_alt(double* array, int size, double* sum, double* mps, int* pos, memo** da){
 
     /* Second iteration with superaccumulators */
     mpreal sumA(0.,1000);

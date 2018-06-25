@@ -3,19 +3,18 @@
 
 #include "summation.hpp"
 #include "superaccumulator.hpp"
-#include "ExSUM_FPE.hpp"
+#include "FPE.hpp"
 #include "debug.hpp"
-
 
 using namespace std;
 
 void sequential_summation_superacc(double* array, int size, double* sum){
     Superaccumulator sumA = Superaccumulator();
-    FPExpansionVect<double,4> sumC(sumA);
+    //FPExpansionVect<4> sumC(sumA);
     for(int i = 0; i != size; i++){
-        sumC.Accumulate(array[i]);
+        sumA.Accumulate(array[i]);
     }
-    sumC.Flush();
+    //sumC.Flush();
     *sum = sumA.Round();
 
     if(PRINT){
