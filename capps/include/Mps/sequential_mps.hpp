@@ -8,6 +8,9 @@
 /* This function computes the maximum prefix sum of an array with superaccumulators */
 void sequential_mps_superacc(double*,int,double*,double*,int*);
 
+/* This function computes the maximum prefix sum of an array with mpfr */
+void sequential_mps_mpfr(double*,int,double*,double*,int*);
+
 /* This function computes the maximum prefix sum of an array with doubles */
 void sequential_mps_double(double*,int,double*,double*,int*);
 

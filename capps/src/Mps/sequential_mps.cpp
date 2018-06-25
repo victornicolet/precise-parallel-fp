@@ -4,10 +4,16 @@
 
 #include <iostream>
 #include <emmintrin.h>
+#include <mpreal.h>
+#include <mpfr.h>
+#include <gmp.h>
 
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
+
 #include "debug.hpp"
+
+using mpfr::mpreal;
 
 void sequential_mps_superacc(double*array, int size, double* sum, double* mps, int* pos){
     Superaccumulator sumA = Superaccumulator();
@@ -26,6 +32,31 @@ void sequential_mps_superacc(double*array, int size, double* sum, double* mps, i
     
     if(PRINT){
         cout << endl << "Mps with superaccumulators" << endl;
+        cout << "Sum: " << *sum << endl;
+        cout << "Mps: " << *mps << endl;
+        cout << "Pos: " << *pos << endl;
+    }
+
+}
+
+void sequential_mps_mpfr(double*array, int size, double* sum, double* mps, int* pos){
+    mpreal sumA(0.,1000);
+    mpreal mpsA(0.,1000);
+    int t = 0;
+
+    for(int i = 0; i != size; i++){
+        sumA += array[i];
+        if(sumA >= mpsA){
+            mpsA = mpreal(sumA);
+            t = i+1;
+        }
+    }
+    *sum = sumA.toDouble();
+    *mps = mpsA.toDouble();
+    *pos = t;
+    
+    if(PRINT){
+        cout << endl << "Mps with mpfr" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
@@ -226,7 +257,7 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
     *pos = post;
 
     if(PRINT){
-        cout << endl << "Lazy mps superacc, precise results" << endl;
+        cout << endl << "Exact computation with superacc" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
@@ -236,47 +267,41 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
 void sequential_mps_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo** da){
 
     /* Second iteration with superaccumulators */
-    Superaccumulator sumA = Superaccumulator();
-    Superaccumulator mpsA = Superaccumulator();
+    mpreal sumA(0.,1000);
+    mpreal mpsA(0.,1000);
     double post = 0;
     memo* dap = *da;
 
     for(int i = 0; i != size; i++){
         memo d = dap[i];
         if(d.useful1){
-            sumA.Accumulate(array[i]);
+            sumA += array[i];
         }
      
         if(d.useful2 == True){
-            mpsA = Superaccumulator(sumA.get_accumulator());
+            mpsA = mpreal(sumA);
             post = i+1;
         }
         else if (d.useful2 == False){
         }
         else if (d.useful2 == Undefined){
             // Redo the comparison
-            if(!sumA.comp(mpsA)){
-                mpsA = Superaccumulator(sumA.get_accumulator());
+            if(sumA >= mpsA){
+                mpsA = mpreal(sumA);
                 post = i+1;
             }
         }
     }
     delete[] dap;
-    *sum = sumA.Round();
-    *mps = mpsA.Round();
+    *sum = sumA.toDouble();
+    *mps = mpsA.toDouble();
     *pos = post;
 
     if(PRINT){
-        cout << endl << "Lazy mps superacc, precise results" << endl;
+        cout << endl << "Exact computation with mpfr" << endl;
         cout << "Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
 }
-
-
-    
-        
-
-
 
