@@ -10,6 +10,7 @@
 
 #include "interval_arithmetic.hpp"
 #include "superaccumulator.hpp"
+#include "ExSUM_FPE.hpp"
 
 #include "debug.hpp"
 
@@ -227,7 +228,9 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
 
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
+    FPExpansionVect<Vec4d,4> sumC(sumA);
     Superaccumulator mpsA = Superaccumulator();
+    FPExpansionVect<Vec4d,4> mpsC(mpsA);
     double post = 0;
     memo* dap = *da;
 
