@@ -237,10 +237,11 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
     for(int i = 0; i != size; i++){
         memo d = dap[i];
         if(d.useful1){
-            sumA.Accumulate(array[i]);
+            sumC.Accumulate(array[i]);
         }
      
         if(d.useful2 == True){
+            //sumC.Flush();
             mpsA = Superaccumulator(sumA.get_accumulator());
             post = i+1;
         }
@@ -248,7 +249,9 @@ void sequential_mps_lazy_superacc(double* array, int size, double* sum, double* 
         }
         else if (d.useful2 == Undefined){
             // Redo the comparison
-            if(!sumA.comp(mpsA)){
+            sumC.Flush();
+            mpsC.Flush();
+            if(!sumC.superacc.comp(mpsC.superacc)){
                 mpsA = Superaccumulator(sumA.get_accumulator());
                 post = i+1;
             }

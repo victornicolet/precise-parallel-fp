@@ -11,7 +11,7 @@ using namespace std;
 
 void sequential_summation_superacc(double* array, int size, double* sum){
     Superaccumulator sumA = Superaccumulator();
-    FPExpansionVect<Vec4d,4> sumC(sumA);
+    FPExpansionVect<double,4> sumC(sumA);
     for(int i = 0; i != size; i++){
         sumC.Accumulate(array[i]);
     }
