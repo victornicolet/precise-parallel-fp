@@ -108,7 +108,7 @@ void sequential_mps_interval_memorized_alt(double* array, int size, double* delt
 
         if(b == True){
             d[i].useful2 = True;
-            mpsI = sumI;
+            mpsI += sumI;
             sumI = in2_create(0.,0.);
             t = i+1;
         }
@@ -156,7 +156,6 @@ void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum
                 sum_useful = false;
             }
             if(mps_useful){
-                mps_useful = false;
                 sum_useful = true;
             }
             else{
@@ -167,6 +166,7 @@ void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum
             dap[i].useful2 = Useless;
         }
         else{
+            bool t = mps_useful || sum_useful;
             if(sum_useful){
                 sum_useful = false;
             }
@@ -174,10 +174,10 @@ void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum
                 mps_useful = false;
                 sum_useful = true;
             }
-            if(mps_useful || sum_useful){
-                sum_useful = true;
+            if(!t){
+              sum_useful = true;
             }
-            else{
+            else{ 
                 dap[i].useful2 = Useless;
             }
         }
@@ -201,6 +201,10 @@ void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum
 
         // Handling step2
         if(d.useful2 == True){
+            bool t =(mps_useful || pos_useful || sum_useful); 
+            if(!t){
+                dap[i].useful2 = Useless;
+            }
             if(pos_useful){
                 pos_useful = false;
             }
@@ -209,16 +213,13 @@ void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum
             }
             if(mps_useful){
                 sum_useful = true;
-                mps_useful = false;
-            }
-            if(!(mps_useful || pos_useful || sum_useful)){
-                dap[i].useful2 = Useless;
             }
         }
         else if(d.useful2 == False){
             dap[i].useful2 = Useless;
         }
         else{
+            bool t = mps_useful || pos_useful || sum_useful;
             if(pos_useful){
                 pos_useful = false;
             }
@@ -227,10 +228,9 @@ void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum
             }
             if(mps_useful){
                 sum_useful = true;
-                mps_useful = false;
             }
-            if(mps_useful || pos_useful || sum_useful){
-                sum_useful = true;
+            if(!t){
+              sum_useful = true;
             }
             else{ 
                 dap[i].useful2 = Useless;
@@ -265,17 +265,17 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
      
         if(d.useful2 == True){
             //sumC.Flush();
-            mpsA = Superaccumulator(sumA.get_accumulator());
+            mpsA.Accumulate(sumA);
+            sumA = Superaccumulator();
             post = i+1;
-        }
-        else if (d.useful2 == False){
         }
         else if (d.useful2 == Undefined){
             // Redo the comparison
             //sumC.Flush();
             //mpsC.Flush();
-            if(!sumA.comp(mpsA)){
-                mpsA = Superaccumulator(sumA.get_accumulator());
+            if(!sumA.Normalize()){
+                mpsA.Accumulate(sumA);
+                sumA = Superaccumulator();
                 post = i+1;
             }
         }
@@ -287,7 +287,7 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
 
     if(PRINT){
         cout << endl << "Exact computation with superacc" << endl;
-        cout << "Sum: " << *sum << endl;
+        cout << "Delta Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
@@ -308,15 +308,17 @@ void sequential_mps_lazy_mpfr_alt(double* array, int size, double* sum, double* 
         }
      
         if(d.useful2 == True){
-            mpsA = mpreal(sumA);
+            mpsA += sumA;
+            sumA = 0.;
             post = i+1;
         }
         else if (d.useful2 == False){
         }
         else if (d.useful2 == Undefined){
             // Redo the comparison
-            if(sumA >= mpsA){
-                mpsA = mpreal(sumA);
+            if(sumA >= 0){
+                mpsA += sumA;
+                sumA = 0.;
                 post = i+1;
             }
         }
@@ -328,7 +330,7 @@ void sequential_mps_lazy_mpfr_alt(double* array, int size, double* sum, double* 
 
     if(PRINT){
         cout << endl << "Exact computation with mpfr" << endl;
-        cout << "Sum: " << *sum << endl;
+        cout << "Delta Sum: " << *sum << endl;
         cout << "Mps: " << *mps << endl;
         cout << "Pos: " << *pos << endl;
     }
