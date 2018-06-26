@@ -94,7 +94,7 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
     __m128d mpsI = in2_create(0.,0.);     
-    memo* d = new memo[size]; 
+    memo* d = new memo[size](); 
     int t = 0;
     
     /* First iteration with interval arithmetic */
@@ -187,6 +187,9 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
         
         // Handling step2
         if(d.useful2 == True){
+            if(!(mps_useful || pos_useful)){
+                dap[i].useful2 = Useless;
+            }
             if(mps_useful){
                 sum_useful = true;
                 mps_useful = false;
@@ -194,14 +197,14 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
             if(pos_useful){
                 pos_useful = false;
             }
-            if(!(mps_useful || pos_useful)){
-                dap[i].useful2 = Useless;
-            }
         }
         else if(d.useful2 == False){
             dap[i].useful2 = Useless;
         }
         else{
+            if(!(mps_useful || pos_useful)){
+                dap[i].useful2 = Useless;
+            }
             if(mps_useful){
                 sum_useful = true;
                 mps_useful = true;
@@ -209,9 +212,6 @@ void sequential_mps_iterate_reverse_pos(double* array, int size, double* sum, do
             if(pos_useful){
                 sum_useful = true;
                 mps_useful = true;
-            }
-            if(!(mps_useful || pos_useful)){
-                dap[i].useful2 = Useless;
             }
         }
 

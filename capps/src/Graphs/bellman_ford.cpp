@@ -289,6 +289,66 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     return R;
 }
 
+compType Graph::reverseBellmanFord(int origin, compType T){
+
+    // Memorize pred
+    vector<bool> predI(nVertices,false);
+    predI[nVertices-1] = true;
+    
+    // Create structure to memoize distances
+    vector<vector<bool>> distancesAux(nVertices);
+    for(int i = 0; i != nVertices; i++){
+        vector<bool> distancesLine(nVertices,false);
+        distancesAux[i] = distancesLine;
+    }
+
+    // Main loop
+    for(int i = nVertices-1; i != 0; i--){
+        // For each node
+        for(int j = nodes.size()-1; j >= 0; j--){
+
+
+            // For each edge adjacent to this node
+            for(int k = nodes[j]->adjacentEdges.size() - 1; k >= 0; k--){
+    
+                // If using this edge makes the distance shorter...
+                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
+
+                CompResult b = T[i][j][k];
+                if(b == newOptimum){
+                    if(!(predI[j] || distancesAux[i][j])){
+                        T[i][j][k] = useless;
+                    }
+                    if(predI[j]){
+                        predI[j] = false;
+                    }
+                    if(distancesAux[i][j]){
+                        distancesAux[i-1][sourceIndex] = true;
+                        distancesAux[i][j] = false;
+                    }
+
+                }else if (b == undefined){
+                    bool t = !(predI[j] || distancesAux[i][j]);
+                    if(distancesAux[i][j]){
+                        distancesAux[i-1][sourceIndex] = true;
+                    }
+                    if(t){
+                        T[i][j][k] = useless;
+                    }
+                    else{
+                        distancesAux[i-1][sourceIndex] = true;
+                    }
+                }
+                if(distancesAux[i][j]){
+                    distancesAux[i][j] = false;
+                    distancesAux[i-1][j] = true;
+                }
+            }
+        }
+    }
+    return T;
+}
+
 mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, vector<vector<vector<CompResult>>> c){
    
     // Memorize pred

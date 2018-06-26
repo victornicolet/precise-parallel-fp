@@ -89,7 +89,7 @@ void test(){
 void runtimeTest(){
    
     // for each dynamic range
-    vector<int> graphSizes  {10,50,100,300,500,700,1000};
+    vector<int> graphSizes  {10,50,100,300};
     unsigned long s = graphSizes.size();
     
     // Store results to plot

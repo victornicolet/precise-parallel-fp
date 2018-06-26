@@ -168,11 +168,7 @@ void sequential_mps_iterate_reverse_mps_alt(double* array, int size, double* sum
         }
         else{
             bool t = mps_useful || sum_useful;
-            if(sum_useful){
-                sum_useful = false;
-            }
             if(mps_useful){
-                mps_useful = false;
                 sum_useful = true;
             }
             if(!t){
@@ -221,12 +217,6 @@ void sequential_mps_iterate_reverse_pos_alt(double* array, int size, double* sum
         }
         else{
             bool t = mps_useful || pos_useful || sum_useful;
-            if(pos_useful){
-                pos_useful = false;
-            }
-            if(sum_useful){
-                sum_useful = false;
-            }
             if(mps_useful){
                 sum_useful = true;
             }

@@ -32,13 +32,16 @@ class node {
     vector<edge*> adjacentEdges;
 };
 
-
+// Enum to represent a comparison status
 enum CompResult{
     newOptimum,
     noChange,
-    undefined
+    undefined,
+    useless
 };
 
+// typedef to memorize information
+typedef vector<vector<vector<CompResult>>> compType;
 
 // Struct returned by the bellman Ford method
 struct bellmanFordResult{
@@ -54,7 +57,7 @@ struct intervalBellmanFordResult{
     vector<int> pred;
     vector<vector<int>> totalc;
     vector<vector<int>> undefinedc;
-    vector<vector<vector<CompResult>>> memo;
+    compType memo;
 };
 
 // Struct returned by the superacc bellman Ford result
@@ -78,12 +81,15 @@ class Graph {
 
     // Same function with interval arithmetic
     intervalBellmanFordResult intervalBellmanFord(int origin);
+   
+    // Reverse processing
+    compType reverseBellmanFord(int origin,compType c);
 
     // Same function with mpfr
     mpfrBellmanFordResult mpfrBellmanFord(int origin);
     
     // Same function with lazy
-    mpfrBellmanFordResult lazyMpfrBellmanFord(int origin, vector<vector<vector<CompResult>>> c);
+    mpfrBellmanFordResult lazyMpfrBellmanFord(int origin, compType c);
     
     int nVertices;
     vector<node*> nodes;
