@@ -98,7 +98,7 @@ void sequential_mps_interval_memorized_alt(double* array, int size, double* delt
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     __m128d sumI = in2_create(0.,0.);     
     __m128d mpsI = in2_create(0.,0.);     
-    memo* d = new memo[size]; 
+    memo* d = new memo[size](); 
     int t = 0;
     
     /* First iteration with interval arithmetic */
@@ -117,7 +117,8 @@ void sequential_mps_interval_memorized_alt(double* array, int size, double* delt
         }
         else {
             d[i].useful2 = Undefined;
-            mpsI = in2_max(in2_add(mpsI,sumI),mpsI);
+            sumI = in2_max(sumI,in2_create(0.,0.));
+            mpsI = in2_add(mpsI,sumI);
             t = i+1;
         }
     }
@@ -258,6 +259,7 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
     memo* dap = *da;
 
     for(int i = 0; i != size; i++){
+        
         memo d = dap[i];
         if(d.useful1){
             sumA.Accumulate(array[i]);

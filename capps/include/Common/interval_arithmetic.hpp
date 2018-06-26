@@ -39,6 +39,9 @@ enum boolean{
 };
 
 struct memo{
+    memo() : useful1(){
+        useful2 = False;
+        };
     bool useful1;
     boolean useful2;
 };

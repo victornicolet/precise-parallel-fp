@@ -19,6 +19,7 @@
 #include "sequential_mps_alt.hpp"
 #include "sequential_mts.hpp"
 #include "debug.hpp"
+#include "printFunctions.hpp"
 
 using namespace tbb;
 using namespace std;
@@ -354,7 +355,7 @@ void runtime_comparison_sequential_alt(){
             memo* da;
             
             double time_double = 0.0;
-            PFP_TIME(sequential_mps_double_alt(drray,size,&sum,&mps,&pos),start,time_double);
+            PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_double);
             double time_superacc = 0.0;
             PFP_TIME(sequential_mps_superacc_alt(drray,size,&sum,&mps,&pos),start,time_superacc);
             double time_mpfr = 0.0;
@@ -369,8 +370,10 @@ void runtime_comparison_sequential_alt(){
             }
             double time1 = 0.0;
             PFP_TIME(sequential_mps_interval_memorized_alt(drray,size,&sum,&mps,&pos,&da),start,time1);
+            //printMemo(da,size);
             double time2 = 0.0;
             PFP_TIME(sequential_mps_iterate_reverse_mps_alt(drray,size,&sum,&mps,&pos,&da),start,time2);
+            //printMemo(da,size);
             double time3 = 0.0;
             PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,&da),start,time3);
             /* Lazy computation, pos superacc */

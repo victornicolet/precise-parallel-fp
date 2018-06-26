@@ -47,14 +47,15 @@ void print(__m128d x){
 
 
 __m128d in2_add_double(__m128d x, double y){
-    __m128d y0 = in2_create(y,y);
-    return in2_add(x,y0);
+    //__m128d y0 = in2_create(y,y);
+    //return in2_add(x,y0);
+    return x + (__m128d){-y,y};
 }
 
 boolean inferior(__m128d a, __m128d b){
-    if(in2_max(a) <= in2_min(b)) return True;
+    if(a[1] <= -b[0]) return True;
     // Should it be equal or inferior or equal there ?
-    else if (in2_min(a) > in2_max(b)) return False;
+    else if (-a[0] > b[1]) return False;
     else return Undefined;
 }
 
