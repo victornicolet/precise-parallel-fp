@@ -32,16 +32,9 @@ class node {
     vector<edge*> adjacentEdges;
 };
 
-// Enum to represent a comparison status
-enum CompResult{
-    newOptimum,
-    noChange,
-    undefined,
-    useless
-};
 
 // typedef to memorize information
-typedef vector<vector<vector<CompResult>>> compType;
+typedef vector<vector<vector<memo>>> compType;
 
 // Struct returned by the bellman Ford method
 struct bellmanFordResult{
@@ -57,7 +50,7 @@ struct intervalBellmanFordResult{
     vector<int> pred;
     vector<vector<int>> totalc;
     vector<vector<int>> undefinedc;
-    compType memo;
+    compType mem;
 };
 
 // Struct returned by the superacc bellman Ford result

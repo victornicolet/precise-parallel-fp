@@ -51,14 +51,14 @@ Graph::Graph(int nVertices, double edgeProba, int emin, int emax, int negratio, 
         double test = rand() / (double) (RAND_MAX);
         if(test <= edgeProba){
             // Generate weight
-            double w = offset;
+            double w = randDouble(emin,emax,negratio);
             // Create edges
             edge* ei = new edge(0,w);
             nodes[j]->adjacentEdges.push_back(ei);
         }
         test = rand() / (double) (RAND_MAX);
         if(test <= edgeProba){
-            double w = offset;
+            double w = randDouble(emin,emax,negratio);
             edge* ej = new edge(j,w);
             nodes[0]->adjacentEdges.push_back(ej);
         }
@@ -112,40 +112,28 @@ bellmanFordResult Graph::bellmanFord(int origin){
     for(int i = 1; i != nVertices; i++){
 
         // For each node
-        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-
-            int nodeindex = (*it)->index;
+        for(int j = 0; j!= nVertices; j++){
 
             // Set initial distance 
-            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+            distancesAux[i][j] = distancesAux[i-1][j];
 
             // For each edge adjacent to this node
-            for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
+            for(int k = 0; k != nodes[j]->adjacentEdges.size(); k++){
 
-                // If using this edge makes the distance shorter...
-                int sourceIndex = (*it0)->source;
-                double aux = distancesAux[i-1][sourceIndex] + (*it0)-> weight;
-                if(aux < distancesAux[i][nodeindex]){
-                    distancesAux[i][nodeindex] = aux;
-                    pred[nodeindex] = sourceIndex;
+                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
+
+                double aux = distancesAux[i-1][sourceIndex] + nodes[j]->adjacentEdges[k]-> weight;
+                /*
+                cout << "Node Index: " << j << endl;
+                cout << "Pred: " << pred[j] << endl;
+                cout << "Edge source: " << sourceIndex << endl;
+                cout << "Temp distance: " << distancesAux[i][j] << endl;
+                cout << "Aux: " << aux << endl << endl;
+                */
+                if(aux < distancesAux[i][j]){
+                    distancesAux[i][j] = aux;
+                    pred[j] = sourceIndex;
                 }
-            }
-        }
-    }
-
-    // Check that no negative cycles
-    bool b;
-
-    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-
-        // For each edge adjacent to this node
-        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
-
-            // If using this edge makes the distance shorter...
-            int sourceIndex = (*it0)->source;
-            double aux = distancesAux[nVertices-1][sourceIndex] + (*it0)-> weight;
-            if(aux < distancesAux[nVertices-1][(*it)->index]){
-                b = false;
             }
         }
     }
@@ -154,7 +142,7 @@ bellmanFordResult Graph::bellmanFord(int origin){
     bellmanFordResult R;
     R.pred = pred;
     R.distances = distancesAux[nVertices-1];
-    R.b = b;
+    R.b = True;
     return R;
 }
 
@@ -172,22 +160,12 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     }
     distancesAux[0][origin] = in2_create(0,0);
 
-    // Create structure to memoize undefined comparisons
-    vector<vector<int>> totalc(nVertices+1);
-    vector<vector<int>> undefc(nVertices+1);
-    for(int i = 0; i != nVertices+1; i++){
-        vector<int> undefCompsLine(nVertices,0);
-        vector<int> totalCompsLine(nVertices,0);
-        undefc[i] = undefCompsLine;
-        totalc[i] = totalCompsLine;
-    }
-
     // Generate comparison memorization
-    vector<vector<vector<CompResult>>> c(nVertices);
+    compType c(nVertices);
     for(int i = 1; i != nVertices; i++){
-        vector<vector<CompResult>> c0(nVertices);
+        vector<vector<memo>> c0(nVertices);
         for(int j = 0; j!= nVertices; j++){
-            vector<CompResult> c1(nodes[j]->adjacentEdges.size(),noChange);
+            vector<memo> c1(nodes[j]->adjacentEdges.size());
             c0[j] = c1;
         }
         c[i] = c0;
@@ -196,96 +174,45 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     // Main loop
     for(int i = 1; i != nVertices; i++){
         // For each node
-        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-            // Counting undefined comparisons
-            int uc = 0;
-            int tc = 0;
+        for(int j = 0; j != nodes.size(); j++){
 
-            int nodeindex = (*it)->index;
-            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+            distancesAux[i][j] = distancesAux[i-1][j];
 
             // For each edge adjacent to this node
-            for(int k = 0; k != (*it)->adjacentEdges.size(); k++){
+            for(int k = 0; k != nodes[j]->adjacentEdges.size(); k++){
     
                 // If using this edge makes the distance shorter...
-                int sourceIndex = (*it)->adjacentEdges[k]->source;
-                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],(*it)->adjacentEdges[k]->weight);
-                /*cout << "node: " << nodeindex<< endl;
-                cout << "source: " << sourceIndex << endl;
+                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
+                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],nodes[j]->adjacentEdges[k]->weight);
+                /*
+                cout << "Node Index: " << j << endl;
+                cout << "Pred: " << predI[j] << endl;
+                cout << "Edge source: " << sourceIndex << endl;
+                cout << "Temp distance: ";
+                print(distancesAux[i][j]);
+                cout << endl << "Aux: ";
                 print(aux);
-                cout << endl;
-                print(distancesAux[i][nodeindex]);
-                cout << endl;*/
-                boolean b = inferior(distancesAux[i][nodeindex],aux);
+                cout << endl << endl;
+                */
+                boolean b = inferior(distancesAux[i][j],aux);
                 if(b == False){
-                    distancesAux[i][nodeindex] = aux;
-                    predI[nodeindex] = sourceIndex;
-                    c[i][nodeindex][k] = newOptimum;
+                    distancesAux[i][j] = aux;
+                    predI[j] = sourceIndex;
                 }else if (b == Undefined){
-                    c[i][nodeindex][k] = undefined;
-                    /*cout<< endl;
-                    cout << nodeindex;
-                    cout<< endl;
-                    cout << predecessors[nodeindex];
-                    cout << endl;
-                    cout << sourceIndex;
-                    cout << endl;
-                    print(distancesAux[i][nodeindex]);
-                    cout << endl;
-                    print(aux);
-                    cout << endl;
-                */
-                    distancesAux[i][nodeindex] = in2_min(aux,distancesAux[i][nodeindex]);
-                    uc += 1;
-                    // What do we do for predecessors ? 
+                    distancesAux[i][j] = in2_min(aux,distancesAux[i][j]);
                 }
-                tc += 1;
+                c[i][j][k].useful2 = b;
             }
-
-            totalc[i][nodeindex] = tc;
-            undefc[i][nodeindex] = uc;
         }
     }
-    
-    boolean result = True;
-    // Check that no negative cycles
-    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-        int uc = 0;
-        int tc = 0;
-        int nodeindex = (*it)->index;
-        // For each edge adjacent to this node
-        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
-
-            // If using this edge makes the distance shorter...
-            int sourceIndex = (*it0)->source;
-            __m128d aux = in2_add_double(distancesAux[nVertices-1][sourceIndex],(*it0)-> weight);
-
-            boolean b = inferior(distancesAux[nVertices-1][nodeindex],aux);
-            if(b == False) result = False;
-            else if(b == Undefined && result == True){
-                /*cout << endl;
-                print(aux);
-                cout << endl;
-                print(distancesAux[nVertices-1][nodeindex]);
-                cout << endl;
-                */
-                uc += 1;
-                result = Undefined;
-            }
-            tc += 1;
-        }
-        totalc[nVertices][nodeindex] = tc;
-        undefc[nVertices][nodeindex] = uc;
-    }
+   
 
     // Final result
     intervalBellmanFordResult R;
-    R.b = result;
+    R.b = False;
     R.distances =distancesAux[nVertices-1];
     R.pred = predI;
-    R.totalc = totalc;
-    R.undefinedc = undefc;
-    R.memo = c;
+    R.mem = c;
     return R;
 }
 
@@ -302,54 +229,72 @@ compType Graph::reverseBellmanFord(int origin, compType T){
         distancesAux[i] = distancesLine;
     }
 
+    bool aux = false;
+
     // Main loop
-    for(int i = nVertices-1; i != 0; i--){
+    for(int i = nVertices-1; i > 0; i--){
         // For each node
         for(int j = nodes.size()-1; j >= 0; j--){
-
-
+            
             // For each edge adjacent to this node
             for(int k = nodes[j]->adjacentEdges.size() - 1; k >= 0; k--){
-    
-                // If using this edge makes the distance shorter...
-                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
 
-                CompResult b = T[i][j][k];
-                if(b == newOptimum){
+                int sourceIndex = nodes[j]->adjacentEdges.size();
+    
+                memo b = T[i][j][k];
+
+                // Comparison
+                if(b.useful2 == False){
                     if(!(predI[j] || distancesAux[i][j])){
-                        T[i][j][k] = useless;
+                        T[i][j][k].useful2 = Useless;
                     }
                     if(predI[j]){
                         predI[j] = false;
+                        predI[sourceIndex] = true;
                     }
                     if(distancesAux[i][j]){
-                        distancesAux[i-1][sourceIndex] = true;
+                        aux = true;
                         distancesAux[i][j] = false;
                     }
-
-                }else if (b == undefined){
-                    bool t = !(predI[j] || distancesAux[i][j]);
+                }else if (b.useful2 == True){
+                    T[i][j][k].useful2 = Useless;
+                }else if (b.useful2 == Undefined){
+                    bool t = predI[j] || distancesAux[i][j];
+                    if(!t){
+                        T[i][j][k].useful2 = Useless;
+                    }
+                    if(predI[j]){
+                        predI[sourceIndex] = true;
+                    }
                     if(distancesAux[i][j]){
-                        distancesAux[i-1][sourceIndex] = true;
+                        aux = true;
                     }
                     if(t){
-                        T[i][j][k] = useless;
-                    }
-                    else{
-                        distancesAux[i-1][sourceIndex] = true;
+                        aux = true;
                     }
                 }
-                if(distancesAux[i][j]){
-                    distancesAux[i][j] = false;
-                    distancesAux[i-1][j] = true;
+
+                // Computation of aux 
+                if(aux){
+                    aux = false;
+                    distancesAux[i-1][sourceIndex] = true;
+                    b.useful1 = true;
+                }else{
+                    b.useful1 = false;
                 }
+
             }
+        // Assignment of previous value
+        if(distancesAux[i][j]){
+            distancesAux[i-1][j] = true;
+            distancesAux[i][j] = false;
+        }
         }
     }
     return T;
 }
 
-mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, vector<vector<vector<CompResult>>> c){
+mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
    
     // Memorize pred
     vector<int> predM(nVertices,-1);
@@ -367,53 +312,36 @@ mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, vector<vector<vecto
     }
     distancesAux[0][origin] = 0;
     
+    mpreal aux;
+    int sourceIndex;
+
     // Main loop
     for(int i = 1; i != nVertices; i++){
         // For each node
-        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+        for(int j = 0; j!= nVertices; j++){
 
-            int nodeindex = (*it)->index;
-            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+            distancesAux[i][j] = distancesAux[i-1][j];
 
             // For each edge adjacent to this node
-            for(int k = 0; k != (*it)->adjacentEdges.size(); k++){
+            for(int k = 0; k != nodes[j]->adjacentEdges.size(); k++){
     
-                // Take the result of the lazy comparison
-                CompResult cr = c[i][nodeindex][k];
+                memo cr = c[i][j][k];
+                
+                if(cr.useful1){
+                    sourceIndex = nodes[j]->adjacentEdges[k]->source;
+                    aux = distancesAux[i-1][sourceIndex]+nodes[j]->adjacentEdges[k]->weight;
+                }
     
-                if(cr == undefined){
-                    // If using this edge makes the distance shorter...
-                    int sourceIndex = (*it)->adjacentEdges[k]->source;
-                    mpreal aux = distancesAux[i-1][sourceIndex]+(*it)->adjacentEdges[k]->weight;
-                    
-                    
-
-                    if(distancesAux[i][nodeindex]>aux){
-                        distancesAux[i][nodeindex] = aux;
-                        predM[nodeindex] = sourceIndex;
+                if(cr.useful2 == False){
+                    distancesAux[i][j] = aux;
+                    predM[j] = sourceIndex;
+                }
+                else if(cr.useful2 == Undefined){
+                    if(aux < distancesAux[i][j]){
+                        distancesAux[i][j] = aux;
+                        predM[j] = sourceIndex;
                     }
                 }
-                else if(cr == newOptimum){
-                    int sourceIndex = (*it)->adjacentEdges[k]->source;
-                    mpreal aux = distancesAux[i-1][sourceIndex]+(*it)->adjacentEdges[k]->weight;
-                    distancesAux[i][nodeindex] = aux;
-                    predM[nodeindex] = sourceIndex;
-                }
-            }
-        }
-    }
-
-    // Check that no negative cycles
-    bool b = true;
-    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-        // For each edge adjacent to this node
-        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
-
-            int sourceIndex = (*it0)->source;
-            // If using this edge makes the distance shorter...
-            mpreal aux = distancesAux[nVertices-1][sourceIndex]+(*it0)-> weight;
-            if(distancesAux[nVertices-1][(*it)->index]>aux){
-                b = false;
             }
         }
     }
@@ -438,7 +366,6 @@ mpfrBellmanFordResult Graph::mpfrBellmanFord(int origin){
     // Create structure to memoize distances
     vector<vector<mpreal>> distancesAux(nVertices);
     for(int i = 0; i != nVertices; i++){
-        
         distancesAux[i] = vector<mpreal>(nVertices);
         for(int j = 0; j!= nVertices; j++){
             distancesAux[i][j] = mpfr::const_infinity(1,1000);
@@ -450,40 +377,21 @@ mpfrBellmanFordResult Graph::mpfrBellmanFord(int origin){
     // Main loop
     for(int i = 1; i != nVertices; i++){
         // For each node
-        for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
+        for(int j = 0; j!= nVertices; j++){
 
-            int nodeindex = (*it)->index;
-            distancesAux[i][nodeindex] = distancesAux[i-1][nodeindex];
+            distancesAux[i][j] = distancesAux[i-1][j];
 
             // For each edge adjacent to this node
-            for(int k = 0; k != (*it)->adjacentEdges.size(); k++){
-    
+            for(int k = 0; k != nodes[j]->adjacentEdges.size(); k++){
     
                 // If using this edge makes the distance shorter...
-                int sourceIndex = (*it)->adjacentEdges[k]->source;
-                mpreal aux = distancesAux[i-1][sourceIndex]+(*it)->adjacentEdges[k]->weight;
+                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
+                mpreal aux = distancesAux[i-1][sourceIndex]+nodes[j]->adjacentEdges[k]->weight;
                 
-                
-
-                if(distancesAux[i][nodeindex]>aux){
-                    distancesAux[i][nodeindex] = aux;
-                    predM[nodeindex] = sourceIndex;
+                if(distancesAux[i][j]>aux){
+                    distancesAux[i][j] = aux;
+                    predM[j] = sourceIndex;
                 }
-            }
-        }
-    }
-
-    // Check that no negative cycles
-    bool b = true;
-    for(vector<node*>::iterator it = nodes.begin(); it != nodes.end(); it++){
-        // For each edge adjacent to this node
-        for(vector<edge*>::iterator it0 = (*it)->adjacentEdges.begin(); it0 != (*it)->adjacentEdges.end(); it0++){
-
-            int sourceIndex = (*it0)->source;
-            // If using this edge makes the distance shorter...
-            mpreal aux = distancesAux[nVertices-1][sourceIndex]+(*it0)-> weight;
-            if(distancesAux[nVertices-1][(*it)->index]>aux){
-                b = false;
             }
         }
     }
