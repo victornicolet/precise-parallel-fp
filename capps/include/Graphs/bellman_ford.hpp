@@ -76,7 +76,7 @@ class Graph {
     intervalBellmanFordResult intervalBellmanFord(int origin);
    
     // Reverse processing
-    compType reverseBellmanFord(int origin,compType c);
+    void reverseBellmanFord(int origin,compType& c);
 
     // Same function with mpfr
     mpfrBellmanFordResult mpfrBellmanFord(int origin);

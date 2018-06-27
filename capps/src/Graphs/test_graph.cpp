@@ -89,7 +89,7 @@ void test(){
 void runtimeTest(){
    
     // for each dynamic range
-    vector<int> graphSizes  {5,50,100,300,400,500};
+    vector<int> graphSizes  {500,1300};
     unsigned long s = graphSizes.size();
     
     // Store results to plot
@@ -100,36 +100,38 @@ void runtimeTest(){
         
         // Generate a graph
         int nV = graphSizes[r];
-        Graph g(nV,1,-1000,1000,1,0);    
+        Graph g(nV,0.5,-1000,1000,1,0);    
 
         // Tests
-        double start = 0.0, time_double = 0.0, time_interval = 0.0, time_mpfr = 0.0, time_lazy_mpfr = 0.0;
+        double start = 0.0, time_double = 0.0, time_interval = 0.0, time_reverse = 0.0, time_mpfr = 0.0, time_lazy_mpfr = 0.0;
 
         PFP_TIME(bellmanFordResult R = g.bellmanFord(0),start,time_double);
         PFP_TIME(intervalBellmanFordResult R0 = g.intervalBellmanFord(0),start,time_interval);
-        PFP_TIME(mpfrBellmanFordResult R1 = g.mpfrBellmanFord(0),start,time_mpfr);
+        PFP_TIME(g.reverseBellmanFord(0,R0.mem),start,time_reverse);
+        //PFP_TIME(mpfrBellmanFordResult R1 = g.mpfrBellmanFord(0),start,time_mpfr);
         PFP_TIME(mpfrBellmanFordResult R2 = g.lazyMpfrBellmanFord(0,R0.mem),start,time_lazy_mpfr);
 
         double time_double_aux = time_double / time_double;
         time_interval = time_interval / time_double;
         time_mpfr = time_mpfr / time_double;
         time_lazy_mpfr = time_lazy_mpfr / time_double;
+        time_reverse = time_reverse / time_double;
 
         // Compute mean discrepancy between result
+        /*
         double mean1 = 0.0, mean2 = 0.0;
         for(int i = 0; i != nV; i++){
-            cout << "Floating-Point distance: " << R.distances[i] << endl;
-            cout << "Interval distance: ";
-            print(R0.distances[i]); cout << endl;
-            cout << "Precise distance: " << R1.distances[i] << endl;
-            cout << "Lazy distance: " << R2.distances[i] << endl << endl;
-            mean1 += abs(R1.distances[i] - R.distances[i]);
-            mean2 += abs(R2.distances[i] - R1.distances[i]);
+            cout << "Floating-Point pred: " << R.pred[i] << endl;
+            cout << "Interval pred: " << R0.pred[i] << endl;
+            //cout << "Precise pred: " << R1.pred[i] << endl;
+            cout << "Lazy pred: " << R2.pred[i] << endl << endl;
+            //mean1 += abs(R1.distances[i] - R.distances[i]);
+            //mean2 += abs(R2.distances[i] - R1.distances[i]);
         }
         cout << "Mpfr result - double result: " << mean1 << endl;
         cout << "Lazy mpfr result - Mpfr result: " << mean2 << endl;
-        
-        results << to_string(nV) << "," << to_string(time_double_aux) << "," << to_string(time_mpfr) << "," << to_string(time_lazy_mpfr) << "," << to_string(time_interval) << "," << to_string(time_interval+time_lazy_mpfr) << endl;
+        */
+        results << to_string(nV) << "," << to_string(time_double_aux) << "," << to_string(time_mpfr) << "," << to_string(time_lazy_mpfr) << "," << to_string(time_interval) << "," << to_string(time_reverse) << "," << to_string(time_interval+time_reverse+time_lazy_mpfr) << endl;
     }
     results.close();
 

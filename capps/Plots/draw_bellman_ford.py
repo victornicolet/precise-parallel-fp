@@ -13,10 +13,11 @@ results = np.array(results).transpose()
 print results
 
 pypl.plot(results[0],results[1],label="Doubles")
-pypl.plot(results[0],results[2],label="Mpfr")
+#pypl.plot(results[0],results[2],label="Mpfr")
 pypl.plot(results[0],results[3],label="Lazy mpfr, second step of computation")
 pypl.plot(results[0],results[4],label="Lazy mpfr, first step with interval arithmetic")
-pypl.plot(results[0],results[5],label="Lazy mpfr, total time")
+pypl.plot(results[0],results[5],label="Lazy mpfr, reverse processing")
+pypl.plot(results[0],results[6],label="Lazy mpfr, total time")
 
 pypl.xlabel("Number of vertices")
 pypl.ylabel("Relative mean computation time")

@@ -184,16 +184,7 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
                 // If using this edge makes the distance shorter...
                 int sourceIndex = nodes[j]->adjacentEdges[k]->source;
                 __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],nodes[j]->adjacentEdges[k]->weight);
-                /*
-                cout << "Node Index: " << j << endl;
-                cout << "Pred: " << predI[j] << endl;
-                cout << "Edge source: " << sourceIndex << endl;
-                cout << "Temp distance: ";
-                print(distancesAux[i][j]);
-                cout << endl << "Aux: ";
-                print(aux);
-                cout << endl << endl;
-                */
+
                 boolean b = inferior(distancesAux[i][j],aux);
                 if(b == False){
                     distancesAux[i][j] = aux;
@@ -216,7 +207,7 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     return R;
 }
 
-compType Graph::reverseBellmanFord(int origin, compType T){
+void Graph::reverseBellmanFord(int origin, compType& T){
 
     // Memorize pred
     vector<bool> predI(nVertices,false);
@@ -239,26 +230,28 @@ compType Graph::reverseBellmanFord(int origin, compType T){
             // For each edge adjacent to this node
             for(int k = nodes[j]->adjacentEdges.size() - 1; k >= 0; k--){
 
-                int sourceIndex = nodes[j]->adjacentEdges.size();
+                int sourceIndex = nodes[j]->adjacentEdges[k]->source;
     
-                memo b = T[i][j][k];
+                boolean b = T[i][j][k].useful2;
 
                 // Comparison
-                if(b.useful2 == False){
+                if(b == False){
                     if(!(predI[j] || distancesAux[i][j])){
                         T[i][j][k].useful2 = Useless;
                     }
-                    if(predI[j]){
-                        predI[j] = false;
-                        predI[sourceIndex] = true;
+                    else{
+                        if(predI[j]){
+                            predI[j] = false;
+                            predI[sourceIndex] = true;
+                        }
+                        else if(distancesAux[i][j]){
+                            aux = true;
+                            distancesAux[i][j] = false;
+                        }
                     }
-                    if(distancesAux[i][j]){
-                        aux = true;
-                        distancesAux[i][j] = false;
-                    }
-                }else if (b.useful2 == True){
+                }else if (b == True){
                     T[i][j][k].useful2 = Useless;
-                }else if (b.useful2 == Undefined){
+                }else if (b == Undefined){
                     bool t = predI[j] || distancesAux[i][j];
                     if(!t){
                         T[i][j][k].useful2 = Useless;
@@ -278,9 +271,9 @@ compType Graph::reverseBellmanFord(int origin, compType T){
                 if(aux){
                     aux = false;
                     distancesAux[i-1][sourceIndex] = true;
-                    b.useful1 = true;
+                    T[i][j][k].useful1 = true;
                 }else{
-                    b.useful1 = false;
+                    T[i][j][k].useful1 = false;
                 }
 
             }
@@ -291,7 +284,6 @@ compType Graph::reverseBellmanFord(int origin, compType T){
         }
         }
     }
-    return T;
 }
 
 mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
@@ -327,12 +319,18 @@ mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
     
                 memo cr = c[i][j][k];
                 
+                sourceIndex = nodes[j]->adjacentEdges[k]->source;
+                
                 if(cr.useful1){
-                    sourceIndex = nodes[j]->adjacentEdges[k]->source;
                     aux = distancesAux[i-1][sourceIndex]+nodes[j]->adjacentEdges[k]->weight;
                 }
     
                 if(cr.useful2 == False){
+                    /*cout << "Node Index: " << j << endl;
+                    cout << "Pred: " << predM[j] << endl;
+                    cout << "Edge source: " << sourceIndex << endl;
+                    cout << "Temp distance: " << distancesAux[i][j] << endl;
+                    cout << "Aux: " << aux << endl << endl;*/
                     distancesAux[i][j] = aux;
                     predM[j] = sourceIndex;
                 }
