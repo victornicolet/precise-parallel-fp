@@ -161,15 +161,13 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     distancesAux[0][origin] = in2_create(0,0);
 
     // Generate comparison memorization
-    compType c(nVertices);
-    for(int i = 1; i != nVertices; i++){
-        vector<vector<memo>> c0(nVertices);
-        for(int j = 0; j!= nVertices; j++){
-            vector<memo> c1(nodes[j]->adjacentEdges.size());
-            c0[j] = c1;
-        }
-        c[i] = c0;
+    long memsize = 0;
+    for(int j = 0; j!= nVertices; j++){
+        memsize += nodes[j]->adjacentEdges.size();
     }
+    memsize = (nVertices-1)*memsize;
+    memo* c = new memo[memsize];
+    long memindex = 0;
     
     // Main loop
     for(int i = 1; i != nVertices; i++){
@@ -192,7 +190,8 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
                 }else if (b == Undefined){
                     distancesAux[i][j] = in2_min(aux,distancesAux[i][j]);
                 }
-                c[i][j][k].useful2 = b;
+                c[memindex].useful2 = b;
+                memindex++;
             }
         }
     }
@@ -204,10 +203,11 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     R.distances =distancesAux[nVertices-1];
     R.pred = predI;
     R.mem = c;
+    R.memsize = memsize; 
     return R;
 }
 
-void Graph::reverseBellmanFord(int origin, compType& T){
+void Graph::reverseBellmanFord(int origin, memo* T, long memsize){
 
     // Memorize pred
     vector<bool> predI(nVertices,false);
@@ -231,13 +231,14 @@ void Graph::reverseBellmanFord(int origin, compType& T){
             for(int k = nodes[j]->adjacentEdges.size() - 1; k >= 0; k--){
 
                 int sourceIndex = nodes[j]->adjacentEdges[k]->source;
-    
-                boolean b = T[i][j][k].useful2;
+        
+                memsize--;
+                boolean b = T[memsize].useful2;
 
                 // Comparison
                 if(b == False){
                     if(!(predI[j] || distancesAux[i][j])){
-                        T[i][j][k].useful2 = Useless;
+                        T[memsize].useful2 = Useless;
                     }
                     else{
                         if(predI[j]){
@@ -250,11 +251,11 @@ void Graph::reverseBellmanFord(int origin, compType& T){
                         }
                     }
                 }else if (b == True){
-                    T[i][j][k].useful2 = Useless;
+                    T[memsize].useful2 = Useless;
                 }else if (b == Undefined){
                     bool t = predI[j] || distancesAux[i][j];
                     if(!t){
-                        T[i][j][k].useful2 = Useless;
+                        T[memsize].useful2 = Useless;
                     }
                     if(predI[j]){
                         predI[sourceIndex] = true;
@@ -271,9 +272,9 @@ void Graph::reverseBellmanFord(int origin, compType& T){
                 if(aux){
                     aux = false;
                     distancesAux[i-1][sourceIndex] = true;
-                    T[i][j][k].useful1 = true;
+                    T[memsize].useful1 = true;
                 }else{
-                    T[i][j][k].useful1 = false;
+                    T[memsize].useful1 = false;
                 }
 
             }
@@ -286,7 +287,7 @@ void Graph::reverseBellmanFord(int origin, compType& T){
     }
 }
 
-mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
+mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, memo* c){
    
     // Memorize pred
     vector<int> predM(nVertices,-1);
@@ -306,6 +307,8 @@ mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
     
     mpreal aux;
     int sourceIndex;
+    
+    long memindex = 0;
 
     // Main loop
     for(int i = 1; i != nVertices; i++){
@@ -317,7 +320,8 @@ mpfrBellmanFordResult Graph::lazyMpfrBellmanFord(int origin, compType c){
             // For each edge adjacent to this node
             for(int k = 0; k != nodes[j]->adjacentEdges.size(); k++){
     
-                memo cr = c[i][j][k];
+                memo cr = c[memindex];
+                memindex++;
                 
                 sourceIndex = nodes[j]->adjacentEdges[k]->source;
                 

@@ -89,7 +89,7 @@ void test(){
 void runtimeTest(){
    
     // for each dynamic range
-    vector<int> graphSizes  {500,1300};
+    vector<int> graphSizes  {500,1800};
     unsigned long s = graphSizes.size();
     
     // Store results to plot
@@ -107,7 +107,7 @@ void runtimeTest(){
 
         PFP_TIME(bellmanFordResult R = g.bellmanFord(0),start,time_double);
         PFP_TIME(intervalBellmanFordResult R0 = g.intervalBellmanFord(0),start,time_interval);
-        PFP_TIME(g.reverseBellmanFord(0,R0.mem),start,time_reverse);
+        PFP_TIME(g.reverseBellmanFord(0,R0.mem,R0.memsize),start,time_reverse);
         //PFP_TIME(mpfrBellmanFordResult R1 = g.mpfrBellmanFord(0),start,time_mpfr);
         PFP_TIME(mpfrBellmanFordResult R2 = g.lazyMpfrBellmanFord(0,R0.mem),start,time_lazy_mpfr);
 

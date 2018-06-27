@@ -50,7 +50,8 @@ struct intervalBellmanFordResult{
     vector<int> pred;
     vector<vector<int>> totalc;
     vector<vector<int>> undefinedc;
-    compType mem;
+    memo* mem;
+    long memsize;
 };
 
 // Struct returned by the superacc bellman Ford result
@@ -76,13 +77,13 @@ class Graph {
     intervalBellmanFordResult intervalBellmanFord(int origin);
    
     // Reverse processing
-    void reverseBellmanFord(int origin,compType& c);
+    void reverseBellmanFord(int origin,memo* c,long memsize);
 
     // Same function with mpfr
     mpfrBellmanFordResult mpfrBellmanFord(int origin);
     
     // Same function with lazy
-    mpfrBellmanFordResult lazyMpfrBellmanFord(int origin, compType c);
+    mpfrBellmanFordResult lazyMpfrBellmanFord(int origin, memo* c);
     
     int nVertices;
     vector<node*> nodes;
