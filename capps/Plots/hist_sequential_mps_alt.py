@@ -29,6 +29,6 @@ pypl.ylabel("Relative Wall Time")
 
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Relative Mean Computation Time for Maximum Prefix Sum");
-#pypl.show()
+pypl.show()
 pypl.savefig("Plots/histmpsseqalt.jpg");
 

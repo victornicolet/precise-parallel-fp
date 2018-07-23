@@ -20,7 +20,6 @@
 using namespace std;
 using namespace tbb;
 
-
 void printA(double* array, int size){
     // printing the array
     cout << "{";

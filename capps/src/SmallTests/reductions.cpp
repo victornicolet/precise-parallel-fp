@@ -293,7 +293,7 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
+    int size = pow(10,9);
     int N = 1;
 
     // for each dynamic range
@@ -308,51 +308,64 @@ void runtime_comparison(){
 
     // Random seed
     srand(time(NULL));
+    // Generating array
+    double* drray = new double[size];
+    init_fpuniform(size, drray, 100, 50);
+
+    // Randomly change signs
+    for(int j = 0; j < size ; j++){
+         drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+    }
     
     for(int r = 0; r < s; r++){
 
         // initialization of means
-        double mean_tbb = 0., mean_homemade = 0., mean_deterministic_tbb = 0.;
+        double mean_tbb = 0., mean_homemade = 0.;
 
         for(int i = 0; i < N; i++){
-            
-            // Generating array
-            double* drray = new double[size];
-            init_fpuniform(size, drray, 100, 50);
-
-            // Randomly change signs
-            for(int j = 0; j < size ; j++){
-                 drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-            }
             
             // Declare result variables
             double time_homemade = 0.0;
             //PFP_TIME(homemade_main(drray,size,grainsSizes[r]),start,time_homemade);
-            double time_deterministic_tbb = 0.0;
-            PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
             double time_tbb = 0.0;
             PFP_TIME(tbb_main(drray,size,grainsSizes[r]),start,time_tbb);
        
             mean_tbb += time_tbb;
             mean_homemade += time_homemade;
-            mean_deterministic_tbb += time_deterministic_tbb;
             
-            delete[] drray;
         }
         // Finalize mean computation
         mean_tbb += mean_tbb / N;
         mean_homemade += mean_homemade /N;
-        mean_deterministic_tbb += mean_deterministic_tbb / N;
         
         x[r]= grainsSizes[r];
         r0[r]= mean_tbb;
         r1[r]= mean_homemade;
+
+    }
+    for(int r = 0; r < s; r++){
+
+        // initialization of means
+        double mean_deterministic_tbb = 0.;
+
+        for(int i = 0; i < N; i++){
+            
+            // Declare result variables
+            double time_deterministic_tbb = 0.0;
+            PFP_TIME(tbb_deterministic_main(drray,size,grainsSizes[r]),start,time_deterministic_tbb);
+       
+            mean_deterministic_tbb += time_deterministic_tbb;
+            
+        }
+        mean_deterministic_tbb += mean_deterministic_tbb / N;
+        
         r2[r]= mean_deterministic_tbb;
 
+    }
+    for(int r = 0; r < s; r++){
         // Writing results to a file
         results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << endl;
-        
-    }
+    }    
 
     results.close();
 }

@@ -68,7 +68,7 @@ void runtime_comparison_parallel(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
+    int size = pow(10,6);
     int N = 2;
 
     // for each dynamic range
@@ -113,7 +113,7 @@ void runtime_comparison_parallel(){
             double time_superacc_lazy = 0.0;
             //PFP_TIME(parallel_mps_superacc_lazy(drray,size),start,time_superacc_lazy);
             double time_mpfr = 0.0;
-            //PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
+            PFP_TIME(parallel_mps_mpfr(drray,size),start,time_mpfr);
             double time_mpfr_lazy = 0.0;
             PFP_TIME(parallel_mps_mpfr_lazy(drray,size),start,time_mpfr_lazy);
             double time_mpfr_lazy_2 = 0.0;
@@ -312,7 +312,7 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,9);
+    int size = 5*pow(10,8);
     int N = 5;
 
     // for each dynamic range

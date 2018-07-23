@@ -22,6 +22,6 @@ pypl.ylabel("Mean computation time")
 
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Comparison of reductions")
-#pypl.show()
+pypl.show()
 pypl.savefig("Plots/reductions.jpg");
 

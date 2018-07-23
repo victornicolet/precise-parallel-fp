@@ -174,6 +174,11 @@ void runtime_comparison_parallel_mss(){
     results.close();
 }
 
+// Runtime comparison for the new mss hybrid lazy computation
+void runtime_comparison_parallel_mss_hybrid(){
+    
+}
+
 int main(int argc, char** argv){
     if(argc >= 1){
         int long a = atoi(argv[1]);
@@ -184,6 +189,8 @@ int main(int argc, char** argv){
             case 1 :
                 runtime_comparison_parallel_mss();
                 break;
+            case 2 :
+                runtime_comparison_parallel_mss_hybrid();
         }
     }
 }

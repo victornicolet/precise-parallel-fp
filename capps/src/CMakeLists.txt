@@ -33,16 +33,16 @@ find_package(PythonLibs 2.7)
 include_directories(PRIVATE ${PYTHON_INCLUDE_DIRS})
 link_libraries(${PYTHON_LIBRARIES})
 
-# Single directory project with includes
-add_subdirectory(SmallTests/)
 
 
 file(GLOB Common_sources "Common/*.cpp")
 file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Graph_sources "Graphs/bellman_ford.cpp" "Graphs/test_graph.cpp")
+file(GLOB Reductions_sources "*SmallTests/*.cpp" )
 
 add_executable(test_mss ${Common_sources} ${Mss_sources} )
 add_executable(test_mps ${Common_sources} ${Mps_sources})
 add_executable(test_graph ${Common_sources} ${Graph_sources})
+add_executable(test_reductions ${Reductions_sources})
 
