@@ -36,7 +36,7 @@ void printA(double* array, int size){
 }
 
 void parallel_mss_double(double* array, long size){
-    task_scheduler_init init(2);
+    task_scheduler_init init;
     __mss_naive result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     if(PRINT){
@@ -44,11 +44,12 @@ void parallel_mss_double(double* array, long size){
         printA(array,size);
         result.print_mss();
     }
+    init.terminate();
 }
 
 void parallel_mss_interval(double* array, long size){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    task_scheduler_init init(2);
+    task_scheduler_init init;
     __mss_interval result(array);
     parallel_reduce(blocked_range<long>(0,size),result);
     init.terminate();

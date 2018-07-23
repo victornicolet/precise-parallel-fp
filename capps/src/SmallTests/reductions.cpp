@@ -335,8 +335,8 @@ void runtime_comparison(){
             
         }
         // Finalize mean computation
-        mean_tbb += mean_tbb / N;
-        mean_homemade += mean_homemade /N;
+        mean_tbb = mean_tbb / N;
+        mean_homemade = mean_homemade /N;
         
         x[r]= grainsSizes[r];
         r0[r]= mean_tbb;

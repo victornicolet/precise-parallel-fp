@@ -176,7 +176,61 @@ void runtime_comparison_parallel_mss(){
 
 // Runtime comparison for the new mss hybrid lazy computation
 void runtime_comparison_parallel_mss_hybrid(){
+    // Variables declaration and initialisation 
+    double start;
+    int size = pow(10,8);
+    int N = 5;
+
     
+    // Store results to plot
+    fstream results;
+    results.open("Plots/mss_hybrid.csv", ofstream::out | ofstream::trunc);
+
+    // Random seed
+    srand(time(NULL));
+    // Generating array
+    double* drray = new double[size];
+    init_fpuniform(size, drray, 100, 50);
+
+    // Randomly change signs
+    for(int j = 0; j < size ; j++){
+         drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+    }
+    
+    // initialization of means
+    double mean_hybrid = 0.;
+
+    for(int i = 0; i < N; i++){
+        
+        // Declare result variables
+        double time_hybrid = 0.0;
+        PFP_TIME(parallel_mss_hybrid(drray,size),start,time_hybrid);
+   
+        mean_hybrid += time_hybrid;
+
+    }
+    mean_hybrid = mean_hybrid / N;
+
+    // initialization of means
+    double mean_tbb = 0.;
+
+    for(int i = 0; i < N; i++){
+        
+        // Declare result variables
+        double time_tbb = 0.0;
+        PFP_TIME(parallel_mss_double(drray,size),start,time_tbb);
+   
+        mean_tbb += time_tbb;
+        
+    }
+    mean_tbb = mean_tbb / N;
+
+    
+        cout << endl << "Performance ratio: " << mean_hybrid / mean_tbb << endl;
+        // Writing results to a file
+        results << to_string(mean_tbb) << "," << to_string(mean_hybrid) << "," << endl;
+
+    results.close();
 }
 
 int main(int argc, char** argv){
