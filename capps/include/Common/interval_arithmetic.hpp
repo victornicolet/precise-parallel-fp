@@ -205,12 +205,8 @@ inline boolean in2_gt(__m128d a, __m128d b){
 }
 
 // Function to compare an interval and a double. Return True if a is inferior or equal to b, False if a is strictly superior to b, undefined is a belongs to the interval b
-inline boolean inferior_double(double a, __m128d b);
-
 inline boolean inferior_double(double a, __m128d b){
-    if(a <= -b[0]) return True;
-    else if( a > b[1]) return False;
-    else return Undefined;
+    return in2_le(in2_create(a),b);
 }
 
 // Function to merge two intervals in case of undefined comparison

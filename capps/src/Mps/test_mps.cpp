@@ -312,7 +312,7 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = 5*pow(10,8);
+    int size = pow(10,9);
     int N = 5;
 
     // for each dynamic range
@@ -328,6 +328,17 @@ void runtime_comparison_sequential_alt(){
     srand(time(NULL));
    
     for(int r = 0; r < dynRanges.size(); r++){
+        if(PRINT){
+            cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
+        }
+        // Generating array
+        double* drray = new double[size];
+        init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
+
+        // Randomly change signs
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_mpfr = 0., mean_interval = 0.,mean_reverse_mps = 0., mean_reverse_pos = 0., mean_lazy_superacc_mps = 0., mean_lazy_superacc_pos = 0., mean_lazy_mpfr_mps = 0., mean_lazy_mpfr_pos = 0.; 
@@ -335,18 +346,7 @@ void runtime_comparison_sequential_alt(){
 
         for(int i = 0; i < N; i++){
 
-            if(PRINT){
-                cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
-            }
             
-            // Generating array
-            double* drray = new double[size];
-            init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
-
-            // Randomly change signs
-            for(int j = 0; j < size ; j++){
-                 drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-            }
             
             // Declare result variables
             double sum;
@@ -355,7 +355,7 @@ void runtime_comparison_sequential_alt(){
             memo* da;
             
             double time_double = 0.0;
-            PFP_TIME(sequential_mps_double(drray,size,&sum,&mps,&pos),start,time_double);
+            PFP_TIME(sequential_mps_double_alt(drray,size,&sum,&mps,&pos),start,time_double);
             double time_superacc = 0.0;
             //PFP_TIME(sequential_mps_superacc_alt(drray,size,&sum,&mps,&pos),start,time_superacc);
             double time_mpfr = 0.0;
@@ -420,7 +420,6 @@ void runtime_comparison_sequential_alt(){
             mean_lazy_mpfr_mps += time9;
             mean_lazy_mpfr_pos += time12;
             
-            delete[] drray;
         }
         // Finalize mean computation
         mean_double = mean_double / N;

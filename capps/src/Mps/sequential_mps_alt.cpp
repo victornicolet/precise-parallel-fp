@@ -96,31 +96,27 @@ void sequential_mps_double_alt(double* array, int size, double* deltasum, double
 void sequential_mps_interval_memorized_alt(double* array, int size, double* deltasum, double* mps, int* pos, memo** da){
     // Internal variables and memorization of decisions
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    __m128d sumI = in2_create(0.,0.);     
-    __m128d mpsI = in2_create(0.,0.);     
+    __m128d sumI = in2_create(0.);     
+    __m128d mpsI = in2_create(0.);     
     memo* d = new memo[size](); 
     int t = 0;
     
     /* First iteration with interval arithmetic */
     for(int i = 0; i != size; i++){
         sumI = in2_add(sumI,array[i]);
-        boolean b = inferior_double(0,sumI);
+        boolean b = in2_le(0,sumI);
 
         if(b == True){
-            d[i].useful2 = True;
-            mpsI += sumI;
-            sumI = in2_create(0.,0.);
+            mpsI = in2_add(mpsI,sumI);
+            sumI = in2_create(0.);
             t = i+1;
         }
-        else if(b == False){
-            d[i].useful2 = False;
-        }
-        else {
-            d[i].useful2 = Undefined;
-            sumI = in2_merge(sumI,in2_create(0.,0.));
+        else if(b == Undefined){
+            sumI = in2_merge(sumI,in2_create(0.));
             mpsI = in2_add(mpsI,sumI);
             t = i+1;
         }
+        d[i].useful2 = b;
     }
 
     *da = d;
