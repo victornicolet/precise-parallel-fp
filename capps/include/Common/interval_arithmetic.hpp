@@ -147,9 +147,10 @@ inline void print(__m128d x){
 
 // Function to compare two intervals. Return True if a is inferior or equal to b, False if a is strictly superior to b, Undefined if the two intervals intersect in more than one point
 inline boolean in2_le(__m128d a, __m128d b){
-    if(a[1] <= -b[0]) return True;
+    __m128d aux = b + (__m128d)_mm_shuffle_epi32((__m128i) a, 0x4e);
+    if(aux[0] <= 0) return True;
     // Should it be equal or inferior or equal there ?
-    else if (-a[0] > b[1]) return False;
+    else if (aux[1] < 0) return False;
     else return Undefined;
 }
 
@@ -214,7 +215,8 @@ inline boolean inferior_double(double a, __m128d b){
 
 // Function to merge two intervals in case of undefined comparison
 inline __m128d in2_merge(__m128d a,__m128d b){
-    return (__m128d){max(a[0],b[0]),max(a[1],b[1])};
+    return _mm_max_pd(a,b);
+    //return (__m128d){max(a[0],b[0]),max(a[1],b[1])};
 }
 
 inline __m128d in2_merge(double a,__m128d b){
