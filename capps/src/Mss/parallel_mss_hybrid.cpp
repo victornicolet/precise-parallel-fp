@@ -8,6 +8,7 @@
 
 #include "debug.hpp"
 #include "parallel_mss.hpp"
+#include "interval_arithmetic.hpp"
 
 using namespace tbb;
 using namespace std;
@@ -123,15 +124,8 @@ class HybridMssReduction : public task {
 
 void parallel_mss_hybrid(double* a, long size){
     task_scheduler_init init;
-    const int maxDepth = 10;
+    const int maxDepth = 5;
     
-    int maxIndex = 1;
-    boolean** memo = new boolean*[maxDepth]; 
-    for(int i = maxDepth-1; i >= 0;i--){
-        memo[i] = new boolean[maxIndex];
-        maxIndex = 2*maxIndex;
-    }
-
     mss_struct res; 
 
     HybridMssReduction& root = *new(task::allocate_root()) HybridMssReduction(maxDepth-1,0,a,&res,0,size);
@@ -149,5 +143,179 @@ void parallel_mss_hybrid(double* a, long size){
         cout << "Pos: " << res.posMts << endl;
     }
     init.terminate();
+
+}
+
+struct mss_struct_interval {
+    __m128d sum;
+    __m128d mss;
+    __m128d mts;
+    __m128d mps;
+    long posl;
+    long posr;
+    long posMps;
+    long posMts;
+};
+
+class HybridMssReductionInterval : public task {
+    public :
+        HybridMssReductionInterval(int depth_,int index_, double* a_, mss_struct_interval* res_, unsigned long left_, unsigned long right_) :
+            depth(depth_),
+            index(index_),
+            a(a_),
+            res(res_),
+            left(left_),
+            right(right_)
+    {}
+    ~HybridMssReductionInterval(){}
+
+    task* execute(){
+        if(depth == 0){
+            // Call parallel_reduce
+            __mss_interval_without_pos result = __mss_interval_without_pos(a);
+            parallel_reduce(blocked_range<long>(left,right),result);
+            res -> sum = result.sum;
+            res -> mss = result.mss;
+            res -> mts = result.mts;
+            res -> mps = result.mps;
+
+        }
+        else{
+            int newDepth = depth - 1;
+            mss_struct_interval resLeft;
+            mss_struct_interval resRight;
+            long middle = (left + right) / 2;
+            int lIndex = 2*index;
+            int rIndex = lIndex + 1;
+
+            // Call subtasks and return result;
+                HybridMssReductionInterval& lTask = *new(allocate_child()) HybridMssReductionInterval(newDepth,lIndex,a,&resLeft,left,middle);
+                HybridMssReductionInterval &rTask = *new(allocate_child()) HybridMssReductionInterval(newDepth,rIndex,a,&resRight,middle,right);
+
+                set_ref_count(3);
+                spawn(lTask);
+                spawn_and_wait_for_all(rTask);
+
+                // Join
+                boolean b;
+                // Sum
+                res->sum = in2_add(resLeft.sum,resRight.sum);
+
+                // Mps
+                __m128d mpsAux = in2_add(resLeft.sum,resRight.mps);
+                b = in2_ge(mpsAux,resLeft.mps);
+                switch(b){
+                    case True:
+                    res -> mps = mpsAux;
+                    res -> posMps = resRight.posMps;
+                    break;
+                    case False:
+                    res -> mps = resLeft.mps;
+                    res -> posMps = resLeft.posMps;
+                    break;
+                    default:
+                    res -> mps = in2_merge(mpsAux,resLeft.mps);
+                }
+
+                // Mts
+                __m128d mtsAux = in2_add(resRight.sum,resLeft.mts);
+                b = in2_ge(mtsAux,resRight.mts);
+                switch(b){
+                    case True:
+                    res -> mts = mtsAux;
+                    res -> posMts = resLeft.posMts;
+                    break;
+                    case False:
+                    res->mts = resRight.mts;
+                    res->posMts = resRight.posMts;
+                    break;
+                    default:
+                    res->mts = in2_merge(mtsAux,resRight.mts);
+                }
+
+                // Mss
+                b = in2_ge(resLeft.mss,resRight.mss);
+                switch(b){
+                    case True:
+                    res->mss = resLeft.mss; 
+                    res->posl = resLeft.posl;
+                    res->posr = resLeft.posr;
+                    break;
+                    case False:
+                    res->mss = resRight.mss; 
+                    res->posl = resRight.posl;
+                    res->posr = resRight.posr;
+                    break;
+                    default:
+                    res->mss = in2_merge(resLeft.mss,resRight.mss);
+                }
+                __m128d mssAux = in2_add(resRight.mps,resLeft.mts);
+                b = in2_ge(mssAux,res->mss);
+                switch(b){
+                    case True:
+                    res->mss = mssAux;
+                    res->posl = resLeft.posMts;
+                    res->posr = resRight.posMps;
+                    break;
+                    case Undefined:
+                    res->mss = in2_merge(res->mss,mssAux);
+                    break;
+                    default:
+                    break;
+                }
+
+        }
+        return NULL;
+    }
+    private:
+        int depth;
+        int index;
+        double* a;
+        mss_struct_interval* res;
+        unsigned long left;
+        unsigned long right;
+        boolean** memo;
+};
+
+void parallel_mss_hybrid_interval(double* a, long size){
+    const int maxDepth = 5;
+    
+    // Set rounding mode
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    task_scheduler_init init;
+    
+    int maxIndex = 1;
+    boolean** memo = new boolean*[maxDepth]; 
+    for(int i = maxDepth-1; i >= 0;i--){
+        memo[i] = new boolean[maxIndex];
+        maxIndex = 2*maxIndex;
+    }
+
+    mss_struct_interval res; 
+
+    HybridMssReductionInterval& root = *new(task::allocate_root()) HybridMssReductionInterval(maxDepth-1,0,a,&res,0,size);
+
+    task::spawn_root_and_wait(root);
+    if(PRINT){
+        cout << endl << "Hybrid mss interval" << endl;
+        cout << "Sum: " ;
+        print(res.sum);
+        cout << endl;
+        cout << "Mss: ";
+        print(res.mss);
+        cout << endl;
+        cout << "Left pos: " << res.posl << endl;
+        cout << "Right pos: " << res.posr << endl;
+        cout << "Mps: ";
+        print(res.mps);
+        cout << endl;
+        cout << "Pos: " << res.posMps << endl;
+        cout << "Mts: ";
+        print(res.mts);
+        cout << endl;
+        cout << "Pos: " << res.posMts << endl;
+    }
+    init.terminate();
+    _MM_SET_ROUNDING_MODE(0);
 
 }

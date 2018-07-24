@@ -32,10 +32,9 @@ void printBoolean(boolean b){
     }
 }    
 
-void printMemo(memo* da, int s){
+void printMemo(boolean* da, int s){
     for(int i = 0; i < s; i++){
-        cout << da[i].useful1 << "," ;
-        printBoolean(da[i].useful2);
+        printBoolean(da[i]);
         cout << endl;
     } 
 }

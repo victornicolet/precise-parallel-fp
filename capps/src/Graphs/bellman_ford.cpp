@@ -181,14 +181,14 @@ intervalBellmanFordResult Graph::intervalBellmanFord(int origin){
     
                 // If using this edge makes the distance shorter...
                 int sourceIndex = nodes[j]->adjacentEdges[k]->source;
-                __m128d aux = in2_add_double(distancesAux[i-1][sourceIndex],nodes[j]->adjacentEdges[k]->weight);
+                __m128d aux = in2_add(distancesAux[i-1][sourceIndex],nodes[j]->adjacentEdges[k]->weight);
 
-                boolean b = inferior(distancesAux[i][j],aux);
+                boolean b = in2_le(distancesAux[i][j],aux);
                 if(b == False){
                     distancesAux[i][j] = aux;
                     predI[j] = sourceIndex;
                 }else if (b == Undefined){
-                    distancesAux[i][j] = in2_min(aux,distancesAux[i][j]);
+                    distancesAux[i][j] = in2_merge(aux,distancesAux[i][j]);
                 }
                 c[memindex].useful2 = b;
                 memindex++;

@@ -277,11 +277,11 @@ void __mss_interval::operator()(const blocked_range<long>& r){
     for(int i = r.begin(); i != r.end(); i++){
 
         // Update sum
-        sum = in2_add_double(sum,array[i]);
+        sum = in2_add(sum,array[i]);
         
         // Update mts
-        mts = in2_add_double(mts,array[i]);
-        boolean b = inferior_double(0,mts); 
+        mts = in2_add(mts,array[i]);
+        boolean b = in2_le(0,mts); 
         if(b == False){
             mts = in2_create(0.,0.);
             posmts1 = i+1;
@@ -291,18 +291,18 @@ void __mss_interval::operator()(const blocked_range<long>& r){
         }
         
         // Update mps
-        boolean b0 = inferior(mps,sum);
+        boolean b0 = in2_le(mps,sum);
         if(b0 == True){
             mps = sum;
             posmps1 = i+1;
             posmps2 = i+1;
         } else if (b0 == Undefined){
-            mps = in2_max(mps,sum);
+            mps = in2_merge(mps,sum);
             posmps2 = i+1;
         }
 
         // Update mss
-        boolean b1 = inferior(mss,mts);
+        boolean b1 = in2_le(mss,mts);
         if(b1 == True){
             mss = mts;
             posmssl1 = posmts1;
@@ -310,7 +310,7 @@ void __mss_interval::operator()(const blocked_range<long>& r){
             posmssr1 = i+1;
             posmssr2 = i+1;
         } else if(b1 == Undefined){
-            mss = in2_max(mss,mts);
+            mss = in2_merge(mss,mts);
             if(posmssl1 > posmts1) posmssl1 = posmts1; 
             if(posmssl2 < posmts2) posmssl2 = posmts2;
             posmssr2 = i+1;
@@ -322,9 +322,9 @@ void __mss_interval::join(__mss_interval& right){
 
     // Join mss
     __m128d aux = in2_add(mts,right.mps);
-    boolean test1 = inferior(mss,aux);
-    boolean test2 = inferior(aux,right.mss);
-    boolean test3 = inferior(mss,right.mss);
+    boolean test1 = in2_le(mss,aux);
+    boolean test2 = in2_le(aux,right.mss);
+    boolean test3 = in2_le(mss,right.mss);
 
     if(test2 == True && test3 == True){
         // Then right.mss
@@ -345,7 +345,7 @@ void __mss_interval::join(__mss_interval& right){
     else if (test1 == False && test3 == False){}
     else if (test1 == True || test3 == True){
         // Then either aux or right.mss
-        mss = in2_max(aux,right.mss);
+        mss = in2_merge(aux,right.mss);
         posmssl1 = posmts1;
         posmssl2 = right.posmssl2;
         posmssr1 = min(right.posmssr1,right.posmps1);
@@ -353,21 +353,21 @@ void __mss_interval::join(__mss_interval& right){
     }
     else if (test1 == False || test2 == True){
         // Then either mss or right.mss
-        mss = in2_max(mss,right.mss);
+        mss = in2_merge(mss,right.mss);
         posmssl2 = right.posmssl2;
         posmssr2 = right.posmssr2;
     }
     else if (test2 == False || test3 == False){
         // Then either aux or mss
-        mss = in2_max(mss,aux);
+        mss = in2_merge(mss,aux);
         posmssl1 = min(posmssl1,posmts1);
         posmssl2 = max(posmssl2,posmts2);
         posmssr2 = right.posmps2;
     }
     else {
         // Then merge all three intervals
-        mss = in2_max(mss,aux);
-        mss = in2_max(mss,right.mps);
+        mss = in2_merge(mss,aux);
+        mss = in2_merge(mss,right.mps);
         // Merge all three positions
         posmssl1 = min(posmssl1,posmts1);
         posmssl2 = right.posmssl2;
@@ -377,27 +377,27 @@ void __mss_interval::join(__mss_interval& right){
     
     // Join mps
     right.mps = in2_add(right.mps,sum);
-    boolean b = inferior(mps,right.mps); 
+    boolean b = in2_le(mps,right.mps); 
     if(b == True){
         mps = right.mps;
         posmps1 = right.posmps1;
         posmps2 = right.posmps2;
     }
     else if(b == Undefined){
-        mps = in2_max(mps,right.mps);
+        mps = in2_merge(mps,right.mps);
         posmps2 = right.posmps2;
     }
 
     // Join mts
     mts = in2_add(mts,right.sum);
-    boolean b0 = inferior(mts,right.mts);
+    boolean b0 = in2_le(mts,right.mts);
     if(b0 == True){
         mts = right.mts;
         posmts1 = right.posmts1;
         posmts2 = right.posmts2;
     }
     else if (b0 == Undefined){
-        mts = in2_max(mts,right.mps);
+        mts = in2_merge(mts,right.mps);
         posmts2 = right.posmts2;
     }
 
@@ -419,6 +419,130 @@ void __mss_interval::print_mss(){
     cout << endl << "Mts: ";
     print(mts);
     cout << endl << "Pos: " << posmts1 << ", " << posmts2;
+    cout << endl;
+}
+
+// Without position
+__mss_interval_without_pos::__mss_interval_without_pos(double* array_) :
+    array(array_)
+{
+    sum = in2_create(0,0);
+    mss = in2_create(0,0);
+    mps = in2_create(0,0);
+    mts = in2_create(0,0);
+}
+
+__mss_interval_without_pos::__mss_interval_without_pos(__mss_interval_without_pos& x ,split s) :
+    array(x.array)
+{
+    sum = in2_create(0,0);
+    mss = in2_create(0,0);
+    mps = in2_create(0,0);
+    mts = in2_create(0,0);
+}
+
+void __mss_interval_without_pos::operator()(const blocked_range<long>& r){
+    for(int i = r.begin(); i != r.end(); i++){
+
+        // Update sum
+        sum = in2_add(sum,array[i]);
+        
+        // Update mts
+        mts = in2_add(mts,array[i]);
+        boolean b = in2_le(0,mts); 
+        if(b == False){
+            mts = in2_create(0.,0.);
+        } else if (b == Undefined){
+            mts = in2_merge(0.,mts);
+        }
+        
+        // Update mps
+        boolean b0 = in2_le(mps,sum);
+        if(b0 == True){
+            mps = sum;
+        } else if (b0 == Undefined){
+            mps = in2_merge(mps,sum);
+        }
+
+        // Update mss
+        boolean b1 = in2_le(mss,mts);
+        if(b1 == True){
+            mss = mts;
+        } else if(b1 == Undefined){
+            mss = in2_merge(mss,mts);
+        }
+    }
+}
+
+void __mss_interval_without_pos::join(__mss_interval_without_pos& right){
+
+    // Join mss
+    __m128d aux = in2_add(mts,right.mps);
+    boolean test1 = in2_le(mss,aux);
+    boolean test2 = in2_le(aux,right.mss);
+    boolean test3 = in2_le(mss,right.mss);
+
+    if(test2 == True && test3 == True){
+        // Then right.mss
+        mss = right.mss;
+    }
+    else if (test1 == True && test2 == False){
+        // Then aux
+        mss = aux;
+    }
+    else if (test1 == False && test3 == False){}
+    else if (test1 == True || test3 == True){
+        // Then either aux or right.mss
+        mss = in2_merge(aux,right.mss);
+    }
+    else if (test1 == False || test2 == True){
+        // Then either mss or right.mss
+        mss = in2_merge(mss,right.mss);
+    }
+    else if (test2 == False || test3 == False){
+        // Then either aux or mss
+        mss = in2_merge(mss,aux);
+    }
+    else {
+        // Then merge all three intervals
+        mss = in2_merge(mss,aux);
+        mss = in2_merge(mss,right.mps);
+    }
+    
+    // Join mps
+    right.mps = in2_add(right.mps,sum);
+    boolean b = in2_le(mps,right.mps); 
+    if(b == True){
+        mps = right.mps;
+    }
+    else if(b == Undefined){
+        mps = in2_merge(mps,right.mps);
+    }
+
+    // Join mts
+    mts = in2_add(mts,right.sum);
+    boolean b0 = in2_le(mts,right.mts);
+    if(b0 == True){
+        mts = right.mts;
+    }
+    else if (b0 == Undefined){
+        mts = in2_merge(mts,right.mps);
+    }
+
+
+    // Join sum
+    sum = in2_add(sum,right.sum);
+}
+
+void __mss_interval_without_pos::print_mss(){
+    cout << "Sum: ";
+    print(sum);
+    cout << endl << "Mss: ";
+    print(mss);
+    cout << endl << "Mps: ";
+    print(mps);
+    cout << endl << "Mts: ";
+    print(mts);
     cout << endl;
 }
 

@@ -99,8 +99,8 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
     
     /* First iteration with interval arithmetic */
     for(int i = 0; i != size; i++){
-        sumI = in2_add_double(sumI,array[i]);
-        boolean b = inferior(mpsI,sumI);
+        sumI = in2_add(sumI,array[i]);
+        boolean b = in2_le(mpsI,sumI);
 
         if(b == True){
             d[i].useful2 = True;
@@ -112,7 +112,7 @@ void sequential_mps_interval_memorized(double* array, int size, double* sum, dou
         }
         else {
             d[i].useful2 = Undefined;
-            mpsI = in2_max(sumI,mpsI);
+            mpsI = in2_merge(sumI,mpsI);
             t = i+1;
         }
     }

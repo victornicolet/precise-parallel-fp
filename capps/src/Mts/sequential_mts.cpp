@@ -69,7 +69,7 @@ void sequential_mts_lazy(double* array, long size,  double* mts, long* pos,long 
     
     /* First iteration with longerval arithmetic */
     for(long i = 0; i != size; i++){
-        mtsI = in2_add_double(mtsI,array[i]);
+        mtsI = in2_add(mtsI,array[i]);
         boolean b = inferior_double(0.,mtsI);
 
         if(b == False){

@@ -260,7 +260,7 @@ void __mps::join(__mps& rightMps){
    // adding two sums
    sum_interval = in2_add(sum_interval,rightMps.sum_interval);
    // comparison of mpsCandidate and mps-l
-   boolean b = inferior(mps_interval,mpsCandidate);
+   boolean b = in2_le(mps_interval,mpsCandidate);
    if (b == True){
        mps_interval = mpsCandidate;
        lposition = rightMps.lposition;
@@ -268,7 +268,7 @@ void __mps::join(__mps& rightMps){
    }
    // In case of undefined comparison:
    else if(b == Undefined){
-       mps_interval = in2_max(mps_interval,mpsCandidate);
+       mps_interval = in2_merge(mps_interval,mpsCandidate);
        rposition = rightMps.rposition;
    } 
 }
@@ -281,15 +281,15 @@ void __mps::operator()(const blocked_range<int>& r){
     }
     // iterating over the subrange
     for(int i = r.begin(); i != r.end(); i++){
-        sum_interval = in2_add_double(sum_interval,array[i]);
-        boolean b = inferior(mps_interval,sum_interval);
+        sum_interval = in2_add(sum_interval,array[i]);
+        boolean b = in2_le(mps_interval,sum_interval);
         if (b == True){
             mps_interval = sum_interval;
             lposition = i+1; 
             rposition = i+1; 
         }
         else if(b == Undefined){
-            mps_interval = in2_max(mps_interval,sum_interval);
+            mps_interval = in2_merge(mps_interval,sum_interval);
             rposition = i+1; 
         }
     }

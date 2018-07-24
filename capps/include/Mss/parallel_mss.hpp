@@ -20,6 +20,9 @@ void parallel_mss_interval(double* array, long size);
 // Main function for parallel mss with intervals
 void parallel_mss_hybrid(double* array, long size);
 
+// Main function for parallel mss with intervals
+void parallel_mss_hybrid_interval(double* array, long size);
+
 // Naive mss structure
 struct __mss_naive{
     // pointer to the array
@@ -72,6 +75,27 @@ struct __mss_interval{
     void operator()(const blocked_range<long>&);
     
     void join(__mss_interval& right);
+
+    void print_mss();
+};
+
+// Mss structure with interval without position
+struct __mss_interval_without_pos{
+    double* array;
+
+    __m128d sum;
+    __m128d mss;
+    __m128d mps;
+    __m128d mts;
+
+
+    __mss_interval_without_pos(double* a);
+
+    __mss_interval_without_pos(__mss_interval_without_pos& x, split s);
+
+    void operator()(const blocked_range<long>&);
+    
+    void join(__mss_interval_without_pos& right);
 
     void print_mss();
 };

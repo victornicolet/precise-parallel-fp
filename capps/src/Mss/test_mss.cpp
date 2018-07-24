@@ -226,9 +226,25 @@ void runtime_comparison_parallel_mss_hybrid(){
     mean_tbb = mean_tbb / N;
 
     
-        cout << endl << "Performance ratio: " << mean_hybrid / mean_tbb << endl;
-        // Writing results to a file
-        results << to_string(mean_tbb) << "," << to_string(mean_hybrid) << "," << endl;
+    // initialization of means
+    double mean_hybrid_interval = 0.;
+
+    for(int i = 0; i < N; i++){
+        
+        // Declare result variables
+        double time_hybrid_interval = 0.0;
+        PFP_TIME(parallel_mss_hybrid_interval(drray,size),start,time_hybrid_interval);
+   
+        mean_hybrid_interval += time_hybrid_interval;
+        
+    }
+    mean_hybrid_interval = mean_hybrid_interval / N;
+
+    // Final printing 
+    cout << endl << "Performance ratio hybrid/double: " << mean_hybrid / mean_tbb << endl;
+    cout << endl << "Performance ratio hybrid interval/double: " << mean_hybrid_interval / mean_tbb << endl;
+    // Writing results to a file
+    results << to_string(mean_tbb) << "," << to_string(mean_hybrid) << "," << endl;
 
     results.close();
 }

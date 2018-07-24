@@ -128,10 +128,10 @@ void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, lon
     
     /* First iteration with longerval arithmetic */
     for(long i = 0; i != size; i++){
-        mtsI = in2_add_double(mtsI,array[i]);
+        mtsI = in2_add(mtsI,array[i]);
 
         // Update mssI
-        boolean b = inferior(mssI,mtsI);
+        boolean b = in2_le(mssI,mtsI);
 
         if(b == True){
             da[i] = Dmts;
@@ -144,13 +144,13 @@ void sequential_mss_lazy(double* array, long size,  double* mss, long* posl, lon
         }
         else {
             da[i] = Dundef;
-            mssI = in2_max(mssI,mtsI);
+            mssI = in2_merge(mssI,mtsI);
             poslt = post;
             posrt = i+1;
         }
 
         // Update mtsI
-        boolean b0 = inferior_double(0,mtsI);
+        boolean b0 = in2_le(0.,mtsI);
 
         if(b0 == False){
             dca[i] = Dc0;

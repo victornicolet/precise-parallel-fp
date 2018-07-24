@@ -1,6 +1,6 @@
 #include <vector>
 #include <emmintrin.h>
-#include "interval_arithmetic.hpp"
+#include "struct.hpp"
 
 // Function to print a vector (the template type t must be std::cout - able 
 template<class t> void  printVector(std::vector<t> v){
@@ -15,4 +15,4 @@ template<class t> void  printVector(std::vector<t> v){
 void printVectorInt(std::vector<__m128d> v);
 
 // Function to print an array of decisions
-void printMemo(memo*,int);
+void printMemo(boolean*,int);

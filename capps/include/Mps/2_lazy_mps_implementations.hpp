@@ -66,15 +66,15 @@ class MpsTask1: public task {
                 int p = left;
 
                 for(int i = left; i != right; i++){
-                    s = in2_add_double(s,array[i]);
-                    boolean b = inferior(m,s);
+                    s = in2_add(s,array[i]);
+                    boolean b = in2_le(m,s);
                     if (b == True){
                         m = s;
                         p = i+1; 
                         v = 0;
                     }
                     else if(b == Undefined){
-                        m = in2_max(m,s);
+                        m = in2_merge(m,s);
                         p = i+1;
                         v = 1;
                     }
@@ -118,7 +118,7 @@ class MpsTask1: public task {
 
                 rresult.mps = in2_add(result->sum,rresult.mps);
                 result->sum = in2_add(result->sum,rresult.sum);
-                boolean b = inferior(result->mps,rresult.mps);
+                boolean b = in2_le(result->mps,rresult.mps);
                 if(b == True){
                     result->mps = rresult.mps;
                     result->pos = rresult.pos;
@@ -127,7 +127,7 @@ class MpsTask1: public task {
                 }
                 else if(b == Undefined){
                     // Merge the two intervals
-                    result->mps = in2_max(result->mps,rresult.mps);
+                    result->mps = in2_merge(result->mps,rresult.mps);
                     result->pos = rresult.pos;
                     result->val = 1;
                     memo[depth][index] = undefinedComparison;
