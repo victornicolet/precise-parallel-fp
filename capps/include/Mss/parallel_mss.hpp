@@ -4,10 +4,15 @@
 
 #ifndef PARALLEL_MPS_H
 #define PARALLEL_MPS_H
+
 #include "interval_arithmetic.hpp"
 
 #include "tbb/blocked_range.h"
+#include <mpreal.h>
+#include <mpfr.h>
+#include <gmp.h>
 
+using mpfr::mpreal;
 using namespace tbb;
 using namespace std;
 
@@ -46,6 +51,33 @@ struct __mss_naive{
     void operator()(const blocked_range<long>&);
     // Join operation for the reduction
     void join(__mss_naive& rightmss); 
+    // Printing function
+    void print_mss();
+};
+
+// Mpfr mss structure
+struct __mss_mpfr{
+    // pointer to the array
+    double* array;
+    // Superaccumulators for sum and mss
+    mpreal sum;
+    mpreal mps;
+    mpreal mts;
+    mpreal mss;
+    // Position of the maximum prefix sum
+    long posmps;
+    long posmts;
+    long posmssl;
+    long posmssr;
+    
+    // Constructor
+    __mss_mpfr(double* a);
+    // Splitting constructor
+    __mss_mpfr(__mss_mpfr&,split);
+    // Accumulate result for subrange
+    void operator()(const blocked_range<long>&);
+    // Join operation for the reduction
+    void join(__mss_mpfr& rightmss); 
     // Printing function
     void print_mss();
 };

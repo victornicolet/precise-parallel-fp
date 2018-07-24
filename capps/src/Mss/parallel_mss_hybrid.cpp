@@ -146,11 +146,33 @@ void parallel_mss_hybrid(double* a, long size){
 
 }
 
+struct mss_struct_bool {
+    bool sum;
+    bool mss;
+    bool mts;
+    bool mps;
+    bool posl;
+    bool posr;
+    bool posMps;
+    bool posMts;
+};
+
 struct mss_struct_interval {
     __m128d sum;
     __m128d mss;
     __m128d mts;
     __m128d mps;
+    long posl;
+    long posr;
+    long posMps;
+    long posMts;
+};
+
+struct mss_struct_mpfr {
+    mpreal sum;
+    mpreal mss;
+    mpreal mts;
+    mpreal mps;
     long posl;
     long posr;
     long posMps;
@@ -300,13 +322,22 @@ class HybridMssReductionMpfr : public task {
     task* execute(){
         if(depth == 0){
             // Call parallel_reduce
-            __mss_mpfr result = __mss_mpfr(a);
-            parallel_reduce(blocked_range<long>(left,right),result);
-            res -> sum = result.sum;
-            res -> mss = result.mss;
-            res -> mts = result.mts;
-            res -> mps = result.mps;
-
+            bool auxMss = res_bool->mss || res_bool->posl || res_bool -> posr;
+            bool auxMps = res_bool->mps || res_bool -> posMps;
+            bool auxMts = res_bool->mts || res_bool -> posMts;
+            bool auxSum = res_bool->sum;
+            if(auxMss || auxMps || auxMts || auxSum){
+                __mss_mpfr result = __mss_mpfr(a);
+                parallel_reduce(blocked_range<long>(left,right),result);
+                res -> sum = result.sum;
+                res -> mss = result.mss;
+                res -> mts = result.mts;
+                res -> mps = result.mps;
+                res -> posMps = result.posmps;
+                res -> posMts = result.posmts;
+                res -> posl = result.posmssl;
+                res -> posr = result.posmssr;
+            }
         }
         else{
             int newDepth = depth - 1;
