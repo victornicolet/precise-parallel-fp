@@ -178,8 +178,8 @@ void runtime_comparison_parallel_mss(){
 void runtime_comparison_parallel_mss_hybrid(){
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,8);
-    int N = 5;
+    int size = pow(10,9);
+    int N = 1;
 
     
     // Store results to plot

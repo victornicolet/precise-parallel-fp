@@ -227,10 +227,10 @@ void __mss_naive::print_mss(){
 
 __mss_mpfr::__mss_mpfr(double* a) :
     array(a),
-    sum(0.),
-    mps(0.),
-    mts(0.),
-    mss(0.),
+    sum(0.,200),
+    mps(0.,200),
+    mts(0.,200),
+    mss(0.,200),
     posmps(0),
     posmts(0),
     posmssl(0),
@@ -239,10 +239,10 @@ __mss_mpfr::__mss_mpfr(double* a) :
 
 __mss_mpfr::__mss_mpfr(__mss_mpfr& x, split) :
     array(x.array),
-    sum(0.),
-    mps(0.),
-    mts(0.),
-    mss(0.),
+    sum(0.,200),
+    mps(0.,200),
+    mts(0.,200),
+    mss(0.,200),
     posmps(0),
     posmts(0),
     posmssl(0),

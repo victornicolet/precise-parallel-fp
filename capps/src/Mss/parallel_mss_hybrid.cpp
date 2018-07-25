@@ -13,6 +13,8 @@
 using namespace tbb;
 using namespace std;
 
+const int maxDepth = 14;
+
 struct mss_struct {
     double sum;
     double mss;
@@ -122,9 +124,9 @@ class HybridMssReduction : public task {
 };
 
 
+
 void parallel_mss_hybrid(double* a, long size){
     task_scheduler_init init;
-    const int maxDepth = 5;
     
     mss_struct res; 
 
@@ -165,6 +167,18 @@ struct mss_struct_bool {
     bool posr;
     bool posMps;
     bool posMts;
+
+    void print(){
+        cout << "Sum: " << sum << endl;
+        cout << "Mss: " << mss << endl;
+        cout << "Mps: " << mps << endl;
+        cout << "Mts: " << mts << endl;
+        cout << "Mss Pos Left: " << posl << endl;
+        cout << "Mss Pos Right: " << posr << endl;
+        cout << "Mps Pos: " << posMps << endl;
+        cout << "Mts Pos: " << posMts << endl;
+    }
+
 };
 
 struct mss_struct_interval {
@@ -214,6 +228,9 @@ class HybridMssReductionInterval : public task {
 
         }
         else{
+            
+
+
             int newDepth = depth - 1;
             mss_struct_interval resLeft;
             mss_struct_interval resRight;
@@ -330,6 +347,14 @@ class HybridMssReductionMpfr : public task {
     ~HybridMssReductionMpfr(){}
 
     task* execute(){
+
+        // Debug
+        /*cout << endl;
+        cout << "Depth: " << depth << endl;
+        cout << "Index: " << index << endl;
+        res_bool->print();
+        */
+
         if(depth == 0){
             // Call parallel_reduce
             bool auxMss = res_bool->mss || res_bool->posl || res_bool -> posr;
@@ -337,6 +362,12 @@ class HybridMssReductionMpfr : public task {
             bool auxMts = res_bool->mts || res_bool -> posMts;
             bool auxSum = res_bool->sum;
             if(auxMss || auxMps || auxMts || auxSum){
+
+                // Debug
+                cout << endl;
+                cout << "Computation started " << depth << endl;
+                cout << "Index: " << index << endl;
+
                 __mss_mpfr result = __mss_mpfr(a);
                 parallel_reduce(blocked_range<long>(left,right),result);
                 res -> sum = result.sum;
@@ -363,6 +394,7 @@ class HybridMssReductionMpfr : public task {
             boolean b = memo[depth][index][3];
             switch(b){
                 case True:
+                
                 if(res_bool->mss){
                     res_bool->mss = false;
                     resBoolRight.mps = true;
@@ -376,6 +408,7 @@ class HybridMssReductionMpfr : public task {
                     res_bool->posr = false;
                     resBoolRight.posMts = true;
                 }
+
                 break;
                 case Undefined:
                 // Variables used in the conditionnal
@@ -566,10 +599,46 @@ class HybridMssReductionMpfr : public task {
             spawn_and_wait_for_all(rTask);
 
             // Join
+            // Sum
+            res->sum = resLeft.sum + resRight.sum;
 
+            // Mps
+            mpreal mpsAux = resLeft.sum+resRight.mps;
+            if(mpsAux >= resLeft.mps){
+                res -> mps = mpsAux;
+                res -> posMps = resRight.posMps;
+            }else{
+                res -> mps = resLeft.mps;
+                res -> posMps = resLeft.posMps;
+            }
 
+            // Mts
+            mpreal mtsAux = resRight.sum+resLeft.mts;
+            if(mtsAux>=resRight.mts){
+                res -> mts = mtsAux;
+                res -> posMts = resLeft.posMts;
+            }else{
+                res->mts = resRight.mts;
+                res->posMts = resRight.posMts;
+            }
 
+            // Mss
+            if(resLeft.mss,resRight.mss){
+                res->mss = resLeft.mss; 
+                res->posl = resLeft.posl;
+                res->posr = resLeft.posr;
+            }else{
+                res->mss = resRight.mss; 
+                res->posl = resRight.posl;
+                res->posr = resRight.posr;
+            }
 
+            mpreal mssAux = resRight.mps+resLeft.mts;
+            if(mssAux>=res->mss){
+                res->mss = mssAux;
+                res->posl = resLeft.posMts;
+                res->posr = resRight.posMps;
+            }
 
         }
         return NULL;
@@ -586,7 +655,6 @@ class HybridMssReductionMpfr : public task {
 };
 
 void parallel_mss_hybrid_interval(double* a, long size){
-    const int maxDepth = 5;
     
     // Set rounding mode
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
@@ -615,18 +683,34 @@ void parallel_mss_hybrid_interval(double* a, long size){
         cout << "Mss: ";
         print(res.mss);
         cout << endl;
-        cout << "Left pos: " << res.posl << endl;
-        cout << "Right pos: " << res.posr << endl;
         cout << "Mps: ";
         print(res.mps);
         cout << endl;
-        cout << "Pos: " << res.posMps << endl;
         cout << "Mts: ";
         print(res.mts);
         cout << endl;
-        cout << "Pos: " << res.posMts << endl;
     }
     init.terminate();
     _MM_SET_ROUNDING_MODE(0);
+
+    // Second step
+    task_scheduler_init init2;
+
+    mss_struct_mpfr res_mpfr; 
+    mss_struct_bool res_bool; 
+    res_bool.posl = true;
+    res_bool.posr = true;
+
+    HybridMssReductionMpfr& rootMpfr = *new(task::allocate_root()) HybridMssReductionMpfr(maxDepth-1,0,a,&res_mpfr,&res_bool,0,size,memo);
+
+    task::spawn_root_and_wait(rootMpfr);
+    if(PRINT){
+        cout << endl << "Hybrid mss Mpfr" << endl;
+        cout << "Mss Left pos: " << res_mpfr.posl << endl;
+        cout << "Mss Right pos: " << res_mpfr.posr << endl;
+        cout << "Mps Pos: " << res_mpfr.posMps << endl;
+        cout << "Mts Pos: " << res_mpfr.posMts << endl;
+    }
+
 
 }
