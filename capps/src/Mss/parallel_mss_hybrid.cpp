@@ -13,7 +13,6 @@
 using namespace tbb;
 using namespace std;
 
-const int maxDepth = 14;
 
 struct mss_struct {
     double sum;
@@ -125,7 +124,7 @@ class HybridMssReduction : public task {
 
 
 
-void parallel_mss_hybrid(double* a, long size){
+void parallel_mss_hybrid(double* a, long size, int maxDepth){
     task_scheduler_init init;
     
     mss_struct res; 
@@ -615,15 +614,15 @@ class HybridMssReductionMpfr : public task {
             // Mts
             mpreal mtsAux = resRight.sum+resLeft.mts;
             if(mtsAux>=resRight.mts){
-                res -> mts = mtsAux;
-                res -> posMts = resLeft.posMts;
+                res->mts = mtsAux;
+                res->posMts = resLeft.posMts;
             }else{
                 res->mts = resRight.mts;
                 res->posMts = resRight.posMts;
             }
 
             // Mss
-            if(resLeft.mss,resRight.mss){
+            if(resLeft.mss>=resRight.mss){
                 res->mss = resLeft.mss; 
                 res->posl = resLeft.posl;
                 res->posr = resLeft.posr;
@@ -654,7 +653,7 @@ class HybridMssReductionMpfr : public task {
         boolean*** memo;
 };
 
-void parallel_mss_hybrid_interval(double* a, long size){
+void parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
     
     // Set rounding mode
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);

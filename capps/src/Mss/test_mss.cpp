@@ -176,42 +176,43 @@ void runtime_comparison_parallel_mss(){
 
 // Runtime comparison for the new mss hybrid lazy computation
 void runtime_comparison_parallel_mss_hybrid(){
-    // Variables declaration and initialisation 
+    // Parameters
     double start;
-    int size = pow(10,9);
+    int size = pow(10,8);
     int N = 1;
-
+    vector<int> depths = {3,5,7,9,11,13,15,18,22};
+    vector<double> hybrid(depths.size());
+    vector<double> lazy(depths.size());
     
     // Store results to plot
     fstream results;
-    results.open("Plots/mss_hybrid.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/csv/mss_hybrid.csv", ofstream::out | ofstream::trunc);
 
-    // Random seed
-    srand(time(NULL));
     // Generating array
+    srand(time(NULL));
     double* drray = new double[size];
     init_fpuniform(size, drray, 100, 50);
-
-    // Randomly change signs
     for(int j = 0; j < size ; j++){
          drray[j] = (rand() % 2) ? drray[j] : -drray[j];
     }
-    
-    // initialization of means
-    double mean_hybrid = 0.;
+     
+    // Hybrid Reduction
+    for(int it = 0; it != depths.size(); it++){
 
-    for(int i = 0; i < N; i++){
-        
-        // Declare result variables
-        double time_hybrid = 0.0;
-        PFP_TIME(parallel_mss_hybrid(drray,size),start,time_hybrid);
-   
-        mean_hybrid += time_hybrid;
+        double mean_hybrid = 0.;
+        for(int i = 0; i < N; i++){
+            
+            // Declare result variables
+            double time_hybrid = 0.0;
+            PFP_TIME(parallel_mss_hybrid(drray,size,depths[it]),start,time_hybrid);
+            mean_hybrid += time_hybrid;
 
+        }
+        mean_hybrid = mean_hybrid / N;
+        hybrid[it] = mean_hybrid;
     }
-    mean_hybrid = mean_hybrid / N;
 
-    // initialization of means
+    // Standard reduction
     double mean_tbb = 0.;
 
     for(int i = 0; i < N; i++){
@@ -226,25 +227,29 @@ void runtime_comparison_parallel_mss_hybrid(){
     mean_tbb = mean_tbb / N;
 
     
-    // initialization of means
-    double mean_hybrid_interval = 0.;
+    // Lazy hybrid reduction
+    for(int it = 0; it != depths.size(); it++){
 
-    for(int i = 0; i < N; i++){
-        
-        // Declare result variables
-        double time_hybrid_interval = 0.0;
-        PFP_TIME(parallel_mss_hybrid_interval(drray,size),start,time_hybrid_interval);
-   
-        mean_hybrid_interval += time_hybrid_interval;
-        
+        double mean_hybrid_interval = 0.;
+        for(int i = 0; i < N; i++){
+            
+            // Declare result variables
+            double time_hybrid_interval = 0.0;
+            PFP_TIME(parallel_mss_hybrid_interval(drray,size,depths[it]),start,time_hybrid_interval);
+            mean_hybrid_interval += time_hybrid_interval;
+            
+        }
+        mean_hybrid_interval = mean_hybrid_interval / N;
+        lazy[it] = mean_hybrid_interval;
     }
-    mean_hybrid_interval = mean_hybrid_interval / N;
 
-    // Final printing 
-    cout << endl << "Performance ratio hybrid/double: " << mean_hybrid / mean_tbb << endl;
-    cout << endl << "Performance ratio hybrid interval/double: " << mean_hybrid_interval / mean_tbb << endl;
     // Writing results to a file
-    results << to_string(mean_tbb) << "," << to_string(mean_hybrid) << "," << endl;
+    results << to_string(mean_tbb) << endl;
+    for(int it = 0; it != depths.size(); it++){
+        results << to_string(depths[it]) << "," <<
+        to_string(lazy[it]) << "," <<
+        to_string(hybrid[it]) << endl;
+    }
 
     results.close();
 }

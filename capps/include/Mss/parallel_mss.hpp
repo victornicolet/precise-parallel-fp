@@ -23,10 +23,10 @@ void parallel_mss_double(double* array, long size);
 void parallel_mss_interval(double* array, long size);
 
 // Main function for parallel mss with intervals
-void parallel_mss_hybrid(double* array, long size);
+void parallel_mss_hybrid(double* array, long size, int maxDepth);
 
 // Main function for parallel mss with intervals
-void parallel_mss_hybrid_interval(double* array, long size);
+void parallel_mss_hybrid_interval(double* array, long size, int maxDepth);
 
 // Naive mss structure
 struct __mss_naive{
