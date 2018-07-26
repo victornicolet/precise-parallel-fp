@@ -14,7 +14,6 @@
 #include "printFunctions.hpp"
 #include "sequential_viterbi.hpp"
 
-using namespace tbb;
 using namespace std;
 
 void runtime_comparison(){
@@ -41,12 +40,17 @@ void runtime_comparison(){
             cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
         }
         // Generating array
-        double* drray = new double[size];
-        init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
+        double** drray = new double*[size];
+        for(int i = 0; i != size; i++){
+            drray[i] = new double[size];
+            init_fpuniform(size, drray[i], dynRanges[r], dynRanges[r]/2);
+        }
 
         // Randomly change signs
-        for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        for(int i = 0; i != size; i++){
+            for(int j = 0; j < size ; j++){
+                 drray[i][j] = (rand() % 2) ? drray[i][j] : -drray[i][j];
+            }
         }
 
         // initialization of means
@@ -54,34 +58,34 @@ void runtime_comparison(){
         double mean_mpfr = 0.;
         double mean_interval = 0.;
         double mean_reverse = 0.;
-        double mean_lazy_mpfr = 0.;
+        double mean_lazy = 0.;
         
 
         for(int i = 0; i < N; i++){
 
             // Declare result variables
-            double sum;
+            
             bool b;
             boolean* da;
             
             double time_double = 0.0;
-            PFP_TIME(viterbi_double(drray,size,&sum,&b),start,time_double);
+            PFP_TIME(viterbi_double(size,drray),start,time_double);
             double time_mpfr = 0.0;
-            PFP_TIME(viterbi_mpfr(drray,size,&sum,&b),start,time_mpfr);
+            PFP_TIME(viterbi_mpfr(size,drray),start,time_mpfr);
 
             /* Lazy computation, mpfr */
             double time1 = 0.0;
-            PFP_TIME(viterbi_interval(drray,size,&sum,&b,&da),start,time7);
+            PFP_TIME(viterbi_interval(size,drray,da),start,time1);
             double time2 = 0.0;
-            PFP_TIME(viterbi_reverse(drray,size,&sum,&b,&da),start,time8);
+            PFP_TIME(viterbi_reverse(size,drray,da),start,time2);
             double time3 = 0.0;
-            PFP_TIME(viterbi_lazy(drray,size,&sum,&b,&da),start,time9);
+            PFP_TIME(viterbi_lazy(size,drray,da),start,time3);
 
             mean_double += time_double;
             mean_mpfr += time_mpfr;
             mean_interval += time1;
             mean_reverse += time2;
-            mean_lazy += time13;
+            mean_lazy += time3;
             
         }
         // Finalize mean computation
@@ -99,10 +103,7 @@ int main(int argc, char** argv){
     if(argc >= 1){
         int a = atoi(argv[1]);
         switch (a){
-            case 0 :
-                debug_test();
-                break;
-            case 1 : 
+            case 0 : 
                 runtime_comparison();
                 break;
         }

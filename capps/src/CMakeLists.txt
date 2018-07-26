@@ -15,6 +15,7 @@ include_directories(../include/Mps/)
 include_directories(../include/Mss/)
 include_directories(../include/Mts/)
 include_directories(../include/Graphs/)
+include_directories(../include/Viterbi/)
 
 # Link directories
 link_directories (../exblas/lib/)
@@ -38,6 +39,7 @@ link_libraries(${PYTHON_LIBRARIES})
 file(GLOB Common_sources "Common/*.cpp")
 file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")
+file(GLOB Viterbi_sources "Viterbi/*.cpp")
 file(GLOB Graph_sources "Graphs/bellman_ford.cpp" "Graphs/test_graph.cpp")
 file(GLOB Reductions_sources "*SmallTests/*.cpp" )
 
@@ -45,4 +47,5 @@ add_executable(test_mss ${Common_sources} ${Mss_sources} )
 add_executable(test_mps ${Common_sources} ${Mps_sources})
 add_executable(test_graph ${Common_sources} ${Graph_sources})
 add_executable(test_reductions ${Reductions_sources})
+add_executable(test_Viterbi ${Common_sources} ${Viterbi_sources})
 

@@ -14,7 +14,7 @@
 using mpfr::mpreal;
 
 
-void viterbi_double(double*aa, long n, double** t){
+void viterbi_double(long n, double** t){
 
 	double** p = new double*[n];
     for(int j = 0; j != n; j++){
@@ -50,12 +50,12 @@ void viterbi_double(double*aa, long n, double** t){
 
     if(PRINT){
         cout << endl << "Viterbi" << endl;
-        cout << "Result: " << *result << endl;
+        cout << "Result: " << result << endl;
     }
 
 }
 
-void viterbi_mpfr(double*aa, long n, double** t){
+void viterbi_mpfr( long n, double** t){
 
 	mpreal** p = new mpreal*[n];
     for(int j = 0; j != n; j++){
@@ -91,15 +91,15 @@ void viterbi_mpfr(double*aa, long n, double** t){
 
     if(PRINT){
         cout << endl << "Viterbi Mpfr" << endl;
-        cout << "Result: " << *result << endl;
+        cout << "Result: " << result << endl;
     }
 
 }
 
-void viterbi_interval(double*aa, long n, double** t,boolean**da){
+void viterbi_interval( long n, double** t,boolean* m){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     long size = 2*n+1+((1 + 2*n) * n) * (n - 1);
-    da = new boolean[size];
+    m = new boolean[size];
     long it = 0;
     boolean b;
     
@@ -155,13 +155,13 @@ void viterbi_interval(double*aa, long n, double** t,boolean**da){
         
         switch(b){
             case True:
-                result = p[n-1][j__0];
+                result = p[n-1][j___0];
             break;
             case False:
                 
             break;
             case Undefined:
-                result = in2_merge(p[n-1][j__0]);
+                result = in2_merge(p[n-1][j___0],result);
             break;
         }
          
@@ -183,13 +183,16 @@ void viterbi_interval(double*aa, long n, double** t,boolean**da){
     _MM_SET_ROUNDING_MODE(0);
 }
 
-void viterbi_reverse(double*aa, long n, double** t,boolean**m){
+void viterbi_reverse( long n, double** t,boolean*m){
+
+    long it = 2*n+1+((1 + 2*n) * n) * (n - 1);
 
 	bool** p_rev = new bool*[n];
     for(int j = 0; j != n; j++){
         p_rev[j] = new bool[n];
     }
 
+    boolean b;
     bool aux_rev;
     bool result_rev;
 
@@ -301,8 +304,16 @@ void viterbi_reverse(double*aa, long n, double** t,boolean**m){
     }
 }
 
-void viterbi_reverse(double*aa, long n, double** t,boolean**m){
-    mpreal** p_ex;
+void viterbi_lazy( long n, double** t,boolean*m){
+
+    long it = 0;
+
+	mpreal** p_ex = new mpreal*[n];
+    for(int j = 0; j != n; j++){
+        p_ex[j] = new mpreal[n];
+    }
+
+    boolean b;
     mpreal aux_ex (0.,1000);
     mpreal result_ex (0.,1000);
     for(int i_ex = 0; i_ex < n;i_ex++){
@@ -371,7 +382,7 @@ void viterbi_reverse(double*aa, long n, double** t,boolean**m){
     }
     if(PRINT){
         cout << endl << "Lazy Viterbi" << endl;
-        cout << "Result: " << *result << endl;
+        cout << "Result: " << result_ex << endl;
     }
 }
 
