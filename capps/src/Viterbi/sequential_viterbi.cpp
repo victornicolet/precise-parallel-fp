@@ -14,92 +14,164 @@
 using mpfr::mpreal;
 
 
-void sequential_viterbi(double*array, long size, double* sum, double* mps, int* pos){
-    mpreal dsumA(0.,1000);
-    mpreal mpsA(0.,1000);
-    int t = 0;
+void viterbi_double(double*aa, long n, double** t){
 
-    for(int i = 0; i != size; i++){
-        dsumA += array[i];
-        if(dsumA >= 0){
-            mpsA += dsumA;
-            dsumA = 0;
-            t = i+1;
-        }
+	double** p = new double*[n];
+    for(int j = 0; j != n; j++){
+        p[j] = new double[n];
     }
-    *deltasum = dsumA.toDouble();
-    *mps = mpsA.toDouble();
-    *pos = t;
-    
+
+	for(int i = 0; i != n; i++){
+		p[i][0] = 1.;
+	}
+
+	for(int i = 1; i != n; i++){
+		for(int j = 0; j != n; j++){
+			p[i][j] = 0.;
+
+			for(int k = 0; k != n; k++){
+				
+				double aux = p[i-1][k]*t[k][j];
+
+				if(aux > p[i][j]){
+					p[i][j] = aux;
+				}
+
+			}
+		}
+	}
+	
+	double result = 0.;
+	for(int j = 0; j != n; j++){
+		if(p[n-1][j] < result){
+			result = p[n-1][j];
+		}
+	}
+
     if(PRINT){
-        cout << endl << "Mps with mpfr" << endl;
-        cout << "Delta Sum: " << *deltasum << endl;
-        cout << "Mps: " << *mps << endl;
-        cout << "Pos: " << *pos << endl;
+        cout << endl << "Viterbi" << endl;
+        cout << "Result: " << *result << endl;
     }
 
 }
 
-void sequential_mps_double(double* array, int size, double* deltasum, double* mps, int* pos){
-    int t = 0; 
-    double sumt = 0.;
-    double mpst = 0.;
-    for(int i = 0; i != size; i++){
-        sumt += array[i];
-        if(sumt >= 0){
-            mpst += sumt;
-            sumt = 0;
-            t = i+1;
-        }
+void viterbi_mpfr(double*aa, long n, double** t){
+
+	mpreal** p = new mpreal*[n];
+    for(int j = 0; j != n; j++){
+        p[j] = new mpreal[n];
     }
-    *deltasum = sumt;
-    *mps = mpst;
-    *pos = t;
+
+	for(int i = 0; i != n; i++){
+		p[i][0] = mpreal(1.,1000);
+	}
+
+	for(int i = 1; i != n; i++){
+		for(int j = 0; j != n; j++){
+			p[i][j] = mpreal(0.,1000);
+
+			for(int k = 0; k != n; k++){
+				
+				mpreal aux = p[i-1][k]*t[k][j];
+
+				if(aux > p[i][j]){
+					p[i][j] = aux;
+				}
+
+			}
+		}
+	}
+	
+	mpreal result = 0.;
+	for(int j = 0; j != n; j++){
+		if(p[n-1][j] < result){
+			result = p[n-1][j];
+		}
+	}
 
     if(PRINT){
-        cout << endl << "Mps with doubles" << endl;
-        cout << "Delta Sum: " << *deltasum << endl;
-        cout << "Mps: " << *mps << endl;
-        cout << "Pos: " << *pos << endl;
+        cout << endl << "Viterbi Mpfr" << endl;
+        cout << "Result: " << *result << endl;
     }
+
 }
 
-
-void sequential_mps_interval_memorized(double* array, int size, double* deltasum, double* mps, int* pos, memo** da){
-    // Internal variables and memorization of decisions
+void viterbi_interval(double*aa, long n, double** t,boolean**da){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    __m128d sumI = in2_create(0.);     
-    __m128d mpsI = in2_create(0.);     
-    memo* d = new memo[size](); 
-    int t = 0;
+    long size = 2*n+1+((1 + 2*n) * n) * (n - 1);
+    da = new boolean[size];
+    long it = 0;
+    boolean b;
     
-    /* First iteration with interval arithmetic */
-    for(int i = 0; i != size; i++){
-        sumI = in2_add(sumI,array[i]);
-        boolean b = in2_le(0,sumI);
-
-        if(b == True){
-            mpsI = in2_add(mpsI,sumI);
-            sumI = in2_create(0.);
-            t = i+1;
+    //Interval Approximation
+	__m128d** p = new __m128d*[n];
+    for(int j = 0; j != n; j++){
+        p[j] = new __m128d[n];
+    }
+    __m128d aux;
+    __m128d result;
+    
+    for(int i = 0; i < n;i++){
+        p[i][0]= in2_create(1.);
+        it++;  
+    }
+    
+    for(int i___0 = 1; i___0 < n;i___0++){
+        
+        for(int j = 0; j < n;j++){
+            p[i___0][j] = in2_create(0.);
+            it++; 
+            for(int k = 0; k < n;k++){
+                aux = in2_mul(p[i___0 - 1][k],t[k][j]);
+                it++; 
+                b = in2_gt(aux,p[i___0][j]);
+                m[it] = b;
+                it++;
+                
+                switch(b){
+                    case True:
+                        p[i___0][j] = aux; 
+                    break;
+                    case False:
+                        
+                    break;
+                    case Undefined:
+                        p[i___0][j] = in2_merge(aux,p[i___0][j]); 
+                        
+                    break;
+                }
+                 
+            }
+             
         }
-        else if(b == Undefined){
-            sumI = in2_merge(sumI,in2_create(0.));
-            mpsI = in2_add(mpsI,sumI);
-            t = i+1;
+         
+    }
+    result = in2_create(0.);
+    it++; 
+    for(int j___0 = 0; j___0 < n;j___0++){
+        b = in2_lt(p[n - 1][j___0],result);
+        m[it] = b;
+        it++;
+        
+        switch(b){
+            case True:
+                result = p[n-1][j__0];
+            break;
+            case False:
+                
+            break;
+            case Undefined:
+                result = in2_merge(p[n-1][j__0]);
+            break;
         }
-        d[i].useful2 = b;
+         
     }
 
-    *da = d;
-
     if(PRINT){
-        cout << endl << "Interval mps"  << endl;
-        cout << "Delta Sum:";
-        print(sumI);
-        cout << endl << "Mps:";
-        print(mpsI);
-        cout << endl << "Pos:" << t << endl;
+        cout << endl << "Interval viterbi"  << endl;
+        cout << "Result:";
+        print(result);
+        cout << endl;
         /*for(int i = 0;  i != size; i++){
             Dec d = da[i]; 
             if(d == True) cout << "X";
@@ -111,93 +183,195 @@ void sequential_mps_interval_memorized(double* array, int size, double* deltasum
     _MM_SET_ROUNDING_MODE(0);
 }
 
-void sequential_viterbi_iterate_reverse_mps(double* array, int size, double* sum, double* mps, int* pos, memo** da){
-    /* Iterate in da in reverse order */
-    bool sum_useful = false, mps_useful = true;
-    memo* dap = *da;
-    for(int i = size - 1; i >= 0 ; i--){
-        memo d = dap[i];
+void viterbi_reverse(double*aa, long n, double** t,boolean**m){
 
-        
-        // Handling step2
-        if(d.useful2 == True){
-            if(sum_useful){
-                sum_useful = false;
-            }
-            if(mps_useful){
-                sum_useful = true;
-            }
-            else{
-                dap[i].useful2 = Useless;
-            }
-        }
-        else if(d.useful2 == False){
-            dap[i].useful2 = Useless;
-        }
-        else{
-            bool t = mps_useful || sum_useful;
-            if(mps_useful){
-                sum_useful = true;
-            }
-            if(!t){
-              sum_useful = true;
-            }
-            else{ 
-                dap[i].useful2 = Useless;
-            }
-        }
-
-        // Handling step1
-        if(sum_useful){
-            dap[i].useful1 = true;
-        }
+	bool** p_rev = new bool*[n];
+    for(int j = 0; j != n; j++){
+        p_rev[j] = new bool[n];
     }
-    if(PRINT){
-        cout << "Finished reverse mps" << endl;
+
+    bool aux_rev;
+    bool result_rev;
+
+    for(int j___0_rev = n-1; j___0_rev >= 0;j___0_rev--){
+        it--;
+        b = m[it]; 
+        switch(b){
+            case True:
+                if(! result_rev){
+                    m[it] = Useless;  
+                }
+                if(p_rev[n - 1][j___0_rev]){
+                    p_rev[n - 1][j___0_rev] = 0.;
+                    result_rev = 1;  
+                }
+            break;
+            case False:
+                if(! 0){
+                    m[it] = Useless;  
+                }
+                
+            break;
+            case Undefined:
+                if(! result_rev){
+                    m[it] = Useless;  
+                }
+                // Variable duplication
+                
+                
+                
+                // Left branch
+                if(p_rev[n - 1][j___0_rev]){
+                    p_rev[n - 1][j___0_rev] = 0;
+                    result_rev = 1;  
+                }
+                
+                //Right branch
+                
+                
+                //Merging
+                
+            break;
+        } 
+    }
+    it--; 
+    if(result_rev){
+        result_rev = 0;  
+    }
+    for(int i___0_rev = n-1; i___0_rev >= 1;i___0_rev--){
+        for(int j_rev = n-1; j_rev >= 0;j_rev--){
+            for(int k_rev = n-1; k_rev >= 0;k_rev--){
+                it = (it + -1);
+                b = *(m + it); 
+                switch(b){
+                    case True:
+                        if(! aux_rev){
+                            *(m + it) = Useless;  
+                        }
+                        if(*(*(p_rev + i___0_rev) + j_rev)){
+                            *(*(p_rev + i___0_rev) + j_rev) = 0;
+                            aux_rev = 1;  
+                        }
+                    break;
+                    case False:
+                        if(! 0){
+                            *(m + it) = Useless;  
+                        }
+                        
+                    break;
+                    case Undefined:
+                        if(! aux_rev){
+                            *(m + it) = Useless;  
+                        }
+                        // Variable duplication
+                        
+                        
+                        
+                        // Left branch
+                        if(*(*(p_rev + i___0_rev) + j_rev)){
+                            *(*(p_rev + i___0_rev) + j_rev) = 0;
+                            aux_rev = 1;  
+                        }
+                        
+                        //Right branch
+                        
+                        
+                        //Merging
+                        
+                    break;
+                }
+                it = (it + -1); 
+                if(aux_rev){
+                    aux_rev = 0;
+                    *(*(t + k_rev) + j_rev) = 1;
+                    *(*(p_rev + (i___0_rev - 1)) + k_rev) = 1;  
+                } 
+            }
+            it = (it + -1); 
+            if(*(*(p_rev + i___0_rev) + j_rev)){
+                *(*(p_rev + i___0_rev) + j_rev) = 0;  
+            } 
+        } 
+    }
+    for(int i_rev = n-1; i_rev >= 0;i_rev--){
+        it = (it + -1); 
+        if(*(*(p_rev + i_rev) + 0)){
+            *(*(p_rev + i_rev) + 0) = 0;  
+        } 
     }
 }
 
-                
-void sequential_viterbi_lazy_mpfr(double* array, int size, double* sum, double* mps, int* pos, memo** da){
-
-    /* Second iteration with superaccumulators */
-    mpreal sumA(0.,1000);
-    mpreal mpsA(0.,1000);
-    double post = 0;
-    memo* dap = *da;
-
-    for(int i = 0; i != size; i++){
-        memo d = dap[i];
-        if(d.useful1){
-            sumA += array[i];
-        }
-     
-        if(d.useful2 == True){
-            mpsA += sumA;
-            sumA = 0.;
-            post = i+1;
-        }
-        else if (d.useful2 == False){
-        }
-        else if (d.useful2 == Undefined){
-            // Redo the comparison
-            if(sumA >= 0){
-                mpsA += sumA;
-                sumA = 0.;
-                post = i+1;
-            }
-        }
+void viterbi_reverse(double*aa, long n, double** t,boolean**m){
+    mpreal** p_ex;
+    mpreal aux_ex (0.,1000);
+    mpreal result_ex (0.,1000);
+    for(int i_ex = 0; i_ex < n;i_ex++){
+        b = *(m + it);
+        it = (it + 1); 
+        if(b == True){
+            *(*(p_ex + i_ex) + 0) = 1.000000;  
+        } 
     }
-    delete[] dap;
-    *sum = sumA.toDouble();
-    *mps = mpsA.toDouble();
-    *pos = post;
-
+    for(int i___0_ex = 1; i___0_ex < n;i___0_ex++){
+        for(int j_ex = 0; j_ex < n;j_ex++){
+            b = *(m + it);
+            it = (it + 1); 
+            if(b == True){
+                *(*(p_ex + i___0_ex) + j_ex) = 0.000000;  
+            }
+            for(int k_ex = 0; k_ex < n;k_ex++){
+                b = *(m + it);
+                it = (it + 1); 
+                if(b == True){
+                    aux_ex = (*(*(p_ex + (i___0_ex - 1)) + k_ex) * *(*(t + k_ex) + j_ex));  
+                }
+                b = *(m + it);
+                it = (it + 1); 
+                switch(b){
+                    case True:
+                        *(*(p_ex + i___0_ex) + j_ex) = aux_ex; 
+                    break;
+                    case False:
+                        
+                    break;
+                    case Undefined:
+                        if((aux_ex > *(*(p_ex + i___0_ex) + j_ex))){
+                            *(*(p_ex + i___0_ex) + j_ex) = aux_ex;  
+                        }else{
+                             
+                        }
+                    break;
+                } 
+            } 
+        } 
+    }
+    b = *(m + it);
+    it = (it + 1); 
+    if(b == True){
+        result_ex = 0.000000;  
+    }
+    for(int j___0_ex = 0; j___0_ex < n;j___0_ex++){
+        b = *(m + it);
+        it = (it + 1); 
+        switch(b){
+            case True:
+                *(*(p_ex + (n - 1)) + j___0_ex) = result_ex; 
+            break;
+            case False:
+                
+            break;
+            case Undefined:
+                if((*(*(p_ex + (n - 1)) + j___0_ex) < result_ex)){
+                    *(*(p_ex + (n - 1)) + j___0_ex) = result_ex;  
+                }else{
+                     
+                }
+            break;
+        } 
+    }
     if(PRINT){
-        cout << endl << "Exact computation with mpfr" << endl;
-        cout << "Delta Sum: " << *sum << endl;
-        cout << "Mps: " << *mps << endl;
-        cout << "Pos: " << *pos << endl;
+        cout << endl << "Lazy Viterbi" << endl;
+        cout << "Result: " << *result << endl;
     }
 }
 
