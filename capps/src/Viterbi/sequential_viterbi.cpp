@@ -148,7 +148,6 @@ void viterbi_interval( long n, double** t,boolean*& m){
     for(int j___0 = 0; j___0 < n;j___0++){
         b = in2_gt(p[n - 1][j___0],result);
         m[it] = b;
-        cout << it << endl;
         it++;
         
         switch(b){
@@ -237,6 +236,8 @@ void viterbi_reverse( long n, double** t,boolean*m){
     if(result_rev){
         result_rev = 0;  
         m[it] = True;
+    }else{
+        m[it]= False;
     }
     for(int i___0_rev = n-1; i___0_rev >= 1;i___0_rev--){
         for(int j_rev = n-1; j_rev >= 0;j_rev--){
@@ -275,13 +276,17 @@ void viterbi_reverse( long n, double** t,boolean*m){
                     aux_rev = 0;
                     *(*(p_rev + (i___0_rev - 1)) + k_rev) = 1;  
                     m[it] = True;
-                } 
+                }else{
+                    m[it]= False;
+                }
             }
             it = (it + -1); 
             if(*(*(p_rev + i___0_rev) + j_rev)){
                 *(*(p_rev + i___0_rev) + j_rev) = 0;  
                 m[it]= True;
-            } 
+            }else{
+                m[it]= False;
+            }
         } 
     }
     for(int i_rev = n-1; i_rev >= 0;i_rev--){
@@ -289,7 +294,9 @@ void viterbi_reverse( long n, double** t,boolean*m){
         if(*(*(p_rev + 0) + i_rev)){
             *(*(p_rev + 0) + i_rev) = 0;  
             m[it] = True;
-        } 
+        }else{
+            m[it]= False;
+        }
     }
     if(PRINT){
         cout << endl << "Reverse Viterbi Finished" << endl;
@@ -324,6 +331,7 @@ void viterbi_lazy( long n, double** t,boolean*m){
                 b = *(m + it);
                 it = (it + 1); 
                 if(b == True){
+                    //cout << i___0_ex << "," << j_ex << endl;
                     aux_ex = p_ex[i___0_ex-1][k_ex] * t[k_ex][j_ex];  
                 }
                 b = *(m + it);

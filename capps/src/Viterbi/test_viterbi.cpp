@@ -20,7 +20,7 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = 5;
+    int size = 200;
     int N = 1;
 
     // for each dynamic range
@@ -53,7 +53,7 @@ void runtime_comparison(){
         double mean_interval = 0.;
         double mean_reverse = 0.;
         double mean_lazy = 0.;
-        
+        double mean_total = 0.; 
 
         for(int i = 0; i < N; i++){
 
@@ -88,6 +88,14 @@ void runtime_comparison(){
         mean_interval = mean_interval/N;
         mean_reverse = mean_reverse / N;
         mean_lazy = mean_lazy / N;
+        mean_total = mean_interval + mean_reverse + mean_lazy;
+
+        results << to_string(mean_double) << ",";
+        results << to_string(mean_mpfr) << ",";
+        results << to_string(mean_interval) << ",";
+        results << to_string(mean_reverse) << ",";
+        results << to_string(mean_lazy) << ",";
+        results << to_string(mean_total) << endl;
     }
 
     results.close();
