@@ -312,7 +312,8 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,9);
+    // It must be even !
+    int size = pow(10,8);
     int N = 5;
 
     // for each dynamic range
@@ -321,7 +322,7 @@ void runtime_comparison_sequential_alt(){
     
     // Store results to plot
     fstream results;
-    results.open("Plots/lazympsseqalt.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/csv/lazympsseqalt.csv", ofstream::out | ofstream::trunc);
     vector<double> x(s),r0(s),r1(s),r2(s),r2bis(s),r3(s),r4(s),r5(s),r6(s),r7(s),r8(s),r9(s),r10(s),r11(s),r12(s),r13(s);
 
     // Random seed
@@ -352,7 +353,7 @@ void runtime_comparison_sequential_alt(){
             double sum;
             double mps;
             int pos;
-            memo* da;
+            boolean* da;
             
             double time_double = 0.0;
             PFP_TIME(sequential_mps_double_alt(drray,size,&sum,&mps,&pos),start,time_double);
@@ -369,23 +370,23 @@ void runtime_comparison_sequential_alt(){
                 cout << endl << "********" << endl;
             }
             double time1 = 0.0;
-            PFP_TIME(sequential_mps_interval_memorized_alt(drray,size,&sum,&mps,&pos,&da),start,time1);
+            PFP_TIME(sequential_mps_interval_memorized_alt(drray,size,&sum,&mps,&pos,da),start,time1);
             //printMemo(da,size);
             double time2 = 0.0;
-            PFP_TIME(sequential_mps_iterate_reverse_mps_alt(drray,size,&sum,&mps,&pos,&da),start,time2);
+            PFP_TIME(sequential_mps_iterate_reverse_mps_alt(drray,size,&sum,&mps,&pos,da),start,time2);
             //printMemo(da,size);
             double time3 = 0.0;
-            PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,&da),start,time3);
+            PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,da),start,time3);
             /* Lazy computation, pos superacc */
             if(PRINT){
                 cout << endl << "********" << endl;
             }
             double time4 = 0.0;
-            PFP_TIME(sequential_mps_interval_memorized_alt(drray,size,&sum,&mps,&pos,&da),start,time4);
+            PFP_TIME(sequential_mps_interval_memorized_alt(drray,size,&sum,&mps,&pos,da),start,time4);
             double time5 = 0.0;
-            PFP_TIME(sequential_mps_iterate_reverse_pos_alt(drray,size,&sum,&mps,&pos,&da),start,time5);
+            PFP_TIME(sequential_mps_iterate_reverse_pos_alt(drray,size,&sum,&mps,&pos,da),start,time5);
             double time6 = 0.0;
-            PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,&da),start,time6);
+            PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,da),start,time6);
             
             /* Lazy computation, mps mpfr */
             if(PRINT){
@@ -419,6 +420,8 @@ void runtime_comparison_sequential_alt(){
             mean_lazy_superacc_pos += time6;
             mean_lazy_mpfr_mps += time9;
             mean_lazy_mpfr_pos += time12;
+
+            delete[] da;
             
         }
         // Finalize mean computation

@@ -35,7 +35,6 @@ include_directories(PRIVATE ${PYTHON_INCLUDE_DIRS})
 link_libraries(${PYTHON_LIBRARIES})
 
 
-
 file(GLOB Common_sources "Common/*.cpp")
 file(GLOB Mps_sources "Mps/*.cpp" "Mts/sequential_mts.cpp")
 file(GLOB Mss_sources "Mss/*.cpp" "Mps/parallel_mps.cpp" "Mts/sequential_mts.cpp")

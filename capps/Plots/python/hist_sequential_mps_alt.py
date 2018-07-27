@@ -5,7 +5,7 @@ import numpy as np
 pypl.style.use('ggplot')
 
 results = []
-with open("Plots/lazympsseqalt.csv", "rb") as csvfile:
+with open("Plots/csv/lazympsseqalt.csv", "rb") as csvfile:
     resultsreader = csv.reader(csvfile)
     for row in resultsreader:
         results.append(map(float, row))
@@ -30,5 +30,5 @@ pypl.ylabel("Relative Wall Time")
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Relative Mean Computation Time for Maximum Prefix Sum");
 pypl.show()
-pypl.savefig("Plots/histmpsseqalt.jpg");
+pypl.savefig("Plots/figures/histmpsseqalt.jpg");
 

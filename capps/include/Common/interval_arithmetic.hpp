@@ -134,7 +134,7 @@ inline __m128d in2_add(double x, double y)
 {
         //if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
         /* Component-wise addition */
-	double aux = x+y;
+        double aux = x+y;
         return  (__m128d){-aux,aux};
 }
 
