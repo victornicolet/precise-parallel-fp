@@ -6,7 +6,7 @@ void viterbi_double(long,double**);
 
 void viterbi_mpfr(long,double**);
 
-void viterbi_interval(long,double**,boolean*);
+void viterbi_interval(long,double**,boolean*&);
 
 void viterbi_reverse(long,double**,boolean*);
 

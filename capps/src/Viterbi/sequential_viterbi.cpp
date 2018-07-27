@@ -22,7 +22,7 @@ void viterbi_double(long n, double** t){
     }
 
 	for(int i = 0; i != n; i++){
-		p[i][0] = 1.;
+		p[0][i] = 1.;
 	}
 
 	for(int i = 1; i != n; i++){
@@ -43,7 +43,7 @@ void viterbi_double(long n, double** t){
 	
 	double result = 0.;
 	for(int j = 0; j != n; j++){
-		if(p[n-1][j] < result){
+		if(p[n-1][j] > result){
 			result = p[n-1][j];
 		}
 	}
@@ -63,7 +63,7 @@ void viterbi_mpfr( long n, double** t){
     }
 
 	for(int i = 0; i != n; i++){
-		p[i][0] = mpreal(1.,1000);
+		p[0][i] = mpreal(1.,1000);
 	}
 
 	for(int i = 1; i != n; i++){
@@ -84,7 +84,7 @@ void viterbi_mpfr( long n, double** t){
 	
 	mpreal result = 0.;
 	for(int j = 0; j != n; j++){
-		if(p[n-1][j] < result){
+		if(p[n-1][j] > result){
 			result = p[n-1][j];
 		}
 	}
@@ -96,7 +96,7 @@ void viterbi_mpfr( long n, double** t){
 
 }
 
-void viterbi_interval( long n, double** t,boolean* m){
+void viterbi_interval( long n, double** t,boolean*& m){
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     long size = 2*n+1+((1 + 2*n) * n) * (n - 1);
     m = new boolean[size];
@@ -112,7 +112,7 @@ void viterbi_interval( long n, double** t,boolean* m){
     __m128d result;
     
     for(int i = 0; i < n;i++){
-        p[i][0]= in2_create(1.);
+        p[0][i]= in2_create(1.);
         it++;  
     }
     
@@ -140,17 +140,15 @@ void viterbi_interval( long n, double** t,boolean* m){
                         
                     break;
                 }
-                 
             }
-             
         }
-         
     }
     result = in2_create(0.);
     it++; 
     for(int j___0 = 0; j___0 < n;j___0++){
-        b = in2_lt(p[n - 1][j___0],result);
+        b = in2_gt(p[n - 1][j___0],result);
         m[it] = b;
+        cout << it << endl;
         it++;
         
         switch(b){
@@ -189,12 +187,12 @@ void viterbi_reverse( long n, double** t,boolean*m){
 
 	bool** p_rev = new bool*[n];
     for(int j = 0; j != n; j++){
-        p_rev[j] = new bool[n];
+        p_rev[j] = new bool[n]();
     }
 
     boolean b;
-    bool aux_rev;
-    bool result_rev;
+    bool aux_rev = false;
+    bool result_rev = true;;
 
     for(int j___0_rev = n-1; j___0_rev >= 0;j___0_rev--){
         it--;
@@ -204,15 +202,13 @@ void viterbi_reverse( long n, double** t,boolean*m){
                 if(! result_rev){
                     m[it] = Useless;  
                 }
-                if(p_rev[n - 1][j___0_rev]){
-                    p_rev[n - 1][j___0_rev] = 0.;
-                    result_rev = 1;  
+                if(result_rev){
+                    result_rev = 0;  
+                    p_rev[n - 1][j___0_rev] = 1.;
                 }
             break;
             case False:
-                if(! 0){
                     m[it] = Useless;  
-                }
                 
             break;
             case Undefined:
@@ -224,9 +220,9 @@ void viterbi_reverse( long n, double** t,boolean*m){
                 
                 
                 // Left branch
-                if(p_rev[n - 1][j___0_rev]){
-                    p_rev[n - 1][j___0_rev] = 0;
-                    result_rev = 1;  
+                if(result_rev){
+                    result_rev = 0;  
+                    p_rev[n - 1][j___0_rev] = 1.;
                 }
                 
                 //Right branch
@@ -240,6 +236,7 @@ void viterbi_reverse( long n, double** t,boolean*m){
     it--; 
     if(result_rev){
         result_rev = 0;  
+        m[it] = True;
     }
     for(int i___0_rev = n-1; i___0_rev >= 1;i___0_rev--){
         for(int j_rev = n-1; j_rev >= 0;j_rev--){
@@ -248,7 +245,7 @@ void viterbi_reverse( long n, double** t,boolean*m){
                 b = *(m + it); 
                 switch(b){
                     case True:
-                        if(! aux_rev){
+                        if(! p_rev[i___0_rev][j_rev]){
                             *(m + it) = Useless;  
                         }
                         if(*(*(p_rev + i___0_rev) + j_rev)){
@@ -263,44 +260,39 @@ void viterbi_reverse( long n, double** t,boolean*m){
                         
                     break;
                     case Undefined:
-                        if(! aux_rev){
+                        if(! p_rev[i___0_rev][j_rev]){
                             *(m + it) = Useless;  
                         }
-                        // Variable duplication
-                        
-                        
-                        
-                        // Left branch
+
                         if(*(*(p_rev + i___0_rev) + j_rev)){
-                            *(*(p_rev + i___0_rev) + j_rev) = 0;
                             aux_rev = 1;  
                         }
-                        
-                        //Right branch
-                        
-                        
-                        //Merging
                         
                     break;
                 }
                 it = (it + -1); 
                 if(aux_rev){
                     aux_rev = 0;
-                    *(*(t + k_rev) + j_rev) = 1;
                     *(*(p_rev + (i___0_rev - 1)) + k_rev) = 1;  
+                    m[it] = True;
                 } 
             }
             it = (it + -1); 
             if(*(*(p_rev + i___0_rev) + j_rev)){
                 *(*(p_rev + i___0_rev) + j_rev) = 0;  
+                m[it]= True;
             } 
         } 
     }
     for(int i_rev = n-1; i_rev >= 0;i_rev--){
         it = (it + -1); 
-        if(*(*(p_rev + i_rev) + 0)){
-            *(*(p_rev + i_rev) + 0) = 0;  
+        if(*(*(p_rev + 0) + i_rev)){
+            *(*(p_rev + 0) + i_rev) = 0;  
+            m[it] = True;
         } 
+    }
+    if(PRINT){
+        cout << endl << "Reverse Viterbi Finished" << endl;
     }
 }
 
@@ -319,66 +311,60 @@ void viterbi_lazy( long n, double** t,boolean*m){
     for(int i_ex = 0; i_ex < n;i_ex++){
         b = *(m + it);
         it = (it + 1); 
-        if(b == True){
-            *(*(p_ex + i_ex) + 0) = 1.000000;  
-        } 
+        p_ex[0][i_ex] = mpreal(1.,1000);  
     }
     for(int i___0_ex = 1; i___0_ex < n;i___0_ex++){
         for(int j_ex = 0; j_ex < n;j_ex++){
             b = *(m + it);
             it = (it + 1); 
             if(b == True){
-                *(*(p_ex + i___0_ex) + j_ex) = 0.000000;  
+                p_ex[i___0_ex][j_ex] = mpreal(0.,1000);  
             }
             for(int k_ex = 0; k_ex < n;k_ex++){
                 b = *(m + it);
                 it = (it + 1); 
                 if(b == True){
-                    aux_ex = (*(*(p_ex + (i___0_ex - 1)) + k_ex) * *(*(t + k_ex) + j_ex));  
+                    aux_ex = p_ex[i___0_ex-1][k_ex] * t[k_ex][j_ex];  
                 }
                 b = *(m + it);
                 it = (it + 1); 
                 switch(b){
-                    case True:
-                        *(*(p_ex + i___0_ex) + j_ex) = aux_ex; 
+                  case True:
+                        p_ex[i___0_ex][j_ex] = aux_ex; 
                     break;
                     case False:
                         
                     break;
                     case Undefined:
-                        if((aux_ex > *(*(p_ex + i___0_ex) + j_ex))){
-                            *(*(p_ex + i___0_ex) + j_ex) = aux_ex;  
-                        }else{
-                             
-                        }
+                        if(aux_ex > p_ex[i___0_ex][j_ex]){
+                             p_ex[i___0_ex][j_ex] = aux_ex;  
+                      }
                     break;
                 } 
             } 
         } 
     }
-    b = *(m + it);
-    it = (it + 1); 
-    if(b == True){
-        result_ex = 0.000000;  
-    }
+    b = m[it];
+    it++; 
+    result_ex = 0.000000;  
     for(int j___0_ex = 0; j___0_ex < n;j___0_ex++){
         b = *(m + it);
-        it = (it + 1); 
         switch(b){
             case True:
-                *(*(p_ex + (n - 1)) + j___0_ex) = result_ex; 
+                result_ex = p_ex[n-1][j___0_ex]; 
             break;
             case False:
                 
             break;
             case Undefined:
-                if((*(*(p_ex + (n - 1)) + j___0_ex) < result_ex)){
-                    *(*(p_ex + (n - 1)) + j___0_ex) = result_ex;  
-                }else{
+                if(p_ex[n-1][j___0_ex] > result_ex){
+                    result_ex = p_ex[n-1][j___0_ex]; 
+              }else{
                      
                 }
             break;
         } 
+        it = (it + 1); 
     }
     if(PRINT){
         cout << endl << "Lazy Viterbi" << endl;

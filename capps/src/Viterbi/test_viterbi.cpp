@@ -20,11 +20,11 @@ void runtime_comparison(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,5);
-    int N = 5;
+    int size = 5;
+    int N = 1;
 
     // for each dynamic range
-    vector<int> dynRanges  {2000};
+    vector<int> dynRanges  {5};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -43,15 +43,9 @@ void runtime_comparison(){
         double** drray = new double*[size];
         for(int i = 0; i != size; i++){
             drray[i] = new double[size];
-            init_fpuniform(size, drray[i], dynRanges[r], dynRanges[r]/2);
+            init_fpuniform(size, drray[i], dynRanges[r], 0);
         }
 
-        // Randomly change signs
-        for(int i = 0; i != size; i++){
-            for(int j = 0; j < size ; j++){
-                 drray[i][j] = (rand() % 2) ? drray[i][j] : -drray[i][j];
-            }
-        }
 
         // initialization of means
         double mean_double = 0.;
