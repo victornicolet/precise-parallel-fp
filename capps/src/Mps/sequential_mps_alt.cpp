@@ -238,9 +238,7 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
 
     /* Second iteration with superaccumulators */
     Superaccumulator sumA = Superaccumulator();
-    //FPExpansionVect<4> sumC(sumA);
     Superaccumulator mpsA = Superaccumulator();
-    //FPExpansionVect<4> mpsC(mpsA);
     double post = 0;
     memo* dap = *da;
 
@@ -252,15 +250,11 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
         }
      
         if(d.useful2 == True){
-            //sumC.Flush();
             mpsA.Accumulate(sumA);
             sumA = Superaccumulator();
             post = i+1;
         }
         else if (d.useful2 == Undefined){
-            // Redo the comparison
-            //sumC.Flush();
-            //mpsC.Flush();
             if(!sumA.Normalize()){
                 mpsA.Accumulate(sumA);
                 sumA = Superaccumulator();
@@ -268,7 +262,6 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
             }
         }
     }
-    delete[] dap;
     *sum = sumA.Round();
     *mps = mpsA.Round();
     *pos = post;
@@ -281,6 +274,53 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
     }
 }
                 
+void sequential_mps_lazy_superacc_alt_bis(double* array, int size, double* sum, double* mps, int* pos, memo** da){
+
+    /* Second iteration with superaccumulators */
+    Superaccumulator sumA = Superaccumulator();
+    FPExpansionVect<2> sumC(sumA);
+    Superaccumulator mpsA = Superaccumulator();
+    FPExpansionVect<2> mpsC(mpsA);
+    double post = 0;
+    memo* dap = *da;
+
+    for(int i = 0; i != size; i++){
+        
+        memo d = dap[i];
+        if(d.useful1){
+            sumC.Accumulate(array[i]);
+            //sumA.Accumulate(array[i]);
+        }
+     
+        if(d.useful2 == True){
+            sumC.Flush();
+            mpsA.Accumulate(sumA);
+            sumA = Superaccumulator();
+            post = i+1;
+        }
+        else if (d.useful2 == Undefined){
+            // Redo the comparison
+            sumC.Flush();
+            mpsC.Flush();
+            if(!sumA.Normalize()){
+                mpsA.Accumulate(sumA);
+                sumA = Superaccumulator();
+                post = i+1;
+            }
+        }
+    }
+    *sum = sumA.Round();
+    *mps = mpsA.Round();
+    *pos = post;
+
+    if(PRINT){
+        cout << endl << "Exact computation with superacc" << endl;
+        cout << "Delta Sum: " << *sum << endl;
+        cout << "Mps: " << *mps << endl;
+        cout << "Pos: " << *pos << endl;
+    }
+}
+
 void sequential_mps_lazy_mpfr_alt(double* array, int size, double* sum, double* mps, int* pos, memo** da){
 
     /* Second iteration with superaccumulators */

@@ -23,5 +23,6 @@ void sequential_mps_iterate_reverse_mps_alt(double*,int,double*,double*,int*,mem
 void sequential_mps_iterate_reverse_pos_alt(double*,int,double*,double*,int*,memo**);
 
 void sequential_mps_lazy_superacc_alt(double*,int,double*,double*,int*,memo**);
+void sequential_mps_lazy_superacc_alt_bis(double*,int,double*,double*,int*,memo**);
 
 void sequential_mps_lazy_mpfr_alt(double*,int,double*,double*,int*,memo**);

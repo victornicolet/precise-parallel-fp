@@ -312,8 +312,8 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,9);
-    int N = 5;
+    int size = pow(10,7);
+    int N = 20;
 
     // for each dynamic range
     vector<int> dynRanges  {2000};
@@ -321,8 +321,10 @@ void runtime_comparison_sequential_alt(){
     
     // Store results to plot
     fstream results;
-    results.open("Plots/lazympsseqalt.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/csv/lazympsseqalt.csv", ofstream::out | ofstream::trunc);
     vector<double> x(s),r0(s),r1(s),r2(s),r2bis(s),r3(s),r4(s),r5(s),r6(s),r7(s),r8(s),r9(s),r10(s),r11(s),r12(s),r13(s);
+    
+    vector<double> r14(s),r15(s);
 
     // Random seed
     srand(time(NULL));
@@ -342,6 +344,9 @@ void runtime_comparison_sequential_alt(){
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_mpfr = 0., mean_interval = 0.,mean_reverse_mps = 0., mean_reverse_pos = 0., mean_lazy_superacc_mps = 0., mean_lazy_superacc_pos = 0., mean_lazy_mpfr_mps = 0., mean_lazy_mpfr_pos = 0.; 
+
+        double mean_lazy_superacc_mps_bis = 0.;
+        double mean_lazy_superacc_pos_bis = 0.;
         
 
         for(int i = 0; i < N; i++){
@@ -376,6 +381,9 @@ void runtime_comparison_sequential_alt(){
             //printMemo(da,size);
             double time3 = 0.0;
             PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,&da),start,time3);
+            double time3bis = 0.0;
+            PFP_TIME(sequential_mps_lazy_superacc_alt_bis(drray,size,&sum,&mps,&pos,&da),start,time3bis);
+
             /* Lazy computation, pos superacc */
             if(PRINT){
                 cout << endl << "********" << endl;
@@ -386,6 +394,8 @@ void runtime_comparison_sequential_alt(){
             PFP_TIME(sequential_mps_iterate_reverse_pos_alt(drray,size,&sum,&mps,&pos,&da),start,time5);
             double time6 = 0.0;
             PFP_TIME(sequential_mps_lazy_superacc_alt(drray,size,&sum,&mps,&pos,&da),start,time6);
+            double time6bis = 0.0;
+            PFP_TIME(sequential_mps_lazy_superacc_alt_bis(drray,size,&sum,&mps,&pos,&da),start,time6bis);
             
             /* Lazy computation, mps mpfr */
             if(PRINT){
@@ -417,6 +427,8 @@ void runtime_comparison_sequential_alt(){
             mean_reverse_pos += (time5+time11)/2;
             mean_lazy_superacc_mps += time3;
             mean_lazy_superacc_pos += time6;
+            mean_lazy_superacc_mps_bis += time3bis;
+            mean_lazy_superacc_pos_bis += time6bis;
             mean_lazy_mpfr_mps += time9;
             mean_lazy_mpfr_pos += time12;
             
@@ -431,6 +443,8 @@ void runtime_comparison_sequential_alt(){
         mean_reverse_pos = mean_reverse_pos / N;
         mean_lazy_superacc_mps = mean_lazy_superacc_mps / N;
         mean_lazy_superacc_pos = mean_lazy_superacc_pos / N;
+        mean_lazy_superacc_mps_bis /= N;
+        mean_lazy_superacc_pos_bis /= N;
         mean_lazy_mpfr_mps = mean_lazy_mpfr_mps / N;
         mean_lazy_mpfr_pos = mean_lazy_mpfr_pos / N;
         
@@ -450,9 +464,13 @@ void runtime_comparison_sequential_alt(){
         r11[r] = r3[r]+r5[r]+r7[r];
         r12[r] = r3[r]+r4[r]+r8[r];
         r13[r] = r3[r]+r5[r]+r9[r];
+        r14[r]= mean_lazy_superacc_mps_bis / mean_double;
+        r15[r]= mean_lazy_superacc_pos_bis / mean_double;
 
         // Writing results to a file
-        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r2bis[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << "," << to_string(r6[r]) << ","<< to_string(r7[r]) << "," << to_string(r8[r]) << "," << to_string(r9[r]) << "," << to_string(r10[r]) << "," << to_string(r11[r]) << "," << to_string(r12[r]) << "," << to_string(r13[r]) << endl;
+        results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r2bis[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << "," << to_string(r6[r]) << ","<< to_string(r7[r]) << "," << to_string(r8[r]) << "," << to_string(r9[r]) << "," << to_string(r10[r]) << "," << to_string(r11[r]) << "," << to_string(r12[r]) << "," << to_string(r13[r]) << "," <<
+            to_string(r14[r]) << "," <<
+            to_string(r15[r]) << endl;
         
     }
 
