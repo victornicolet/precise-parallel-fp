@@ -116,6 +116,11 @@ inline __m128d in2_add(__m128d x, __m128d y)
         return  x + y;
 }
 
+inline __m128d in2_sub(__m128d x, __m128d y)
+{
+        return  x - y;
+}
+
 inline __m128d in2_add(__m128d x, double y)
 {
         //if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
@@ -128,6 +133,13 @@ inline __m128d in2_add(double x, __m128d y)
         //if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
         /* Component-wise addition */
 	return y + (__m128d){-x,x};
+}
+
+inline __m128d in2_sub(double x, __m128d y)
+{
+        //if(_MM_GET_ROUNDING_MODE() == 0) cout << endl <<"false rm for ia" <<endl; 
+        /* Component-wise addition */
+	return (__m128d){-x,x} - y;
 }
 
 inline __m128d in2_add(double x, double y)
@@ -215,6 +227,10 @@ inline __m128d in2_merge(__m128d a,__m128d b){
     //return (__m128d){max(a[0],b[0]),max(a[1],b[1])};
 }
 
+inline __m128d in2_min(__m128d a,__m128d b){
+    return (__m128d){max(a[0],b[0]),min(a[1],b[1])};
+}
+
 inline __m128d in2_merge(double a,__m128d b){
     return (__m128d){max(a,b[0]),max(a,b[1])};
 }
@@ -222,4 +238,49 @@ inline __m128d in2_merge(double a,__m128d b){
 inline __m128i in2_merge(__m128i a,__m128i b){
     return (__m128i){max(a[0],b[0]),max(a[1],b[1])};
 }
+
+/**************************************************************
+ * ************ Boolean functions *****************************
+ * ************************************************************/
+
+inline void print(boolean b){
+
+    switch(b){
+        case True:
+            cout << "True";
+            break;
+        case False:
+            cout << "False";
+            break;
+        case Undefined:
+            cout << "Undefined";
+            break;
+        case Useless:
+            cout << "Useless";
+            break;
+    }
+    cout << endl;
+}
+
+inline boolean booleanAnd(boolean a, boolean b){
+
+    switch(a){
+        case False:
+            return False;
+        case Undefined:
+            // If b false not undefined
+            switch(b){
+                case False:
+                    return False;
+                break;
+                default:
+                    return Undefined;
+            }
+            break;
+        default:
+            return True;
+    }
+
+}
+
 #endif

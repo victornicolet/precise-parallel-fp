@@ -312,11 +312,11 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,7);
-    int N = 20;
+    int size = pow(10,5);
+    int N = 50;
 
     // for each dynamic range
-    vector<int> dynRanges  {2000};
+    vector<int> dynRanges  {1};
     int s = dynRanges.size();
     
     // Store results to plot
@@ -333,14 +333,6 @@ void runtime_comparison_sequential_alt(){
         if(PRINT){
             cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
         }
-        // Generating array
-        double* drray = new double[size];
-        init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
-
-        // Randomly change signs
-        for(int j = 0; j < size ; j++){
-             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-        }
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_mpfr = 0., mean_interval = 0.,mean_reverse_mps = 0., mean_reverse_pos = 0., mean_lazy_superacc_mps = 0., mean_lazy_superacc_pos = 0., mean_lazy_mpfr_mps = 0., mean_lazy_mpfr_pos = 0.; 
@@ -350,6 +342,15 @@ void runtime_comparison_sequential_alt(){
         
 
         for(int i = 0; i < N; i++){
+
+        // Generating array
+        double* drray = new double[size];
+        init_fpuniform(size, drray, dynRanges[r], dynRanges[r]/2);
+
+        // Randomly change signs
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
 
             
             

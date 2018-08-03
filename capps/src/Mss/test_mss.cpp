@@ -104,7 +104,7 @@ void runtime_comparison_parallel_mss(){
     
     // Variables declaration and initialisation 
     double start;
-    long size = pow(10,7);
+    long size = pow(10,5);
     long N = 1;
 
     // for each dynamic range
@@ -178,9 +178,9 @@ void runtime_comparison_parallel_mss(){
 void runtime_comparison_parallel_mss_hybrid(){
     // Parameters
     double start;
-    int size = pow(10,8);
+    int size = pow(10,9);
     int N = 1;
-    vector<int> depths = {3,5,7,9,11,13,15,18,22};
+    vector<int> depths = {10,11,12,13,14,15};
     vector<double> hybrid(depths.size());
     vector<double> lazy(depths.size());
     

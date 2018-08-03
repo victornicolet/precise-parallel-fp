@@ -102,21 +102,26 @@ void sequential_mps_interval_memorized_alt(double* array, int size, double* delt
     int t = 0;
     
     /* First iteration with interval arithmetic */
-    for(int i = 0; i != size; i++){
+    for(int i = 0; i < size; i++){
+
         sumI = in2_add(sumI,array[i]);
         boolean b = in2_le(0,sumI);
 
-        if(b == True){
-            mpsI = in2_add(mpsI,sumI);
-            sumI = in2_create(0.);
-            t = i+1;
-        }
-        else if(b == Undefined){
+        switch(b) {
+            case False:
+                break;
+            case Undefined:
             sumI = in2_merge(sumI,in2_create(0.));
             mpsI = in2_add(mpsI,sumI);
             t = i+1;
+            break;
+            case True:
+            mpsI = in2_add(mpsI,sumI);
+            sumI = in2_create(0.);
+            t = i+1;
+            break;
         }
-        d[i].useful2 = b;
+            d[i].useful2 = b;
     }
 
     *da = d;
@@ -262,9 +267,9 @@ void sequential_mps_lazy_superacc_alt(double* array, int size, double* sum, doub
             }
         }
     }
-    *sum = sumA.Round();
-    *mps = mpsA.Round();
-    *pos = post;
+    //*sum = sumA.Round();
+    //*mps = mpsA.Round();
+    //*pos = post;
 
     if(PRINT){
         cout << endl << "Exact computation with superacc" << endl;
