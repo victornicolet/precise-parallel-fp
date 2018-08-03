@@ -24,7 +24,7 @@ using namespace std;
 void runtime_comparison_parallel_steep_hybrid(){
     // Parameters
     double start;
-    int size = pow(10,9);
+    int size = pow(10,8);
     int N = 1;
     vector<int> depths = {10,11,12,13,14,15};
     vector<double> hybrid(depths.size());

@@ -240,7 +240,6 @@ void __steep_interval::join(__steep_interval& right){
     __m128d aux = in2_sum(right.capacity,sum);
     capacity = in2_min(capacity,aux);
     sum = in2_add(sum,right.sum);
-    
     b = booleanAnd(b,in2_ge(aux,0.));
 }
 
