@@ -23,86 +23,101 @@ using namespace std;
 void runtime_comparison_parallel_steep_hybrid(){
     // Parameters
     double start;
-    int size = pow(10,6);
-    int N = 100;
-    vector<int> depths = {1,3,5,7,10,11,12,13,14,15};
-    vector<double> hybrid(depths.size());
-    vector<double> lazy(depths.size());
+    vector<int> sizes = {3*pow(10,2),pow(10,3),3*pow(10,3),pow(10,4),3*pow(10,4),pow(10,5),3*pow(10,5),pow(10,6),3*pow(10,6),pow(10,7),3*pow(10,7),pow(10,8),3*pow(10,8),pow(10,9)};
+    vector<int> depths = {5,5,5,5,5,5,6,7,8,10,11,13,14,14};
+    vector<int> ntrials = {10000,30000,10000,3000,3000,3000,1000,1000,300,100,30,10,3,1};
+    int n = depths.size();
+    vector<double> interval(n);
+    vector<double> intervalref(n);
     
     // Store results to plot
     fstream results;
     results.open("Plots/csv/steep_hybrid.csv", ofstream::out | ofstream::trunc);
 
-    // Generating array
-    srand(time(NULL));
-    double* drray = new double[size];
-    init_fpuniform(size, drray, 200, 100);
-    for(int j = 0; j < size ; j++){
-         drray[j] = (rand() % 2) ? drray[j] : -drray[j];
-    }
-     
-    // Hybrid Reduction
-    for(int it = 0; it != depths.size(); it++){
+    for(int i = 0; i != n; i++){
+        int size = sizes[i];
+        cout << "Size: " << size << endl;
+        int N = ntrials[i];
 
+        // Generating array
+        srand(time(NULL));
+        double* drray = new double[size];
+        init_fpuniform(size, drray, 200, 100);
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+         
+        cout << "Starting hybrid interval: " << size << endl;
+        // Hybrid Reduction
         double mean_hybrid = 0.;
-        for(int i = 0; i < N; i++){
+        for(int k = 0; k < N; k++){
             
             // Declare result variables
             double time_hybrid = 0.0;
-            PFP_TIME(parallel_steep_hybrid(drray,size,depths[it]),start,time_hybrid);
+            PFP_TIME(parallel_steep_hybrid_interval(drray,size,1),start,time_hybrid);
             mean_hybrid += time_hybrid;
 
         }
         mean_hybrid = mean_hybrid / N;
-        hybrid[it] = mean_hybrid;
-    }
+        mean_hybrid = mean_hybrid / size;
+        intervalref[i] = mean_hybrid;
 
-    // Standard reduction
-    double mean_tbb = 0.;
+        cout << "Starting standard: " << size << endl;
+        // Standard reduction
+        double mean_tbb = 0.;
 
-    for(int i = 0; i < N; i++){
-        
-        // Declare result variables
-        double time_tbb = 0.0;
-        PFP_TIME(parallel_steep_double(drray,size),start,time_tbb);
-   
-        mean_tbb += time_tbb;
-        
-    }
-    mean_tbb = mean_tbb/N ;
+        for(int k = 0; k < N; k++){
+            
+            // Declare result variables
+            double time_tbb = 0.0;
+            PFP_TIME(parallel_steep_double(drray,size),start,time_tbb);
+       
+            mean_tbb += time_tbb;
+            
+        }
+        mean_tbb = mean_tbb/N ;
+        mean_tbb = mean_tbb/size ;
 
-    
-    // Lazy hybrid reduction
-    for(int it = 0; it != depths.size(); it++){
-
+        cout << "Starting interval 2: " << size << endl;
+        // Lazy hybrid reduction
         double mean_hybrid_interval = 0.;
-        for(int i = 0; i < N; i++){
+        for(int k = 0; k < N; k++){
             
             // Declare result variables
             double time_hybrid_interval = 0.0;
-            PFP_TIME(parallel_steep_hybrid_interval(drray,size,depths[it]),start,time_hybrid_interval);
+            PFP_TIME(parallel_steep_hybrid_interval(drray,size,depths[i]),start,time_hybrid_interval);
             mean_hybrid_interval += time_hybrid_interval;
             
         }
+        mean_hybrid_interval = mean_hybrid_interval / size;
         mean_hybrid_interval = mean_hybrid_interval / N;
-        lazy[it] = mean_hybrid_interval;
-    }
+        interval[i] = mean_hybrid_interval;
 
-    // Writing results to a file
-    results << to_string(mean_tbb) << endl;
-    for(int it = 0; it != depths.size(); it++){
-        results << to_string(depths[it]) << "," <<
-        to_string(lazy[it]) << "," <<
-        to_string(hybrid[it]) << endl;
-    }
+        cout << "Starting sequential: " << size << endl;
+        // Lazy hybrid reduction
+        double mean_sequential = 0.;
+        // Declare result variables
+        double time_seq = 0.0;
+        double s,c;
+        bool b;
+        PFP_TIME(sequential_steep(drray,size,s,c,b),start,time_seq);
+        mean_sequential += time_seq;
+        mean_sequential /= size;
 
+        interval[i] = mean_hybrid_interval;
+        results << to_string(sizes[i]) << "," <<
+        to_string(mean_tbb) << "," <<
+        to_string(interval[i]) << "," <<
+        to_string(intervalref[i]) << "," <<
+        to_string(mean_sequential) << endl;
+
+    }
     results.close();
 }
 
 void optimal_depth(){
     // Parameters
     double start;
-    int N = 10;
     vector<int> sizes = {3*pow(10,2),pow(10,3),3*pow(10,3),pow(10,4),3*pow(10,4),pow(10,5),3*pow(10,5),pow(10,6),3*pow(10,6),pow(10,7),3*pow(10,7),pow(10,8),3*pow(10,8),pow(10,9)};
     vector<int> ntrials = {100000,30000,10000,3000,1000,1000,1000,1000,1000,300,100,30,10,3};
     

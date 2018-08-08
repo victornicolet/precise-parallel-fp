@@ -11,9 +11,9 @@
 // Using haswell tsc for timing
 #ifndef PFP_TIME
 #define PFP_TIME(call,start,mem)\
-start = pfp_rdtsc();\
+start = omp_get_wtime();\
 call;\
-mem = (double) (pfp_rdtsc() - start);
+mem = (double) (omp_get_wtime() - start) * pow(10,9);
 #endif
 
 #ifndef PPF_WTIME

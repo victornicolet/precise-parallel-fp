@@ -16,6 +16,24 @@
 using namespace tbb;
 using namespace std;
 
+void sequential_steep(double* a, int size, double& s, double& c, bool& b){
+
+    double sum = 0.;
+    double aux;
+    double capacity = 0.;
+    bool bo = true;
+    for(int i = 0; i != size; i++){
+        aux = a[i]-sum;
+        if(aux < capacity){
+            capacity = aux;
+        }
+        sum += a[i];
+        bo &= aux >= 0;
+    }
+    s = sum;
+    c = capacity;
+    b = bo;
+}
 
 void printA(double* array, int size){
     // printing the array

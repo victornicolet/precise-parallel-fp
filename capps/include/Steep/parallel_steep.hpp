@@ -16,6 +16,8 @@ using mpfr::mpreal;
 using namespace tbb;
 using namespace std;
 
+void sequential_steep(double* a, int size,double&,double&,bool&);
+
 // Main function for naive parallel steep
 void parallel_steep_double(double* array, long size);
 
