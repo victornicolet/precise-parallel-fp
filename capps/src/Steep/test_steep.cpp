@@ -13,7 +13,6 @@
 
 #include "tbb/tbb.h"
 
-#include "sequential_steep.hpp"
 #include "parallel_steep.hpp"
 #include "summation.hpp"
 
@@ -24,9 +23,9 @@ using namespace std;
 void runtime_comparison_parallel_steep_hybrid(){
     // Parameters
     double start;
-    int size = pow(10,8);
-    int N = 1;
-    vector<int> depths = {10,11,12,13,14,15};
+    int size = pow(10,6);
+    int N = 100;
+    vector<int> depths = {1,3,5,7,10,11,12,13,14,15};
     vector<double> hybrid(depths.size());
     vector<double> lazy(depths.size());
     
@@ -37,7 +36,7 @@ void runtime_comparison_parallel_steep_hybrid(){
     // Generating array
     srand(time(NULL));
     double* drray = new double[size];
-    init_fpuniform(size, drray, 100, 50);
+    init_fpuniform(size, drray, 200, 100);
     for(int j = 0; j < size ; j++){
          drray[j] = (rand() % 2) ? drray[j] : -drray[j];
     }
@@ -70,7 +69,7 @@ void runtime_comparison_parallel_steep_hybrid(){
         mean_tbb += time_tbb;
         
     }
-    mean_tbb = mean_tbb / N;
+    mean_tbb = mean_tbb/N ;
 
     
     // Lazy hybrid reduction
@@ -100,12 +99,81 @@ void runtime_comparison_parallel_steep_hybrid(){
     results.close();
 }
 
+void optimal_depth(){
+    // Parameters
+    double start;
+    int N = 10;
+    vector<int> sizes = {3*pow(10,2),pow(10,3),3*pow(10,3),pow(10,4),3*pow(10,4),pow(10,5),3*pow(10,5),pow(10,6),3*pow(10,6),pow(10,7),3*pow(10,7),pow(10,8),3*pow(10,8),pow(10,9)};
+    vector<int> ntrials = {100000,30000,10000,3000,1000,1000,1000,1000,1000,300,100,30,10,3};
+    
+    // Store results to plot
+    fstream results;
+    results.open("Plots/csv/optimal_depth.csv", ofstream::out | ofstream::trunc);
+
+    for(int a = 0; a != sizes.size(); a++){
+        int size = sizes[a];
+        cout << "Size: " << size << endl;
+
+        // Generating array
+        srand(time(NULL));
+        double* drray = new double[size];
+        init_fpuniform(size, drray, 200, 100);
+        for(int j = 0; j < size ; j++){
+             drray[j] = (rand() % 2) ? drray[j] : -drray[j];
+        }
+
+        // Standard reduction
+        double mean_tbb = 0.;
+
+        for(int i = 0; i < ntrials[a]; i++){
+            
+            // Declare result variables
+            double time_tbb = 0.0;
+            PFP_TIME(parallel_steep_double(drray,size),start,time_tbb);
+       
+            mean_tbb += time_tbb;
+            
+        }
+        mean_tbb = mean_tbb/ntrials[a] ;
+
+        // Hybrid Reduction
+        int d = 1;
+        double mean_hybrid = 0;
+        while(mean_hybrid <= 1.2){
+
+            mean_hybrid = 0.;
+            for(int i = 0; i < ntrials[a]; i++){
+                
+                // Declare result variables
+                double time_hybrid = 0.0;
+                PFP_TIME(parallel_steep_hybrid(drray,size,d),start,time_hybrid);
+                mean_hybrid += time_hybrid;
+
+            }
+            mean_hybrid = mean_hybrid / ntrials[a];
+            mean_hybrid /= mean_tbb;
+            d++;
+        }
+        d--;
+
+        // Writing results to a file
+        results <<
+        to_string(size) << "," <<
+        to_string(d) << endl;
+
+    }
+    results.close();
+}
+
 int main(int argc, char** argv){
     if(argc >= 1){
         int long a = atoi(argv[1]);
         switch (a){
             case 0 :
                 runtime_comparison_parallel_steep_hybrid();
+                break;
+            case 1 :
+                optimal_depth();
         }
     }
 }

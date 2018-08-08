@@ -43,74 +43,9 @@ void parallel_steep_double(double* array, long size){
         cout << endl << "Parallel double" << endl;
         printA(array,size);
         result.print_steep();
+        cout << endl;
     }
     init.terminate();
-}
-
-void parallel_steep_interval(double* array, long size){
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-    task_scheduler_init init;
-    __steep_interval result(array);
-    parallel_reduce(blocked_range<long>(0,size),result);
-    init.terminate();
-    _MM_SET_ROUNDING_MODE(0);
-
-    // If non precise result redo computation
-    long posl = -1;
-    long posr = -1;
-    if(result.possteepl1 != result.possteepl2 && result.possteepr1 != result.possteepr2){
-
-       // First case : possteepl2 <= possteepr1
-       if(result.possteepl2 <= result.possteepr1){
-           task_scheduler_init init2(2);
-           __mps_mpfr resultmps(array);
-                       
-           parallel_reduce(blocked_range<long>(result.possteepr1,result.possteepr2),resultmps);
-
-           posr = resultmps.position;
-           
-           // Creation of parameters
-           long length = result.possteepl2 - result.possteepl1;
-           double* a = new double[length];
-           for(long i = 0; i != length; i++){
-               a[i] = array[i+result.possteepl1];
-           }
-           double mts;
-           sequential_mts_superacc(a,length,&mts,&posl);
-           posl += result.possteepl1;
-        }
-       // Second case : possteepl2 > possteepr1
-       else {
-           cout << endl <<  "Recomputation not yet implemented, because super rare" << endl;
-        }
-    }
-    else if(result.possteepr1 != result.possteepr2){
-           task_scheduler_init init2(2);
-           __mps_mpfr resultmps(array);
-                       
-           parallel_reduce(blocked_range<long>(result.possteepr1,result.possteepr2),resultmps);
-
-           posr = resultmps.position;
-    }
-    else if(result.possteepl1 != result.possteepl2){
-           // Creation of parameters
-           long length = result.possteepl2 - result.possteepl1;
-           double* a = new double[length];
-           for(long i = 0; i != length; i++){
-               a[i] = array[i+result.possteepl1];
-           }
-           double mts;
-           sequential_mts_superacc(a,length,&mts,&posr);
-           posl += result.possteepl1;
-    }
-    if(PRINT){
-        cout << endl << "Dynamic lazy computation first results" << endl;
-        printA(array,size);
-        result.print_steep();
-        cout << endl << "Precise results" << endl;
-        cout << "Left pos: " << posl << endl;
-        cout << "Right pos: " << posr << endl;
-    }
 }
 
 __steep_naive::__steep_naive(double* a) :
@@ -130,11 +65,11 @@ __steep_naive::__steep_naive(__steep_naive& x, split) :
 void __steep_naive::operator()(const blocked_range<long>& r){
 
     for(int i = r.begin(); i != r.end(); i++){
-        double aux = a[i]-sum;
+        double aux = array[i]-sum;
         if(aux < capacity){
             capacity = aux;
         }
-        sum += a[i];
+        sum += array[i];
         b &= capacity >= 0;
     }
 }
@@ -161,7 +96,7 @@ __steep_mpfr::__steep_mpfr(double* a) :
 {}
 
 __steep_mpfr::__steep_mpfr(__steep_mpfr& x, split) :
-    array(x.a),
+    array(x.array),
     sum(0.,1000),
     capacity(0.,1000),
     b(true)
@@ -170,11 +105,11 @@ __steep_mpfr::__steep_mpfr(__steep_mpfr& x, split) :
 void __steep_mpfr::operator()(const blocked_range<long>& r){
 
     for(int i = r.begin(); i != r.end(); i++){
-        mpreal aux = a[i]-sum;
+        mpreal aux = array[i]-sum;
         if(aux < capacity){
             capacity = aux;
         }
-        sum += a[i];
+        sum += array[i];
         b &= capacity >= 0;
     }
 
@@ -195,7 +130,7 @@ void __steep_mpfr::print_steep(){
 }
 
 __steep_interval::__steep_interval(double* array_) :
-    array(a),
+    array(array_),
     b(True)
 {
     sum = in2_create(0.);
@@ -213,31 +148,32 @@ __steep_interval::__steep_interval(__steep_interval& x ,split s) :
 void __steep_interval::operator()(const blocked_range<long>& r){
 
     boolean dec;
+    __m128d aux;
     for(int i = r.begin(); i != r.end(); i++){
-        __m128d aux = in2_sub(a[i],sum);
 
+        aux = in2_sub(array[i],sum);
         dec = in2_ge(aux,0.);
         b = booleanAnd(b,dec); 
-
+        
         dec = in2_lt(aux,capacity);
         switch(dec){
+            case False:
+                break;
             case True:
                 capacity = aux;
                 break;
             case Undefined:
-                in2_merge(aux,capacity);
+                capacity = in2_merge(aux,capacity);
                 break;
         }
-
-
-        sum = in2_add(sum,a[i]);
+        sum = in2_add(sum,array[i]);
     }
 
 }
 
 void __steep_interval::join(__steep_interval& right){
 
-    __m128d aux = in2_sum(right.capacity,sum);
+    __m128d aux = in2_add(right.capacity,sum);
     capacity = in2_min(capacity,aux);
     sum = in2_add(sum,right.sum);
     b = booleanAnd(b,in2_ge(aux,0.));
@@ -247,7 +183,7 @@ void __steep_interval::print_steep(){
     cout << "Sum: ";
     print(sum);
     cout << endl << "Capacity: ";
-    print(steep);
+    print(capacity);
     cout << endl << "Boolean: ";
     print(b);
 }

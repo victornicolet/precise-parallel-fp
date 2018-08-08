@@ -17,7 +17,7 @@ using namespace std;
 struct steep_struct {
     double sum;
     double capacity;
-    boolean b;
+    bool b;
 };
 
 class HybridSteepReduction : public task {
@@ -59,10 +59,10 @@ class HybridSteepReduction : public task {
                 spawn_and_wait_for_all(rTask);
 
                 // Join
-                double aux = resRight.capacity + resLeft.sum;
-                capacity = min(resRight.capacity,aux);
+                double aux = resRight.capacity - resLeft.sum;
+                res -> capacity = min(resLeft.capacity,aux);
                 res -> sum = resLeft.sum + resRight.sum;
-                b &= aux >=0.;
+                res -> b &= aux >=0.;
 
         }
         return NULL;
@@ -101,11 +101,11 @@ struct steep_struct_bool {
     steep_struct_bool() :
         sum(false),
         capacity(false),
-        b(false),
+        b(false)
     {}
     bool sum;
     bool capacity;
-    bool sum;
+    bool b;
 
     void print(){
         cout << "Sum: " << sum << endl;
@@ -129,7 +129,7 @@ struct steep_struct_mpfr {
 
 class HybridSteepReductionInterval : public task {
     public :
-        HybridSteep(int depth_,int index_, double* a_, steep_struct_interval* res_, unsigned long left_, unsigned long right_,boolean*** memo_) :
+        HybridSteepReductionInterval(int depth_,int index_, double* a_, steep_struct_interval* res_, unsigned long left_, unsigned long right_,boolean*** memo_) :
             depth(depth_),
             index(index_),
             a(a_),
@@ -143,11 +143,12 @@ class HybridSteepReductionInterval : public task {
     task* execute(){
         if(depth == 0){
             // Call parallel_reduce
-            __steep_interval_without_pos result = __steep_interval_without_pos(a);
+            __steep_interval result = __steep_interval(this->a);
+
             parallel_reduce(blocked_range<long>(left,right),result);
             res -> sum = result.sum;
             res -> capacity = result.capacity;
-            res -> b = result.b;
+            res -> b = in2_ge(result.capacity,0.);
 
         }
         else{
@@ -170,46 +171,46 @@ class HybridSteepReductionInterval : public task {
                 // Join
                 boolean dec;
                 
-                __m128d aux = in2_sub(resRight.capacity,sum);
+                __m128d aux = in2_sub(resRight.capacity,resLeft.sum);
 
                 // First decision
                 dec = in2_le(resLeft.capacity,aux);
                 switch(dec){
                     case True:
-                        capacity = resLeft.capacity;
+                        res -> capacity = resLeft.capacity;
                         break;
                     case False:
-                        capacity = aux;
+                        res -> capacity = aux;
                         break;
                     case Undefined:
-                        capacity = in2_merge(resLeft.capacity,aux); 
+                        res -> capacity = in2_merge(resLeft.capacity,aux); 
                 }
                 memo[depth][index][0] = dec;
-
+    
                 // Second decision
                 dec = resLeft.b;
                 memo[depth][index][1] = dec;
                 switch(dec){
                     case False:
-                        return False;
+                        res -> b = False;
+                        break;
                     case Undefined:
                         // If b false not undefined
-                        // Third decision
                         dec = in2_ge(aux,0.);
                         memo[depth][index][2] = dec;
                         switch(dec){
                             case False:
-                                b = False;
+                                res -> b = False;
                             break;
                             default:
-                                b = Undefined;
+                                res -> b = Undefined;
                         }
                         break;
                     case True:
-                        b = True;
+                        res -> b = in2_ge(aux,0.);
                 }
 
-                sum = in2_add(resLeft.sum,resRight.sum);
+                res -> sum = in2_add(resLeft.sum,resRight.sum);
 
         }
         return NULL;
@@ -253,9 +254,10 @@ class HybridSteepReductionMpfr : public task {
             if(aux){
 
                 // Debug
-                cout << endl;
+                /*cout << endl;
                 cout << "Computation started " << depth << endl;
                 cout << "Index: " << index << endl;
+                */
 
                 __steep_mpfr result = __steep_mpfr(a);
                 parallel_reduce(blocked_range<long>(left,right),result);
@@ -274,204 +276,68 @@ class HybridSteepReductionMpfr : public task {
             
             steep_struct_bool resBoolLeft, resBoolRight;
             bool t;
-
-            boolean b = memo[depth][index][3];
-            switch(b){
-                case True:
-                
-                if(res_bool->steep){
-                    res_bool->steep = false;
-                    resBoolRight.mps = true;
-                    resBoolLeft.mts = true;
-                }
-                if(res_bool->posl){
-                    res_bool->posl = false;
-                    resBoolLeft.posMps = true;
-                }
-                if(res_bool->posr){
-                    res_bool->posr = false;
-                    resBoolRight.posMts = true;
-                }
-
-                break;
-                case Undefined:
-                // Variables used in the conditionnal
-                t = res_bool->steep || res_bool->posl || res_bool->posr;
-
-                // Assignments
-                if(res_bool->steep){
-                    resBoolRight.mps = true;
-                    resBoolLeft.mts = true;
-                }
-                if(res_bool->posl){
-                    resBoolLeft.posMps = true;
-                }
-                if(res_bool->posr){
-                    resBoolRight.posMts = true;
-                }
-                if(t){
-                    res_bool->steep = true;
-                    resBoolLeft.mts = true;
-                    resBoolRight.mps = true;
-                }
-                default:
-                break;
-            }
-
-            b = memo[depth][index][2];
-            switch(b){
-                case True:
-                if(res_bool->steep){
-                    res_bool->steep = false;
-                    resBoolLeft.steep = true;
-                }
-                if(res_bool->posl){
-                    res_bool->posl = false;
-                    resBoolLeft.posl = true;
-                }
-                if(res_bool->posr){
-                    res_bool->posr = false;
-                    resBoolLeft.posr = true;
-                }
-                break;
-                case False:
-                if(res_bool->steep){
-                    res_bool->steep = false;
-                    resBoolRight.steep = true;
-                }
-                if(res_bool->posl){
-                    res_bool->posl = false;
-                    resBoolRight.posl = true;
-                }
-                if(res_bool->posr){
-                    res_bool->posr = false;
-                    resBoolRight.posr = true;
-                }
-                break;
-                default:
-                // Variables used in the conditionnal
-                t = res_bool->steep || res_bool->posl || res_bool->posr;
-
-                if(res_bool->steep){
-                    res_bool->steep = false;
-                    resBoolRight.steep = true;
-                    resBoolLeft.steep = true;
-                }
-                if(res_bool->posl){
-                    res_bool->posl = false;
-                    resBoolRight.posl = true;
-                    resBoolLeft.posl = true;
-                }
-                if(res_bool->posr){
-                    res_bool->posr = false;
-                    resBoolRight.posr = true;
-                    resBoolLeft.posr = true;
-                }
-
-                if(t){
-                    resBoolLeft.steep = true;
-                    resBoolRight.steep = true;
-                }
-            }
-
-            // Mts
-            b = memo[depth][index][1];
-            switch(b){
-                case True:
-                if(res_bool->mts){
-                    res_bool->mts = false;
-                    resBoolRight.sum = true;
-                    resBoolLeft.mts = true;
-                }
-                if(res_bool->posMts){
-                    res_bool->posMts = false;
-                    resBoolLeft.posMts = true;
-                }
-                break;
-                case False:
-                if(res_bool->mts){
-                    res_bool->mts = false;
-                    resBoolRight.mts = true;
-                }
-                if(res_bool->posMts){
-                    res_bool->posMts = false;
-                    resBoolRight.posMts = true;
-                }
-                break;
-                default:
-                t = res_bool->mts || res_bool->posMts;
-
-                if(res_bool->mts){
-                    res_bool->mts = false;
-                    resBoolRight.sum = true;
-                    resBoolLeft.mts = true;
-                    resBoolRight.mts = true;
-                }
-                if(res_bool->posMts){
-                    res_bool->posMts = false;
-                    resBoolRight.posMts = true;
-                    resBoolLeft.posMts = true;
-                }
-
-                if(t){
-                    resBoolRight.sum = true;
-                    resBoolLeft.mts = true;
-                    resBoolRight.mts = true;
-                }
-            }
-
-            // Mps
-            b = memo[depth][index][0];
-            switch(b){
-                case True:
-                if(res_bool->mps){
-                    res_bool->mps = false;
-                    resBoolLeft.sum = true;
-                    resBoolRight.mps = true;
-                }
-                if(res_bool->posMps){
-                    res_bool->posMps = false;
-                    resBoolRight.posMps = true;
-                }
-                break;
-                case False:
-                if(res_bool->mps){
-                    res_bool->mps = false;
-                    resBoolLeft.mps = true;
-                }
-                if(res_bool->posMps){
-                    res_bool->posMps = false;
-                    resBoolLeft.posMps = true;
-                }
-                break;
-                default:
-                t = res_bool->mps || res_bool->posMps;
-
-                if(res_bool->mps){
-                    res_bool->mps = false;
-                    resBoolLeft.mps = true;
-                    resBoolLeft.sum = true;
-                    resBoolRight.mps = true;
-                }
-                if(res_bool->posMps){
-                    res_bool->posMps = false;
-                    resBoolLeft.posMps = true;
-                    resBoolRight.posMps = true;
-                }
-
-                if(t){
-                    resBoolLeft.mps = true;
-                    resBoolLeft.sum = true;
-                    resBoolRight.mps = true;
-                }
-
-            }
+            boolean dec;
+            bool aux;
 
             // Sum
-            if(res->sum){
+            if(res -> sum){
                 res->sum = false;
-                resBoolLeft.sum = true;
                 resBoolRight.sum = true;
+                resBoolLeft.sum = true;
+            }
+
+            // Second decision
+            // dec is b, if false we don't need to know aux, else we need to
+            if(res -> b){
+                dec = memo[depth][index][1];
+                switch(dec){
+                    case False:
+                        res -> b = false;
+                        break;
+                    case Undefined:
+                        // If b false not undefined
+                        // Third decision
+                        dec = memo[depth][index][2];
+                        switch(dec){
+                            case False:
+                                res -> b = false;
+                            break;
+                            default:
+                                aux = true;
+                        }
+                        break;
+                    case True:
+                        res -> b = false;
+                        aux = true;
+                }
+            }
+
+            // First decision 
+            dec = memo[depth][index][0];
+            switch(dec){
+                case True:
+                    if(res -> capacity){
+                        res -> capacity = false;
+                        resLeft.capacity = true;
+                    }
+                    break;
+                case False:
+                    if(res -> capacity){
+                        res -> capacity = false;
+                        aux = true;
+                    }
+                    break;
+                case Undefined:
+                    if(res -> capacity){
+                        res -> capacity = false;
+                        aux = true;
+                        resLeft.capacity = true;
+                    }
+            }
+
+            if(aux){
+                resRight.capacity = true;
+                resLeft.sum = true;
             }
 
             // Call subtasks and return result;
@@ -483,46 +349,10 @@ class HybridSteepReductionMpfr : public task {
             spawn_and_wait_for_all(rTask);
 
             // Join
-            // Sum
-            res->sum = resLeft.sum + resRight.sum;
-
-            // Mps
-            mpreal mpsAux = resLeft.sum+resRight.mps;
-            if(mpsAux >= resLeft.mps){
-                res -> mps = mpsAux;
-                res -> posMps = resRight.posMps;
-            }else{
-                res -> mps = resLeft.mps;
-                res -> posMps = resLeft.posMps;
-            }
-
-            // Mts
-            mpreal mtsAux = resRight.sum+resLeft.mts;
-            if(mtsAux>=resRight.mts){
-                res->mts = mtsAux;
-                res->posMts = resLeft.posMts;
-            }else{
-                res->mts = resRight.mts;
-                res->posMts = resRight.posMts;
-            }
-
-            // Mss
-            if(resLeft.steep>=resRight.steep){
-                res->steep = resLeft.steep; 
-                res->posl = resLeft.posl;
-                res->posr = resLeft.posr;
-            }else{
-                res->steep = resRight.steep; 
-                res->posl = resRight.posl;
-                res->posr = resRight.posr;
-            }
-
-            mpreal steepAux = resRight.mps+resLeft.mts;
-            if(steepAux>=res->steep){
-                res->steep = steepAux;
-                res->posl = resLeft.posMts;
-                res->posr = resRight.posMps;
-            }
+            mpreal aux2 = resRight.capacity - resLeft.sum;
+            res -> capacity = min(resLeft.capacity,aux2);
+            res -> sum = resLeft.sum + resRight.sum;
+            res -> b &= aux2 >=0.;
 
         }
         return NULL;
@@ -549,7 +379,7 @@ void parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
     for(int i = maxDepth-1; i >= 0;i--){
         memo[i] = new boolean*[maxIndex];
         for(int j = 0; j != maxIndex; j++){
-            memo[i][j] = new boolean[4];
+            memo[i][j] = new boolean[3];
         }
         maxIndex = 2*maxIndex;
     }
@@ -564,37 +394,38 @@ void parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
         cout << "Sum: " ;
         print(res.sum);
         cout << endl;
-        cout << "Steep: ";
-        print(res.steep);
+        cout << "Capacity: ";
+        print(res.capacity);
         cout << endl;
-        cout << "Mps: ";
-        print(res.mps);
-        cout << endl;
-        cout << "Mts: ";
-        print(res.mts);
+        cout << "Boolean: ";
+        print(res.b);
         cout << endl;
     }
     init.terminate();
     _MM_SET_ROUNDING_MODE(0);
 
+}
+
+void parallel_steep_hybrid_mpfr(double* a, long size,int maxDepth,boolean*** memo){
+    
     // Second step
     task_scheduler_init init2;
 
     steep_struct_mpfr res_mpfr; 
     steep_struct_bool res_bool; 
-    res_bool.posl = true;
-    res_bool.posr = true;
+    res_bool.b = true;
 
     HybridSteepReductionMpfr& rootMpfr = *new(task::allocate_root()) HybridSteepReductionMpfr(maxDepth-1,0,a,&res_mpfr,&res_bool,0,size,memo);
 
     task::spawn_root_and_wait(rootMpfr);
     if(PRINT){
         cout << endl << "Hybrid steep Mpfr" << endl;
-        cout << "Mss Left pos: " << res_mpfr.posl << endl;
-        cout << "Mss Right pos: " << res_mpfr.posr << endl;
-        cout << "Mps Pos: " << res_mpfr.posMps << endl;
-        cout << "Mts Pos: " << res_mpfr.posMts << endl;
+        cout << "Sum: " << res_mpfr.sum << endl;
+        cout << "Capacity: " << res_mpfr.capacity << endl;
+        cout << "Boolean: " << res_mpfr.b << endl;
     }
 
 
 }
+
+

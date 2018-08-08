@@ -69,8 +69,8 @@ struct __steep_mpfr{
 // steep structure with interval arithmetic
 struct __steep_interval{
     double* array;
-    mpreal sum;
-    mpreal capacity;
+    __m128d sum;
+    __m128d capacity;
     boolean b;
 
     __steep_interval(double* a);

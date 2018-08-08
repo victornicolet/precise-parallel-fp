@@ -182,7 +182,7 @@ inline boolean in2_ge(double b, __m128d a){
 }
 
 inline boolean in2_ge(__m128d b, double a){
-	return in2_le(b,in2_create(a));
+	return in2_le(a,b);
 }
 
 inline boolean in2_lt(__m128d a, __m128d b){
@@ -278,7 +278,7 @@ inline boolean booleanAnd(boolean a, boolean b){
             }
             break;
         default:
-            return True;
+            return b;
     }
 
 }
