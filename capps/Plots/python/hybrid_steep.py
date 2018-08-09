@@ -44,9 +44,9 @@ pypl.ylim(0.5,5)
 pypl.xlabel("Array Size")
 pypl.ylabel("Relative Throughput")
 pypl.xscale('log')
-pypl.yticks(np.arange(0.5,8.5,0.5))
+pypl.yticks(np.arange(0.5,8.5,1))
 pypl.title('Mss, machine A')
-pypl.legend(loc=2, prop={'size': 5})
+#pypl.legend(loc=2, prop={'size': 5})
 
 
 pypl.subplot(222)
@@ -57,14 +57,14 @@ pypl.fill_between(curves[0],curves[4]/curves[2],curves[4]/curves[3],label="Sched
 pypl.fill_between(curves[0],curves[4]/curves[3],curves[4]/curves[1],label="Interval Arithmetic Overhead",alpha=0.2,color='y')
 
 pypl.xlim(3*10**5,10**9)
-pypl.ylim(0.5,5)
+pypl.ylim(0.5,4)
 pypl.xlabel("Array Size")
 #pypl.ylabel("Relative Throughput")
 pypl.xscale('log')
-pypl.yticks(np.arange(0.5,5,0.5))
+pypl.yticks(np.arange(0.5,4,0.5))
 pypl.title('Steep, machine A')
-pypl.legend(loc=2, prop={'size': 5})
 
+pypl.legend(loc=9, bbox_to_anchor = (0.5,-0.1), prop={'size': 10})
 
 pypl.suptitle("Relative Throughput as a Function of Input Size");
 #pypl.show()

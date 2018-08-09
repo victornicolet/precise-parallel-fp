@@ -25,5 +25,5 @@ pypl.ylabel("Relative mean computation time")
 pypl.legend(loc=2, prop={'size': 10})
 pypl.title("Computation time for Bellman-Ford as a function of the graph size");
 pypl.show()
-pypl.savefig("Plots/bellmanford.jpg");
+pypl.savefig("Plots/figures/bellmanford.jpg");
 
