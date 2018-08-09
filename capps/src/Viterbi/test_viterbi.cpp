@@ -21,10 +21,10 @@ void runtime_comparison(){
     // Variables declaration and initialisation 
     double start;
     int size = 200;
-    int N = 1;
+    int N = 10;
 
     // for each dynamic range
-    vector<int> dynRanges  {5};
+    vector<int> dynRanges  {2000};
     int s = dynRanges.size();
     
     // Store results to plot

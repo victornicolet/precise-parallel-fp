@@ -312,8 +312,8 @@ void runtime_comparison_sequential_alt(){
     
     // Variables declaration and initialisation 
     double start;
-    int size = pow(10,5);
-    int N = 50;
+    int size = pow(10,7);
+    int N = 10;
 
     // for each dynamic range
     vector<int> dynRanges  {1};
@@ -330,9 +330,6 @@ void runtime_comparison_sequential_alt(){
     srand(time(NULL));
    
     for(int r = 0; r < dynRanges.size(); r++){
-        if(PRINT){
-            cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
-        }
 
         // initialization of means
         double mean_double = 0.,mean_sum_superacc = 0., mean_superacc = 0., mean_mpfr = 0., mean_interval = 0.,mean_reverse_mps = 0., mean_reverse_pos = 0., mean_lazy_superacc_mps = 0., mean_lazy_superacc_pos = 0., mean_lazy_mpfr_mps = 0., mean_lazy_mpfr_pos = 0.; 
@@ -342,6 +339,7 @@ void runtime_comparison_sequential_alt(){
         
 
         for(int i = 0; i < N; i++){
+            cout << endl << endl <<"***********************************" << endl << "New Input Array, Mps Alt" << endl;
 
         // Generating array
         double* drray = new double[size];
@@ -461,12 +459,12 @@ void runtime_comparison_sequential_alt(){
         r7[r]= mean_lazy_superacc_pos / mean_double;
         r8[r]= mean_lazy_mpfr_mps / mean_double;
         r9[r]= mean_lazy_mpfr_pos / mean_double;
-        r10[r] = r3[r]+r4[r]+r6[r];
-        r11[r] = r3[r]+r5[r]+r7[r];
         r12[r] = r3[r]+r4[r]+r8[r];
         r13[r] = r3[r]+r5[r]+r9[r];
         r14[r]= mean_lazy_superacc_mps_bis / mean_double;
         r15[r]= mean_lazy_superacc_pos_bis / mean_double;
+        r10[r] = r3[r]+r4[r]+r14[r];
+        r11[r] = r3[r]+r5[r]+r15[r];
 
         // Writing results to a file
         results << to_string(x[r]) << "," << to_string(r0[r]) << "," << to_string(r1[r]) << "," << to_string(r2[r]) << "," << to_string(r2bis[r]) << "," << to_string(r3[r])<< "," << to_string(r4[r]) << "," << to_string(r5[r]) << "," << to_string(r6[r]) << ","<< to_string(r7[r]) << "," << to_string(r8[r]) << "," << to_string(r9[r]) << "," << to_string(r10[r]) << "," << to_string(r11[r]) << "," << to_string(r12[r]) << "," << to_string(r13[r]) << "," <<
