@@ -80,12 +80,12 @@ void sequential_mss_double(double* array, long size ){
 
     }
 
-    if(PRINT){
+    //if(PRINT){
         cout << endl << "mss with doubles" << endl;
         cout << "mss: " << msst << endl;
         cout << "Posl: " << poslt << endl;
         cout << "Posr: " << posrt << endl;
-    }
+    //}
 }
 
 // Enum to represent decisions for mss
