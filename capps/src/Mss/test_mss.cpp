@@ -260,7 +260,7 @@ void runtime_comparison_parallel_mss_hybrid_final(){
     
     // Store results to plot
     fstream results;
-    results.open("Plots/csv/mss_hybrid_final.csv", ofstream::out | ofstream::trunc);
+    results.open("Plots/csv/mss_hybrid_final_with_recomp.csv", ofstream::out | ofstream::trunc);
 
     for(int i = 0; i != n; i++){
         int size = sizes[i];

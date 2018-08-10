@@ -56,7 +56,6 @@ capps/install_manifest.txt
 *.jpg
 capps/src/Makefile
 capps/src/CMakeFiles
-!capps/Plots/*.csv
 capps/Precise-parallel-fp/
 *.vim
 Reduction tests/

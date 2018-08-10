@@ -363,9 +363,9 @@ class HybridMssReductionMpfr : public task {
             if(auxMss || auxMps || auxMts || auxSum){
 
                 // Debug
-                cout << endl;
-                cout << "Computation started " << depth << endl;
-                cout << "Index: " << index << endl;
+                //cout << endl;
+                //cout << "Computation started " << depth << endl;
+                //cout << "Index: " << index << endl;
 
                 __mss_mpfr result = __mss_mpfr(a);
                 parallel_reduce(blocked_range<long>(left,right),result);
@@ -690,7 +690,7 @@ void parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
         cout << endl;
     }
     init.terminate();
-    /*_MM_SET_ROUNDING_MODE(0);
+    _MM_SET_ROUNDING_MODE(0);
 
     // Second step
     task_scheduler_init init2;
@@ -709,5 +709,5 @@ void parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
         cout << "Mss Right pos: " << res_mpfr.posr << endl;
         cout << "Mps Pos: " << res_mpfr.posMps << endl;
         cout << "Mts Pos: " << res_mpfr.posMts << endl;
-    }*/
+    }
 }
