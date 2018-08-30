@@ -582,8 +582,8 @@ class HybridMssReductionMpfr : public task {
             }
 
             // Sum
-            if(res->sum){
-                res->sum = false;
+            if(res_bool->sum){
+                res_bool->sum = false;
                 resBoolLeft.sum = true;
                 resBoolRight.sum = true;
             }

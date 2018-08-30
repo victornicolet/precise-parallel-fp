@@ -271,7 +271,7 @@ void runtime_comparison_parallel_mss_hybrid_final(){
         // Generating array
         srand(time(NULL));
         double* drray = new double[size];
-        init_fpuniform(size, drray, 200, 100);
+        init_fpuniform(size, drray, 1, 1);
         for(int j = 0; j < size ; j++){
              drray[j] = (rand() % 2) ? drray[j] : -drray[j];
         }
@@ -365,7 +365,7 @@ int main(int argc, char** argv){
                 runtime_comparison_parallel_mss_hybrid();
                 break;
             case 3 :
-                runtime_comparison_parallel_mss_hybrid_final();
+        runtime_comparison_parallel_mss_hybrid_final();
                 break;
         }
     }

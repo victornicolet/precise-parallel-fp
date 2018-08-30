@@ -427,7 +427,7 @@ boolean*** parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
 void parallel_steep_hybrid_exact(double* a, long size,int maxDepth,boolean*** memo){
     
     // Second step
-    task_scheduler_init init2(1);
+    task_scheduler_init init2;
 
     steep_struct_mpfr res_mpfr; 
     steep_struct_bool res_bool; 
