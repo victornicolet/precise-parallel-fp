@@ -17,7 +17,7 @@ curves = np.array(results).transpose()
 print curves
 
 results2 = []
-with open("Plots/csv/mss_hybrid_final.csv", "rb") as csvfile2:
+with open("Plots/csv/mss_hybrid_final_with_recomp.csv", "rb") as csvfile2:
     resultsreader2 = csv.reader(csvfile2)
     for row in resultsreader2:
         try:
@@ -65,8 +65,10 @@ pypl.subplot(321)
 pypl.plot(curves2[0],curves2[4]/curves2[1],label="Double Parallel Reduce")
 pypl.plot(curves2[0],curves2[4]/curves2[2],label="Interval Arithmetic Filtering")
 pypl.plot(curves2[0],curves2[4]/curves2[4],label="Sequential Implementation")
+pypl.plot(curves2[0],curves2[4]/curves2[5],label="Total, Guarantee on Pos")
 pypl.fill_between(curves2[0],curves2[4]/curves2[2],curves2[4]/curves2[3],label="Scheduling and Memorization Overhead",color='b',alpha=0.2)
 pypl.fill_between(curves2[0],curves2[4]/curves2[3],curves2[4]/curves2[1],label="Interval Arithmetic Overhead",alpha=0.2,color='y')
+pypl.fill_between(curves2[0],curves2[4]/curves2[5],curves2[4]/curves2[2],label="Exact computation",alpha=0.2,color='r')
 
 pypl.xlim(3*10**5,10**9)
 pypl.ylim(0.5,5)
@@ -122,6 +124,6 @@ pypl.xlabel("Steep")
 
 pypl.legend(loc=9, prop={'size': 10},bbox_to_anchor=(-0.1,-0.5))
 
-pypl.suptitle("Relative Throughput as a Function of Input Size",y=0.97);
+pypl.suptitle("Speedup as a Function of Input Size",y=0.97);
 #pypl.show()
 pypl.savefig("Plots/figures/hybridsteepfinal.jpg");

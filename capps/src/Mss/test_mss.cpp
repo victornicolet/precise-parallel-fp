@@ -256,6 +256,7 @@ void runtime_comparison_parallel_mss_hybrid_final(){
     vector<int> ntrials = {10000,30000,10000,3000,3000,3000,1000,1000,300,100,30,10,3,1};
     int n = depths.size();
     vector<double> interval(n);
+    vector<double> total(n);
     vector<double> intervalref(n);
     
     // Store results to plot
@@ -306,20 +307,28 @@ void runtime_comparison_parallel_mss_hybrid_final(){
         mean_tbb = mean_tbb/N ;
         mean_tbb = mean_tbb/size ;
 
+
         cout << "Starting interval 2: " << size << endl;
         // Lazy hybrid reduction
         double mean_hybrid_interval = 0.;
+        double mean_hybrid_total = 0.;
         for(int k = 0; k < N; k++){
             
             // Declare result variables
-            double time_hybrid_interval = 0.0;
-            PFP_TIME(parallel_mss_hybrid_interval(drray,size,depths[i]),start,time_hybrid_interval);
+            double time_hybrid_interval;
+            double time_hybrid_total;
+            parallel_mss_hybrid_lazy(drray,size,depths[i],time_hybrid_interval,time_hybrid_total);
             mean_hybrid_interval += time_hybrid_interval;
+            mean_hybrid_total += time_hybrid_total;
             
         }
         mean_hybrid_interval = mean_hybrid_interval / size;
         mean_hybrid_interval = mean_hybrid_interval / N;
+        mean_hybrid_total = mean_hybrid_total / size;
+        mean_hybrid_total = mean_hybrid_total / N;
         interval[i] = mean_hybrid_interval;
+        total[i] = mean_hybrid_total;
+
 
         cout << "Starting sequential: " << size << endl;
         // Lazy hybrid reduction
@@ -335,7 +344,8 @@ void runtime_comparison_parallel_mss_hybrid_final(){
         to_string(mean_tbb) << "," <<
         to_string(interval[i]) << "," <<
         to_string(intervalref[i]) << "," <<
-        to_string(mean_sequential) << endl;
+        to_string(mean_sequential) << "," <<
+        to_string(total[i]) << endl;
 
     }
     results.close();

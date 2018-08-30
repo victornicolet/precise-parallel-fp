@@ -6,6 +6,7 @@
 #include "tbb/task_scheduler_init.h"
 #include "tbb/parallel_reduce.h"
 
+#include "pfpdefs.hpp"
 #include "debug.hpp"
 #include "parallel_mss.hpp"
 #include "interval_arithmetic.hpp"
@@ -227,8 +228,6 @@ class HybridMssReductionInterval : public task {
 
         }
         else{
-            
-
 
             int newDepth = depth - 1;
             mss_struct_interval resLeft;
@@ -653,8 +652,18 @@ class HybridMssReductionMpfr : public task {
         boolean*** memo;
 };
 
-void parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
-    
+void parallel_mss_hybrid_lazy(double* a, long size,int maxDepth,double& time_hybrid_interval, double& time_hybrid_total){
+
+    double start;
+    PFP_TIME(boolean*** memo = parallel_mss_hybrid_interval(a, size, maxDepth),start,time_hybrid_interval);
+
+    double time_exact;
+    PFP_TIME(parallel_mss_hybrid_exact(a, size, maxDepth,memo),start,time_exact);
+
+    time_hybrid_total = time_hybrid_interval + time_exact;
+}
+
+boolean*** parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
     // Set rounding mode
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     task_scheduler_init init;
@@ -691,7 +700,10 @@ void parallel_mss_hybrid_interval(double* a, long size,int maxDepth){
     }
     init.terminate();
     _MM_SET_ROUNDING_MODE(0);
+    return memo;
+}
 
+void parallel_mss_hybrid_exact(double* a, long size,int maxDepth,boolean*** memo){
     // Second step
     task_scheduler_init init2;
 
