@@ -6,6 +6,7 @@
 #include "tbb/task_scheduler_init.h"
 #include "tbb/parallel_reduce.h"
 
+#include "pfpdefs.hpp"
 #include "debug.hpp"
 #include "parallel_steep.hpp"
 #include "interval_arithmetic.hpp"
@@ -247,6 +248,7 @@ class HybridSteepReductionMpfr : public task {
         cout << "Index: " << index << endl;
         res_bool->print();
         */
+        
 
         if(depth == 0){
             // Call parallel_reduce
@@ -257,6 +259,9 @@ class HybridSteepReductionMpfr : public task {
                 /*cout << endl;
                 cout << "Computation started " << depth << endl;
                 cout << "Index: " << index << endl;
+                cout << "capacity status: " << res_bool->capacity << endl;
+                cout << "sum status: " << res_bool->sum << endl;
+                cout << "bool status: " << res_bool->b << endl;
                 */
 
                 __steep_mpfr result = __steep_mpfr(a);
@@ -280,19 +285,20 @@ class HybridSteepReductionMpfr : public task {
             bool aux;
 
             // Sum
-            if(res -> sum){
-                res->sum = false;
+            if(res_bool -> sum){
+                //cout << "test" << endl;
+                res_bool->sum = false;
                 resBoolRight.sum = true;
                 resBoolLeft.sum = true;
             }
 
             // Second decision
             // dec is b, if false we don't need to know aux, else we need to
-            if(res -> b){
+            if(res_bool -> b){
                 dec = memo[depth][index][1];
                 switch(dec){
                     case False:
-                        res -> b = false;
+                        res_bool -> b = false;
                         break;
                     case Undefined:
                         // If b false not undefined
@@ -300,14 +306,14 @@ class HybridSteepReductionMpfr : public task {
                         dec = memo[depth][index][2];
                         switch(dec){
                             case False:
-                                res -> b = false;
+                                res_bool -> b = false;
                             break;
                             default:
                                 aux = true;
                         }
                         break;
                     case True:
-                        res -> b = false;
+                        res_bool -> b = false;
                         aux = true;
                 }
             }
@@ -316,20 +322,20 @@ class HybridSteepReductionMpfr : public task {
             dec = memo[depth][index][0];
             switch(dec){
                 case True:
-                    if(res -> capacity){
-                        res -> capacity = false;
+                    if(res_bool -> capacity){
+                        res_bool -> capacity = false;
                         resLeft.capacity = true;
                     }
                     break;
                 case False:
-                    if(res -> capacity){
-                        res -> capacity = false;
+                    if(res_bool -> capacity){
+                        res_bool -> capacity = false;
                         aux = true;
                     }
                     break;
                 case Undefined:
-                    if(res -> capacity){
-                        res -> capacity = false;
+                    if(res_bool -> capacity){
+                        res_bool -> capacity = false;
                         aux = true;
                         resLeft.capacity = true;
                     }
@@ -368,7 +374,18 @@ class HybridSteepReductionMpfr : public task {
         boolean*** memo;
 };
 
-void parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
+void parallel_steep_hybrid_lazy(double* a, long size,int maxDepth,double& time_hybrid_interval, double& time_hybrid_total){
+
+    double start;
+    PFP_TIME(boolean*** memo = parallel_steep_hybrid_interval(a, size, maxDepth),start,time_hybrid_interval);
+
+    double time_exact;
+    PFP_TIME(parallel_steep_hybrid_exact(a, size, maxDepth,memo),start,time_exact);
+
+    time_hybrid_total = time_hybrid_interval + time_exact;
+}
+
+boolean*** parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
     
     // Set rounding mode
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
@@ -403,13 +420,14 @@ void parallel_steep_hybrid_interval(double* a, long size,int maxDepth){
     }
     init.terminate();
     _MM_SET_ROUNDING_MODE(0);
+    return memo;
 
 }
 
-void parallel_steep_hybrid_mpfr(double* a, long size,int maxDepth,boolean*** memo){
+void parallel_steep_hybrid_exact(double* a, long size,int maxDepth,boolean*** memo){
     
     // Second step
-    task_scheduler_init init2;
+    task_scheduler_init init2(1);
 
     steep_struct_mpfr res_mpfr; 
     steep_struct_bool res_bool; 
@@ -424,8 +442,6 @@ void parallel_steep_hybrid_mpfr(double* a, long size,int maxDepth,boolean*** mem
         cout << "Capacity: " << res_mpfr.capacity << endl;
         cout << "Boolean: " << res_mpfr.b << endl;
     }
-
-
 }
 
 

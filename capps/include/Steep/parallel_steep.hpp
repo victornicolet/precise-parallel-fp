@@ -28,7 +28,11 @@ void parallel_steep_interval(double* array, long size);
 void parallel_steep_hybrid(double* array, long size, int maxDepth);
 
 // Main function for parallel steep with intervals
-void parallel_steep_hybrid_interval(double* array, long size, int maxDepth);
+boolean*** parallel_steep_hybrid_interval(double* array, long size, int maxDepth);
+
+void parallel_steep_hybrid_exact(double* array, long size, int maxDepth, boolean***);
+
+void parallel_steep_hybrid_lazy(double* array, long size, int maxDepth, double&,double&);
 
 // Naive steep structure
 struct __steep_naive{
