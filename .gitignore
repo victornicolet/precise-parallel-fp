@@ -3,7 +3,6 @@
 \#*
 .#*
 *~
-*.csv
 capps/precise_parallel_fp
 *CMakeCache.txt
 *.cmake
